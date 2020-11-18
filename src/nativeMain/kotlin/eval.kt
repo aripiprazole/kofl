@@ -1,4 +1,14 @@
-object Evaluator : ExprVisitor<Any> {
+@ThreadLocal
+object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
+  private val environment = Environment()
+
+  fun eval(expr: Expr) = expr.accept(this)
+  fun eval(stmt: Stmt) = stmt.accept(this)
+
+  fun eval(stmts: Collection<Stmt>): Collection<Any> = stmts.map { stmt ->
+    eval(stmt)
+  }
+
   override fun visit(binary: Expr.Binary): Any {
     val left = eval(binary.left)
     val right = eval(binary.right)
@@ -24,7 +34,7 @@ object Evaluator : ExprVisitor<Any> {
       TokenType.EqualEqual -> left == right
       TokenType.BangEqual -> left != right
 
-      TokenType.Plus -> if(left is String) left + right else
+      TokenType.Plus -> if (left is String) left + right else
         throw UnsupportedOpError(binary.op)
 
       else -> throw UnsupportedOpError(binary.op)
@@ -45,12 +55,18 @@ object Evaluator : ExprVisitor<Any> {
     }
   }
 
-  fun eval(expr: Expr): Any {
-    return expr.accept(this)
+  override fun visit(exprStmt: Stmt.ExprStmt) = eval(exprStmt.expr)
+
+  override fun visit(printStmt: Stmt.PrintStmt): Any {
+    return println(eval(printStmt.expr))
+  }
+
+  override fun visit(valDecl: Stmt.ValDecl): Any {
+    return environment.define(valDecl.name, eval(valDecl.value), immutable = true)
   }
 }
 
-fun show(any: Any?) = when(any) {
+fun show(any: Any?) = when (any) {
   null -> "NULL"
   is String -> "\"$any\""
   else -> any

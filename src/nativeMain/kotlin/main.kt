@@ -1,5 +1,7 @@
 import platform.posix.exit
 import platform.posix.fopen
+import kotlin.native.concurrent.TransferMode
+import kotlin.native.concurrent.withWorker
 
 fun main(args: Array<String>) = try {
   when {
@@ -13,7 +15,11 @@ fun main(args: Array<String>) = try {
       repl()
     }
   }
-} catch (error: LanguageError) {
+} catch (error: ParseError) {
+  error.report()
+
+  exit(65)
+} catch (error: SyntaxError) {
   error.report()
 
   exit(65)
@@ -38,18 +44,16 @@ fun file(name: String) {
 tailrec fun repl() {
   print(WHILE_COLOR)
   print("> ")
-  print(readLine()?.let {
+
+  val line = readLine()
+
+  if (line != null) {
     try {
-      GREEN_COLOR + show(run(it))
-    } catch (error: LanguageError) {
+      show(run(line))
+    } catch (error: KoflError) {
       error.report()
-      null
-    } catch (error: RuntimeError) {
-      error.report()
-      null
     }
-  })
-  println()
+  }
 
   repl()
 }
@@ -61,9 +65,9 @@ fun run(code: String): Any? {
   val scanner = Scanner(code)
   val parser = Parser(scanner.scan())
 
-  return (parser.parse() ?: return null).let { expr ->
-//    AstDumper.dump(expr)
-    Evaluator.eval(expr)
+  return parser.parse().let { stmts ->
+    AstDumper.dump(stmts)
+    Evaluator.eval(stmts)
   }
 }
 

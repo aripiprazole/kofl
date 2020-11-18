@@ -3,14 +3,65 @@ class Parser(private val tokens: List<Token>) {
 
   private var current = 0
 
-  fun parse(): Expr? = try {
-    expression()
+  fun parse(): Collection<Stmt> {
+    val stmts = mutableListOf<Stmt>()
+
+    while (!isAtEnd) {
+      stmts += declaration() ?: continue
+    }
+
+    return stmts.toSet()
+  }
+
+  private fun declaration(): Stmt? = try {
+    when {
+      match(TokenType.Val) -> valDeclaration()
+
+      else -> statement()
+    }
   } catch (error: ParseError) {
     if (!synchronize()) {
       error.report()
     }
 
     null
+  }
+
+  private fun valDeclaration(): Stmt {
+    val name = consume(TokenType.Identifier)
+      ?: throw ParseError(peek(), "expecting a declaration name")
+
+    if (!match(TokenType.Equal))
+      throw ParseError(peek(), "expecting a declaration initializer")
+
+    val initializer = expression()
+
+    consume(TokenType.Semicolon)
+      ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
+
+    return Stmt.ValDecl(name, initializer)
+  }
+
+  private fun statement(): Stmt {
+    if (match(TokenType.Print)) return printStatement()
+
+    return exprStatement()
+  }
+
+  private fun printStatement(): Stmt {
+    val expr = expression()
+
+    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing end of line")
+
+    return Stmt.PrintStmt(expr)
+  }
+
+  private fun exprStatement(): Stmt {
+    val expr = expression()
+
+    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing end of line")
+
+    return Stmt.ExprStmt(expr)
   }
 
   private fun synchronize(): Boolean {

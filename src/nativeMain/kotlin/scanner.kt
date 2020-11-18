@@ -26,7 +26,7 @@ class Scanner(private val source: String) {
       '}' -> addToken(TokenType.RightBrace)
       '.' -> addToken(TokenType.Dot)
       ',' -> addToken(TokenType.Comma)
-      ';' -> addToken(TokenType.Semicolon)
+      ';' ->  addToken(TokenType.Semicolon)
       ':' -> addToken(TokenType.Colon)
       '@' -> addToken(TokenType.At)
 
@@ -67,9 +67,7 @@ class Scanner(private val source: String) {
       }
 
       // enjoy next line
-      ENTER_CHAR -> {
-        line++
-      }
+      ENTER_CHAR -> line++
 
       else -> {
         if (isDigit(char)) return scanNumber()
@@ -95,7 +93,7 @@ class Scanner(private val source: String) {
       advance()
     }
 
-    if (isAtEnd) throw SyntaxError(line, "Unfinished multiline comment")
+    if (isAtEnd) throw LexError(line, "Unfinished multiline comment")
 
     // close comment: */ here
     advance()
@@ -122,7 +120,7 @@ class Scanner(private val source: String) {
       advance()
     }
 
-    if (isAtEnd) throw SyntaxError(line, "Unfinished string")
+    if (isAtEnd) throw LexError(line, "Unfinished string")
 
     // close string here
     advance()
