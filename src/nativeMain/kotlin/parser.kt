@@ -67,7 +67,7 @@ class Parser(private val tokens: List<Token>) {
   private fun term(): Expr {
     var expr = factor()
 
-    while (match(TokenType.Minus, TokenType.Bang)) {
+    while (match(TokenType.Minus, TokenType.Plus, TokenType.Bang)) {
       val op = previous()
       val right = factor()
 
@@ -91,7 +91,7 @@ class Parser(private val tokens: List<Token>) {
   }
 
   private fun unary(): Expr {
-    if (match(TokenType.Bang, TokenType.Minus)) {
+    if (match(TokenType.Bang, TokenType.Minus, TokenType.Plus)) {
       val op = previous()
       val right = unary()
 

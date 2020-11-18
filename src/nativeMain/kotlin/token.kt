@@ -44,9 +44,9 @@ data class Token(
   val line: Int
 ) {
   override fun toString() = when {
-    literal != null -> "($lexeme `$literal`)"
+    literal != null -> "($type `$literal`)"
     type == TokenType.Eof -> "EOF"
-    else -> "`$lexeme`"
+    else -> "$type"
   }
 }
 
