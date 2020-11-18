@@ -7,7 +7,9 @@ object AstDumper : ExprVisitor<String> {
   override fun visit(grouping: Expr.Grouping) = parenthesize("grouping", grouping.expr)
   override fun visit(unary: Expr.Unary) = parenthesize(unary.op.lexeme, unary.right)
 
-  override fun visit(literal: Expr.Literal) = literal.value.toString()
+  override fun visit(literal: Expr.Literal) = if(literal.value is String)
+    "\"${literal.value}\""
+  else literal.value.toString()
 
   private fun parenthesize(op: String, vararg exprArray: Expr) = buildString {
     append("(").append(op)
@@ -20,16 +22,14 @@ object AstDumper : ExprVisitor<String> {
   }
 
   fun dump(expr: Expr) {
-    println(DUMP_COLOR + "ast dump:")
-    println(DUMP_COLOR + expr.accept(this))
+    print(BLUE_COLOR)
+    println("ast dump:")
+    println(expr.accept(this))
+    print(WHILE_COLOR)
   }
-}
-
-fun printout(msg: String) {
-  fprintf(stdout, msg)
 }
 
 @Suppress("SpellCheckingInspection")
 fun printerr(msg: String) {
-  fprintf(stderr, "$msg\n")
+  fprintf(stderr, RED_COLOR + "$msg\n")
 }

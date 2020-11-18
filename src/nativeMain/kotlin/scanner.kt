@@ -168,6 +168,6 @@ class Scanner(private val source: String) {
   }
 }
 
-fun isDigit(char: Char): Boolean = char in '0'..'9'
-fun isAlpha(char: Char): Boolean = char in 'a'..'z' || char in 'A'..'Z' || char == '_'
-fun isAlphaNumeric(char: Char): Boolean = isAlpha(char) || isDigit(char)
+private fun isDigit(char: Char): Boolean = char in '0'..'9'
+private fun isAlpha(char: Char): Boolean = char in 'a'..'z' || char in 'A'..'Z' || char == '_'
+private fun isAlphaNumeric(char: Char): Boolean = isAlpha(char) || isDigit(char)
