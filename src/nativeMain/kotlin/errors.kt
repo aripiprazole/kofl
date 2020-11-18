@@ -1,30 +1,41 @@
-sealed class LanguageError(private val type: String, message: String) : RuntimeException(message) {
+sealed class KoflError(private val type: String, message: String) : RuntimeException(message) {
   open fun report() {
     printerr("[$type error] $message\n")
   }
 }
 
-class UnsupportedOpError(op: Token) : LanguageError("unsupported", "unsupported op $op")
+open class RuntimeError(message: String) : KoflError("runtime", message)
 
-class RuntimeError(message: String) : LanguageError("runtime", message)
+// parse errors
+open class ParseError(
+  token: Token,
+  message: String = "invalid token: $token"
+) : KoflError("parse", "invalid `${token.lexeme}` at ${token.location}: $message")
 
 class TypeError(
   token: Token,
   expected: Any
-) : LanguageError("type", "expected type: $expected, at ${token.location}")
+) : ParseError(token, "expected type: $expected, at ${token.location}")
 
-class ParseError(
-  token: Token,
-  message: String = "invalid token: $token"
-) : LanguageError("parse", "invalid `${token.lexeme}` at ${token.location}: $message")
+// syntax errors
+open class SyntaxError(
+  type: String,
+  message: String
+) : KoflError("(syntax) $type", message)
 
-class SyntaxError(
-  line: Int,
-  message: String = "unexpected character at line $line"
-) : LanguageError("syntax", message)
+class UnsolvedReferenceError(
+  identifier: Token
+) : SyntaxError("unsolved reference", "Unsolved reference to $identifier")
+
+class IllegalOperationError(
+  identifier: Token,
+  operation: String
+) : SyntaxError("illegal access", "Trying to do illegal: $operation at ${identifier.location}")
 
 class LexError(
   line: Int,
   lexeme: String,
   message: String = "unexpected character"
-) : LanguageError("lex", "unexpected `$lexeme` in line $line: $message")
+) : SyntaxError("lex", "unexpected `$lexeme` in line $line: $message")
+
+class UnsupportedOpError(op: Token) : SyntaxError("unsupported", "unsupported op $op")
