@@ -17,7 +17,7 @@ class Parser(private val tokens: List<Token>) {
     advance()
 
     while (!isAtEnd) {
-      if (previous().type == TokenType.Semicolon) return true
+      if (peek().type == TokenType.Semicolon) return true
 
       when (peek().type) {
         TokenType.Struct, TokenType.Func,
@@ -39,6 +39,7 @@ class Parser(private val tokens: List<Token>) {
     when {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
+      match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
 
       else -> statement()
@@ -104,6 +105,15 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.PrintStmt(expr)
   }
 
+  private fun whileStatement(): Stmt {
+    val condition = expression()
+
+    if (!match(TokenType.LeftBrace))
+      throw ParseError(peek(), "Missing start of while block")
+
+    return Stmt.WhileStmt(condition, block())
+  }
+
   private fun exprStatement(): Stmt {
     val expr = expression()
 
@@ -161,7 +171,7 @@ class Parser(private val tokens: List<Token>) {
   private fun or(): Expr {
     var expr = and()
 
-    while(match(TokenType.Or)) {
+    while (match(TokenType.Or)) {
       val op = previous()
       val right = equality()
 
@@ -174,7 +184,7 @@ class Parser(private val tokens: List<Token>) {
   private fun and(): Expr {
     var expr = equality()
 
-    while(match(TokenType.And)) {
+    while (match(TokenType.And)) {
       val op = previous()
       val right = equality()
 

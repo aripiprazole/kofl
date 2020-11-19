@@ -21,17 +21,18 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
     if (literal.value is String) "\"${literal.value}\"" else
       literal.value.toString()
 
-  override fun visit(exprStmt: Stmt.ExprStmt) = "(${dump(exprStmt.expr)})"
-  override fun visit(printStmt: Stmt.PrintStmt) = parenthesize("print", printStmt.expr)
-  override fun visit(valDecl: Stmt.ValDecl) = parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
-  override fun visit(varDecl: Stmt.VarDecl) = parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
   override fun visit(ifExpr: Expr.IfExpr) =
     parenthesize("if (${dump(ifExpr.condition)})", *ifExpr.thenBranch.toTypedArray()) +
       if (ifExpr.elseBranch != null)
         parenthesize("else", *ifExpr.elseBranch.toTypedArray())
       else ""
 
+  override fun visit(exprStmt: Stmt.ExprStmt) = "(${dump(exprStmt.expr)})"
+  override fun visit(printStmt: Stmt.PrintStmt) = parenthesize("print", printStmt.expr)
+  override fun visit(valDecl: Stmt.ValDecl) = parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
+  override fun visit(varDecl: Stmt.VarDecl) = parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
   override fun visit(block: Stmt.Block) = parenthesize("block", *block.decls.toTypedArray())
+  override fun visit(whileStmt: Stmt.WhileStmt) = parenthesize("while", *whileStmt.body.toTypedArray())
 
   private fun parenthesize(op: String, vararg stmts: Stmt) = buildString {
     append("(").append(op)
