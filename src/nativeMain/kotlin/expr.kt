@@ -6,6 +6,7 @@ interface ExprVisitor<T> {
   fun visit(assign: Expr.Assign): T
   fun visit(varExpr: Expr.Var): T
   fun visit(ifExpr: Expr.IfExpr): T
+  fun visit(logical: Expr.Logical): T
 }
 
 sealed class Expr {
@@ -16,6 +17,10 @@ sealed class Expr {
   }
 
   data class Binary(val left: Expr, val op: Token, val right: Expr) : Expr() {
+    override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
+  }
+
+  data class Logical(val left: Expr, val op: Token, val right: Expr) : Expr() {
     override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
   }
 
@@ -35,6 +40,7 @@ sealed class Expr {
     override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
   }
 
+  // TODO: change to List<Stmt> to Stmt.Block
   data class IfExpr(val condition: Expr, val thenBranch: List<Stmt>, val elseBranch: List<Stmt>?) : Expr() {
     override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
   }
