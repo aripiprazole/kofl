@@ -4,7 +4,10 @@ import platform.posix.stderr
 object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   fun dump(stmts: Collection<Stmt>) {
     print(BLUE_COLOR)
-    println("simple ast dump: ${stmts.joinToString("\n") { dump(it) }}")
+
+    println("simple ast dump:")
+    println(stmts.joinToString("\n") { dump(it) })
+
     print(WHILE_COLOR)
   }
 
@@ -26,13 +29,17 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   override fun visit(valDecl: Stmt.ValDecl) = parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
   override fun visit(varDecl: Stmt.VarDecl) = parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
 
-  private fun parenthesize(op: String, vararg exprArray: Expr) = buildString {
+  override fun visit(block: Stmt.Block) = parenthesize("block", *block.decls.toTypedArray())
+
+  private fun parenthesize(op: String, vararg stmts: Stmt) = buildString {
     append("(").append(op)
+    stmts.forEach { append(" ").append(dump(it)) }
+    append(")")
+  }
 
-    exprArray.forEach {
-      append(" ").append(dump(it))
-    }
-
+  private fun parenthesize(op: String, vararg expressions: Expr) = buildString {
+    append("(").append(op)
+    expressions.forEach { append(" ").append(dump(it)) }
     append(")")
   }
 }

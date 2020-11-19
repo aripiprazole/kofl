@@ -15,9 +15,11 @@ decl ::= valDecl | varDecl | stmt ;
 valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
 
-stmt ::= exprStmt | printStmt ;
+stmt ::= exprStmt | printStmt | block ;
 exprStmt ::= expression ";" ;
 printStmt ::= "print" expression ";" ;
+
+block ::= "{" stmt* "}" ;
 
 expression ::= assignment ;
 

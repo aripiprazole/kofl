@@ -5,7 +5,7 @@ sealed class Value {
   data class Mutable(override var value: Any) : Value()
 }
 
-class Environment {
+class Environment(private val enclosing: Environment? = null) {
   private val values = mutableMapOf<String, Value>()
 
   fun define(name: Token, value: Any, immutable: Boolean = true) = if (values[name.lexeme] == null) {
@@ -21,6 +21,7 @@ class Environment {
     is Value.Mutable -> value.value = newValue
   }
 
-  operator fun get(name: Token) = values[name.lexeme]
+  operator fun get(name: Token): Value = values[name.lexeme]
+    ?: enclosing?.get(name)
     ?: throw UnsolvedReferenceError(name)
 }
