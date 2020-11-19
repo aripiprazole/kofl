@@ -1,10 +1,10 @@
 @ThreadLocal
 object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
-  fun eval(stmts: Collection<Stmt>): Collection<Any> = stmts.map { stmt ->
+  fun eval(stmts: List<Stmt>): List<Any> = stmts.map { stmt ->
     eval(stmt)
   }
 
-  private val environment = Environment()
+  private var environment = Environment()
 
   private fun eval(expr: Expr) = expr.accept(this)
   private fun eval(stmt: Stmt) = stmt.accept(this)
@@ -16,6 +16,20 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
 
   override fun visit(varDecl: Stmt.VarDecl) =
     environment.define(varDecl.name, eval(varDecl.value), immutable = false)
+
+  // TODO: do not mutate environment
+  override fun visit(block: Stmt.Block) {
+    val previous = environment
+    val localEnvironment = Environment(environment)
+
+    return try {
+      environment = localEnvironment
+
+      block.decls.forEach { stmt -> eval(stmt) }
+    } finally {
+      environment = previous
+    }
+  }
 
   override fun visit(binary: Expr.Binary): Any {
     val left = eval(binary.left)

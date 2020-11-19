@@ -3,14 +3,14 @@ class Parser(private val tokens: List<Token>) {
 
   private var current = 0
 
-  fun parse(): Collection<Stmt> {
+  fun parse(): List<Stmt> {
     val stmts = mutableListOf<Stmt>()
 
     while (!isAtEnd) {
       stmts += declaration() ?: continue
     }
 
-    return stmts.toSet()
+    return stmts
   }
 
   private fun synchronize(): Boolean {
@@ -39,6 +39,7 @@ class Parser(private val tokens: List<Token>) {
     when {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
+      match(TokenType.LeftBrace) -> block()
 
       else -> statement()
     }
@@ -50,10 +51,20 @@ class Parser(private val tokens: List<Token>) {
     null
   }
 
-  private fun valDeclaration(): Stmt {
-    val name = consume(TokenType.Identifier)
-      ?: throw ParseError(peek(), "expecting a declaration name")
+  private fun block(): Stmt {
+    val stmts = mutableListOf<Stmt>()
 
+    while (!check(TokenType.RightBrace) && !isAtEnd) {
+      stmts += declaration() ?: continue
+    }
+
+    consume(TokenType.RightBrace) ?: throw ParseError(peek(), "expecting finish block")
+
+    return Stmt.Block(stmts)
+  }
+
+  // TODO: remove
+  private fun initializer(): Expr {
     if (!match(TokenType.Equal))
       throw ParseError(peek(), "expecting a declaration initializer")
 
@@ -62,22 +73,21 @@ class Parser(private val tokens: List<Token>) {
     consume(TokenType.Semicolon)
       ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
 
-    return Stmt.ValDecl(name, initializer)
+    return initializer
+  }
+
+  private fun valDeclaration(): Stmt {
+    val name = consume(TokenType.Identifier)
+      ?: throw ParseError(peek(), "expecting a declaration name")
+
+    return Stmt.ValDecl(name, initializer())
   }
 
   private fun varDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
       ?: throw ParseError(peek(), "expecting a declaration name")
 
-    if (!match(TokenType.Equal))
-      throw ParseError(peek(), "expecting a declaration initializer")
-
-    val initializer = expression()
-
-    consume(TokenType.Semicolon)
-      ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
-
-    return Stmt.VarDecl(name, initializer)
+    return Stmt.VarDecl(name, initializer())
   }
 
   private fun statement(): Stmt {
