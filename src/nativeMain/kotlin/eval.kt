@@ -1,13 +1,21 @@
 @ThreadLocal
 object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
-  private val environment = Environment()
-
-  fun eval(expr: Expr) = expr.accept(this)
-  fun eval(stmt: Stmt) = stmt.accept(this)
-
   fun eval(stmts: Collection<Stmt>): Collection<Any> = stmts.map { stmt ->
     eval(stmt)
   }
+
+  private val environment = Environment()
+
+  private fun eval(expr: Expr) = expr.accept(this)
+  private fun eval(stmt: Stmt) = stmt.accept(this)
+
+  override fun visit(exprStmt: Stmt.ExprStmt) = eval(exprStmt.expr)
+  override fun visit(printStmt: Stmt.PrintStmt) = println(eval(printStmt.expr))
+  override fun visit(valDecl: Stmt.ValDecl) =
+    environment.define(valDecl.name, eval(valDecl.value))
+
+  override fun visit(varDecl: Stmt.VarDecl) =
+    environment.define(varDecl.name, eval(varDecl.value), immutable = false)
 
   override fun visit(binary: Expr.Binary): Any {
     val left = eval(binary.left)
@@ -42,8 +50,11 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
   }
 
   override fun visit(grouping: Expr.Grouping) = eval(grouping.expr)
-
   override fun visit(literal: Expr.Literal) = literal.value
+  override fun visit(varExpr: Expr.Var) = environment[varExpr.name].value
+  override fun visit(assign: Expr.Assign) = eval(assign.value).also { value ->
+    environment[assign.name] = value
+  }
 
   override fun visit(unary: Expr.Unary): Any {
     return when (unary.op.type) {
@@ -53,16 +64,6 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
 
       else -> throw UnsupportedOpError(unary.op)
     }
-  }
-
-  override fun visit(exprStmt: Stmt.ExprStmt) = eval(exprStmt.expr)
-
-  override fun visit(printStmt: Stmt.PrintStmt): Any {
-    return println(eval(printStmt.expr))
-  }
-
-  override fun visit(valDecl: Stmt.ValDecl): Any {
-    return environment.define(valDecl.name, eval(valDecl.value), immutable = true)
   }
 }
 

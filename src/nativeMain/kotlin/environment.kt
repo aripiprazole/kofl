@@ -16,12 +16,11 @@ class Environment {
         Value.Mutable(value)
   } else throw IllegalOperationError(name, "define a variable that already exists")
 
-  operator
-
-  fun set(name: Token, newValue: Any) = when (val value = this[name.lexeme] ?: throw UnsolvedReferenceError(name)) {
+  operator fun set(name: Token, newValue: Any) = when (val value = this[name]) {
     is Value.Immutable -> throw IllegalOperationError(name, "update an immutable variable")
     is Value.Mutable -> value.value = newValue
   }
 
-  operator fun get(name: String) = values[name]
+  operator fun get(name: Token) = values[name.lexeme]
+    ?: throw UnsolvedReferenceError(name)
 }

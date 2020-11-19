@@ -13,16 +13,39 @@ class Parser(private val tokens: List<Token>) {
     return stmts.toSet()
   }
 
+  private fun synchronize(): Boolean {
+    advance()
+
+    while (!isAtEnd) {
+      if (previous().type == TokenType.Semicolon) return true
+
+      when (peek().type) {
+        TokenType.Struct, TokenType.Func,
+        TokenType.Val, TokenType.If, TokenType.Else,
+        TokenType.Return, TokenType.Var -> return true
+        else -> {
+          // do nothing
+        }
+      }
+
+      advance()
+    }
+
+    return false
+  }
+
+  // stmts
   private fun declaration(): Stmt? = try {
     when {
       match(TokenType.Val) -> valDeclaration()
+      match(TokenType.Var) -> varDeclaration()
 
       else -> statement()
     }
   } catch (error: ParseError) {
-    if (!synchronize()) {
+    // panic mode
+    if (!synchronize())
       error.report()
-    }
 
     null
   }
@@ -40,6 +63,21 @@ class Parser(private val tokens: List<Token>) {
       ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
 
     return Stmt.ValDecl(name, initializer)
+  }
+
+  private fun varDeclaration(): Stmt {
+    val name = consume(TokenType.Identifier)
+      ?: throw ParseError(peek(), "expecting a declaration name")
+
+    if (!match(TokenType.Equal))
+      throw ParseError(peek(), "expecting a declaration initializer")
+
+    val initializer = expression()
+
+    consume(TokenType.Semicolon)
+      ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
+
+    return Stmt.VarDecl(name, initializer)
   }
 
   private fun statement(): Stmt {
@@ -64,28 +102,30 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.ExprStmt(expr)
   }
 
-  private fun synchronize(): Boolean {
-    advance()
+  // expressions
+  private fun expression(): Expr {
+    val expr = equality()
 
-    while (!isAtEnd) {
-      if (previous().type == TokenType.Semicolon) return true
+    if (match(TokenType.Equal)) {
+      val equals = previous()
+      val value = assignment()
 
-      when (peek().type) {
-        TokenType.Struct, TokenType.Func,
-        TokenType.Val, TokenType.If, TokenType.Else,
-        TokenType.Return -> return true
-        else -> {
-          // do nothing
-        }
+      if (expr is Expr.Var) {
+        val (name) = expr
+
+        return Expr.Assign(name, value)
       }
 
-      advance()
+      // we report the error but don't throw
+      // to enter in panic mode and synchronize
+      ParseError(equals, "Invalid right-associative assignment")
+        .report()
     }
 
-    return false
+    return expr
   }
 
-  private fun expression(): Expr {
+  private fun assignment(): Expr {
     return equality()
   }
 
@@ -164,9 +204,12 @@ class Parser(private val tokens: List<Token>) {
       consume(TokenType.RightParen) ?: throw ParseError(peek(), "Unfinished grouping")
     })
 
+    match(TokenType.Identifier) -> Expr.Var(previous())
+
     else -> throw ParseError(peek())
   }
 
+  // utils
   private fun consume(type: TokenType): Token? {
     if (check(type)) return advance()
 

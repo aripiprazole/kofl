@@ -2,6 +2,7 @@ interface StmtVisitor<T> {
   fun visit(exprStmt: Stmt.ExprStmt): T
   fun visit(printStmt: Stmt.PrintStmt): T
   fun visit(valDecl: Stmt.ValDecl): T
+  fun visit(varDecl: Stmt.VarDecl): T
 }
 
 sealed class Stmt {
@@ -17,6 +18,11 @@ sealed class Stmt {
 
   // TODO: add type
   data class ValDecl(val name: Token, val value: Expr) : Stmt() {
+    override fun <T> accept(visitor: StmtVisitor<T>) = visitor.visit(this)
+  }
+
+  // TODO: add type
+  data class VarDecl(val name: Token, val value: Expr) : Stmt() {
     override fun <T> accept(visitor: StmtVisitor<T>) = visitor.visit(this)
   }
 }
