@@ -1,11 +1,10 @@
-import platform.posix.fprintf
-import platform.posix.stderr
+//import platform.posix.fprintf
+//import platform.posix.stderr
 
 object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   fun dump(stmts: Collection<Stmt>) {
-    print(BLUE_COLOR)
     println("simple ast dump:")
-    println(stmts.joinToString("\n") { dump(it) } + WHITE_COLOR)
+    println(stmts.joinToString("\n") { dump(it) })
   }
 
   private fun dump(expr: Expr): String = expr.accept(this)
@@ -25,6 +24,11 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   override fun visit(printStmt: Stmt.PrintStmt) = parenthesize("print", printStmt.expr)
   override fun visit(valDecl: Stmt.ValDecl) = parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
   override fun visit(varDecl: Stmt.VarDecl) = parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
+  override fun visit(ifExpr: Expr.IfExpr) =
+    parenthesize("if (${dump(ifExpr.condition)})", *ifExpr.thenBranch.toTypedArray()) +
+      if (ifExpr.elseBranch != null)
+        parenthesize("else", *ifExpr.elseBranch.toTypedArray())
+      else ""
 
   override fun visit(block: Stmt.Block) = parenthesize("block", *block.decls.toTypedArray())
 
@@ -39,9 +43,11 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
     expressions.forEach { append(" ").append(dump(it)) }
     append(")")
   }
+
 }
 
 @Suppress("SpellCheckingInspection")
 fun printerr(msg: String = "") {
-  fprintf(stderr, "$RED_COLOR$msg\n\n")
+//  fprintf(stderr, "$msg\n\n")
+  println(msg)
 }

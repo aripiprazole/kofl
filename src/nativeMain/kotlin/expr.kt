@@ -5,6 +5,7 @@ interface ExprVisitor<T> {
   fun visit(unary: Expr.Unary): T
   fun visit(assign: Expr.Assign): T
   fun visit(varExpr: Expr.Var): T
+  fun visit(ifExpr: Expr.IfExpr): T
 }
 
 sealed class Expr {
@@ -31,6 +32,10 @@ sealed class Expr {
   }
 
   data class Var(val name: Token) : Expr() {
+    override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
+  }
+
+  data class IfExpr(val condition: Expr, val thenBranch: List<Stmt>, val elseBranch: List<Stmt>?) : Expr() {
     override fun <T> accept(visitor: ExprVisitor<T>) = visitor.visit(this)
   }
 }

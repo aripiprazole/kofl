@@ -53,7 +53,7 @@ internal fun repl(): Unit = memScoped {
   while (true) {
     print("\r\n")
 
-    print("${WHITE_COLOR}kofl>${GREY_COLOR}")
+    print("kofl>")
 
     when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)

@@ -9,8 +9,8 @@ open class RuntimeError(message: String) : KoflError("runtime", message)
 // parse errors
 open class ParseError(
   token: Token,
-  message: String = "invalid token: $token"
-) : KoflError("parse", "invalid `${token.lexeme}` at ${token.location}: $message")
+  message: String = "invalid token: `$token`"
+) : KoflError("parse", "invalid `$token` at ${token.location}: $message")
 
 class TypeError(
   token: Token,

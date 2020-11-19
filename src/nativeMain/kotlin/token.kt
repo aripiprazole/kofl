@@ -47,7 +47,6 @@ data class Token(
 ) {
   override fun toString() = when {
     literal != null -> "($type `$literal`)"
-    type == TokenType.Semicolon -> ";"
     type == TokenType.Identifier -> lexeme
     type == TokenType.Eof -> "EOF"
     else -> "$type"
@@ -55,4 +54,4 @@ data class Token(
 }
 
 val Token.location: String
-  get() = if (type == TokenType.Eof) "end" else "line $line"
+  get() = if (type == TokenType.Eof) "EOF" else "line $line"
