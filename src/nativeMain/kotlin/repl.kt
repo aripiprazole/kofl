@@ -45,44 +45,17 @@ internal fun clearScreen() {
 @OptIn(ExperimentalUnsignedTypes::class)
 internal fun repl(): Unit = memScoped {
   clearScreen()
-  enterCBreakMode()
-
-  print("\r\n")
+//  enterCBreakMode()
 
   println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
   println()
 
   while (true) {
-    val ic = alloc<IntVar>()
-    var line = ""
-
     print("\r\n")
 
     print("${WHITE_COLOR}kofl>${GREY_COLOR}")
-    readLine@ while (true) {
-      // if has error in reading line and its not IO error(might missing data)
-      if (read(STDIN_FILENO, ic.ptr, 1) == -1L && errno != EAGAIN)
-        die("unable to read line in repl")
 
-      when (val char = ic.value.toChar()) {
-        // 13 = enter
-        13.toChar() -> break@readLine
-        // 127 = backspace
-        127.toChar() -> if (line.isNotEmpty())  {
-          print("\b \b") // simulate a backspace in terminal and real remove in the next line
-          line = line.substring(0, line.length - 1)
-        }
-        else -> {
-          line += char
-
-          print(char)
-        }
-      }
-    }
-
-    println()
-
-    when (line) {
+    when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)
       ":clear" -> clearScreen()
       else -> try {
@@ -91,6 +64,8 @@ internal fun repl(): Unit = memScoped {
         error.report() // just report error to dont crash program
       }
     }
+
+    println()
   }
 }
 
