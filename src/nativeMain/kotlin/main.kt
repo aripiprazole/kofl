@@ -8,10 +8,7 @@ fun main(args: Array<String>) = try {
       exit(64)
     }
     args.size == 1 -> file(args[0])
-    else -> {
-      printHeader()
-      repl()
-    }
+    else -> repl()
   }
 } catch (error: ParseError) {
   error.report()
@@ -38,24 +35,6 @@ fun file(name: String) {
   TODO("Handle file not implemented")
 }
 
-// TODO: use raw-mode
-tailrec fun repl() {
-  print(WHILE_COLOR)
-  print("> ")
-
-  val line = readLine()
-
-  if (line != null) {
-    try {
-      show(run(line))
-    } catch (error: KoflError) {
-      error.report()
-    }
-  }
-
-  repl()
-}
-
 // TODO: typechecking
 fun run(code: String): Any? {
   if (code.isEmpty()) return null
@@ -67,24 +46,4 @@ fun run(code: String): Any? {
     SimpleAstDumper.dump(stmts)
     Evaluator.eval(stmts)
   }
-}
-
-private fun printHeader() {
-  print(MAGENTA_COLOR)
-  println(
-    """
-=============================================================================
- _  ______  ______ _      
-| |/ / __ \|  ____| |     
-| ' / |  | | |__  | |     
-|  <| |  | |  __| | |     
-| . \ |__| | |    | |____ 
-|_|\_\____/|_|    |______| REPL
-
-Type exit to quit. // TODO
-
-=============================================================================
-  """
-  )
-  print(WHILE_COLOR)
 }

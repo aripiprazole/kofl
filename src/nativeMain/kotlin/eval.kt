@@ -81,12 +81,6 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
   }
 }
 
-fun show(any: Any?) = when (any) {
-  null -> "NULL"
-  is String -> "\"$any\""
-  else -> any
-}
-
 private fun TokenType.isNumberOp() =
   this == TokenType.Minus
     || this == TokenType.Plus

@@ -4,11 +4,8 @@ import platform.posix.stderr
 object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   fun dump(stmts: Collection<Stmt>) {
     print(BLUE_COLOR)
-
     println("simple ast dump:")
-    println(stmts.joinToString("\n") { dump(it) })
-
-    print(WHILE_COLOR)
+    println(stmts.joinToString("\n") { dump(it) } + WHITE_COLOR)
   }
 
   private fun dump(expr: Expr): String = expr.accept(this)
@@ -45,6 +42,6 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
 }
 
 @Suppress("SpellCheckingInspection")
-fun printerr(msg: String) {
-  fprintf(stderr, RED_COLOR + "$msg\n" + WHILE_COLOR)
+fun printerr(msg: String = "") {
+  fprintf(stderr, "$RED_COLOR$msg\n\n")
 }

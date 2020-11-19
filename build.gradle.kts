@@ -37,3 +37,7 @@ kotlin {
     val nativeTest by getting
   }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile>() {
+  kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
+}
