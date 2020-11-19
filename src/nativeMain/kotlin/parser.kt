@@ -39,7 +39,7 @@ class Parser(private val tokens: List<Token>) {
     when {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
-      match(TokenType.LeftBrace) -> block()
+      match(TokenType.LeftBrace) -> Stmt.Block(block())
 
       else -> statement()
     }
@@ -51,7 +51,7 @@ class Parser(private val tokens: List<Token>) {
     null
   }
 
-  private fun block(): Stmt {
+  private fun block(): MutableList<Stmt> {
     val stmts = mutableListOf<Stmt>()
 
     while (!check(TokenType.RightBrace) && !isAtEnd) {
@@ -60,7 +60,7 @@ class Parser(private val tokens: List<Token>) {
 
     consume(TokenType.RightBrace) ?: throw ParseError(peek(), "expecting finish block")
 
-    return Stmt.Block(stmts)
+    return stmts
   }
 
   // TODO: remove
@@ -112,8 +112,27 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.ExprStmt(expr)
   }
 
+  private fun ifExpr(): Expr {
+    val condition = expression()
+
+    if (!match(TokenType.LeftBrace))
+      throw ParseError(peek(), "Missing start of if block")
+
+    val mainBranch = block()
+    val elseBranch = if (match(TokenType.Else))
+      if (match(TokenType.LeftBrace))
+        block()
+      else throw ParseError(peek(), "Missing start of else block")
+    else null
+
+    return Expr.IfExpr(condition, mainBranch, elseBranch)
+  }
+
   // expressions
+  @OptIn(ExperimentalStdlibApi::class)
   private fun expression(): Expr {
+    if (match(TokenType.If)) return ifExpr()
+
     val expr = equality()
 
     if (match(TokenType.Equal)) {
@@ -256,4 +275,8 @@ class Parser(private val tokens: List<Token>) {
   private fun previous(): Token {
     return tokens[current - 1]
   }
+}
+
+fun debug(msg: String) {
+  println("[debug] $msg")
 }

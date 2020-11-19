@@ -19,12 +19,14 @@ stmt ::= exprStmt | printStmt | block ;
 exprStmt ::= expression ";" ;
 printStmt ::= "print" expression ";" ;
 
-block ::= "{" stmt* "}" ;
+block ::= "{" decl* "}" ;
 
-expression ::= assignment ;
+expression ::= assignment | if;
 
 assignment ::= IDENTIFIER "=" assignment
-    | equality ;
+    | equality;
+
+if ::= "if" "(" expression ")" block ( "else" block ) ?
 
 equality ::= comparison ( ( "!=" | "==" ) comparison)* ;
 comparison ::= term ( ( ">" | ">=" | "<" | "<=" ) term)* ;

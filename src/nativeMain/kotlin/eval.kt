@@ -79,6 +79,18 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
       else -> throw UnsupportedOpError(unary.op)
     }
   }
+
+  override fun visit(ifExpr: Expr.IfExpr): Any {
+    if(eval(ifExpr.condition) == true) {
+      return eval(ifExpr.thenBranch).lastOrNull() ?: Unit
+    } else {
+      ifExpr.elseBranch?.let { stmts ->
+        return eval(stmts).lastOrNull() ?: Unit
+      }
+    }
+
+    return Unit
+  }
 }
 
 private fun TokenType.isNumberOp() =
