@@ -1,7 +1,5 @@
 import platform.posix.exit
 import platform.posix.fopen
-import kotlin.native.concurrent.TransferMode
-import kotlin.native.concurrent.withWorker
 
 fun main(args: Array<String>) = try {
   when {
@@ -66,7 +64,7 @@ fun run(code: String): Any? {
   val parser = Parser(scanner.scan())
 
   return parser.parse().let { stmts ->
-    AstDumper.dump(stmts)
+    SimpleAstDumper.dump(stmts)
     Evaluator.eval(stmts)
   }
 }

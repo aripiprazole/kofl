@@ -1,14 +1,30 @@
 import platform.posix.fprintf
 import platform.posix.stderr
 
-object AstDumper : ExprVisitor<String>, StmtVisitor<String> {
+object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
+  fun dump(stmts: Collection<Stmt>) {
+    print(BLUE_COLOR)
+    println("simple ast dump: ${stmts.joinToString("\n") { dump(it) }}")
+    print(WHILE_COLOR)
+  }
+
+  private fun dump(expr: Expr): String = expr.accept(this)
+  private fun dump(stmt: Stmt): String = stmt.accept(this)
+
   override fun visit(binary: Expr.Binary) = parenthesize(binary.op.lexeme, binary.left, binary.right)
   override fun visit(grouping: Expr.Grouping) = parenthesize("group", grouping.expr)
   override fun visit(unary: Expr.Unary) = parenthesize(unary.op.lexeme, unary.right)
+  override fun visit(assign: Expr.Assign) = parenthesize("set", Expr.Literal(assign.name), assign.value)
+  override fun visit(varExpr: Expr.Var) = parenthesize("get", Expr.Literal(varExpr.name))
 
   override fun visit(literal: Expr.Literal) =
     if (literal.value is String) "\"${literal.value}\"" else
       literal.value.toString()
+
+  override fun visit(exprStmt: Stmt.ExprStmt) = "(${dump(exprStmt.expr)})"
+  override fun visit(printStmt: Stmt.PrintStmt) = parenthesize("print", printStmt.expr)
+  override fun visit(valDecl: Stmt.ValDecl) = parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
+  override fun visit(varDecl: Stmt.VarDecl) = parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
 
   private fun parenthesize(op: String, vararg exprArray: Expr) = buildString {
     append("(").append(op)
@@ -19,19 +35,6 @@ object AstDumper : ExprVisitor<String>, StmtVisitor<String> {
 
     append(")")
   }
-
-  fun dump(expr: Expr): String = expr.accept(this)
-  fun dump(stmt: Stmt): String = stmt.accept(this)
-
-  fun dump(stmts: Collection<Stmt>) {
-    print(BLUE_COLOR)
-    println(stmts.joinToString("\n") { dump(it) })
-    print(WHILE_COLOR)
-  }
-
-  override fun visit(exprStmt: Stmt.ExprStmt) = "(${dump(exprStmt.expr)})"
-  override fun visit(printStmt: Stmt.PrintStmt) = parenthesize("print", printStmt.expr)
-  override fun visit(valDecl: Stmt.ValDecl) = parenthesize("define", Expr.Literal(valDecl.name), valDecl.value)
 }
 
 @Suppress("SpellCheckingInspection")
