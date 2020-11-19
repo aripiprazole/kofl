@@ -15,6 +15,7 @@ object SimpleAstDumper : ExprVisitor<String>, StmtVisitor<String> {
   override fun visit(unary: Expr.Unary) = parenthesize(unary.op.lexeme, unary.right)
   override fun visit(assign: Expr.Assign) = parenthesize("set", Expr.Literal(assign.name), assign.value)
   override fun visit(varExpr: Expr.Var) = parenthesize("get", Expr.Literal(varExpr.name))
+  override fun visit(logical: Expr.Logical) = parenthesize(logical.op.lexeme, logical.left, logical.right)
 
   override fun visit(literal: Expr.Literal) =
     if (literal.value is String) "\"${literal.value}\"" else

@@ -23,8 +23,11 @@ block ::= "{" decl* "}" ;
 
 expression ::= assignment | if;
 
+logic_or ::= logic_and ( "or" logic_and )*;
+logic_and ::= equality ( "and " equality )*;
+
 assignment ::= IDENTIFIER "=" assignment
-    | equality;
+    | logic_or ;
 
 if ::= "if" "(" expression ")" block ( "else" block ) ?
 

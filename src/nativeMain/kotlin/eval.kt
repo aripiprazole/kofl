@@ -81,7 +81,7 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
   }
 
   override fun visit(ifExpr: Expr.IfExpr): Any {
-    if(eval(ifExpr.condition) == true) {
+    if (eval(ifExpr.condition) == true) {
       return eval(ifExpr.thenBranch).lastOrNull() ?: Unit
     } else {
       ifExpr.elseBranch?.let { stmts ->
@@ -90,6 +90,17 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
     }
 
     return Unit
+  }
+
+  override fun visit(logical: Expr.Logical): Any {
+    val left = eval(logical.left)
+    val right = eval(logical.right)
+
+    return when (logical.op.type) {
+      TokenType.Or -> left == true || right == true
+      TokenType.And -> left == true && right == true
+      else -> Unit
+    }
   }
 }
 
