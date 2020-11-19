@@ -31,6 +31,14 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
     }
   }
 
+  override fun visit(whileStmt: Stmt.WhileStmt): Any {
+    while(eval(whileStmt.condition) == true) {
+      eval(whileStmt.body)
+    }
+
+    return Unit
+  }
+
   override fun visit(binary: Expr.Binary): Any {
     val left = eval(binary.left)
     val right = eval(binary.right)

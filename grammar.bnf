@@ -15,9 +15,15 @@ decl ::= valDecl | varDecl | stmt ;
 valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
 
-stmt ::= exprStmt | printStmt | block ;
+stmt ::= exprStmt
+    | printStmt
+    | whileStmt
+    | block ;
+
 exprStmt ::= expression ";" ;
 printStmt ::= "print" expression ";" ;
+
+whileStmt ::= "while" expression block;
 
 block ::= "{" decl* "}" ;
 
@@ -29,7 +35,7 @@ logic_and ::= equality ( "and " equality )*;
 assignment ::= IDENTIFIER "=" assignment
     | logic_or ;
 
-if ::= "if" "(" expression ")" block ( "else" block ) ?
+if ::= "if" expression block ( "else" block ) ?
 
 equality ::= comparison ( ( "!=" | "==" ) comparison)* ;
 comparison ::= term ( ( ">" | ">=" | "<" | "<=" ) term)* ;

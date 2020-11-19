@@ -9,6 +9,7 @@ val RESERVED_KEYWORDS = mapOf(
   "val" to TokenType.Val,
   "var" to TokenType.Var,
   "return" to TokenType.Return,
+  "while" to TokenType.While,
   "extern" to TokenType.Extern,
   "print" to TokenType.Print,
 )
@@ -32,7 +33,7 @@ enum class TokenType {
   Identifier, String, Number,
 
   // keywords tokens
-  If, Else, This, False, True, Print,
+  If, Else, This, False, True, Print, While,
   Func, Val, Var, Return, Struct, Extern,
 
   // special tokens
