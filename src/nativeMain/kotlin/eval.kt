@@ -6,36 +6,37 @@ fun eval(stmts: List<Stmt>, environment: Environment = globalEnvironment): List<
 }
 
 fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
-  fun eval(exprStmt: Stmt.ExprStmt): Any {
-    return eval(exprStmt.expr, environment)
+  fun eval(stmt: Stmt.ExprStmt): Any {
+    return eval(stmt.expr, environment)
   }
 
-  fun eval(printStmt: Stmt.PrintStmt) {
-    println(eval(printStmt.expr))
+  fun eval(stmt: Stmt.PrintStmt) {
+    println(eval(stmt.expr))
   }
 
-  fun eval(valDecl: Stmt.ValDecl): Any {
-    return environment.define(valDecl.name, eval(valDecl.value, environment))
+  fun eval(stmt: Stmt.ValDecl): Any {
+    return environment.define(stmt.name, eval(stmt.value, environment))
   }
 
-  fun eval(varDecl: Stmt.VarDecl): Any {
-    return environment.define(varDecl.name, eval(varDecl.value), immutable = false)
+  fun eval(stmt: Stmt.VarDecl): Any {
+    return environment.define(stmt.name, eval(stmt.value), immutable = false)
   }
 
   // TODO: do not mutate environment
-  fun eval(block: Stmt.Block): Any {
+  fun eval(stmt: Stmt.Block): Any {
     val localEnvironment = Environment(environment)
 
-    return block.decls.forEach { stmt ->
-      eval(stmt, localEnvironment)
+    return stmt.decls.forEach { lStmt ->
+      eval(lStmt, localEnvironment)
     }
   }
 
-  fun eval(whileStmt: Stmt.WhileStmt): Any {
+  // TODO: add break and continue
+  fun eval(stmt: Stmt.WhileStmt): Any {
     val localEnvironment = Environment(environment)
 
-    while (eval(whileStmt.condition, localEnvironment) == true) {
-      eval(whileStmt.body, localEnvironment)
+    while (eval(stmt.condition, localEnvironment) == true) {
+      eval(stmt.body, localEnvironment)
     }
 
     return Unit
@@ -56,23 +57,23 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
     return eval(grouping.expr)
   }
 
-  fun eval(literal: Expr.Literal): Any {
-    return literal.value
+  fun eval(expr: Expr.Literal): Any {
+    return expr.value
   }
 
-  fun eval(varExpr: Expr.Var): Any {
-    return environment[varExpr.name].value
+  fun eval(expr: Expr.Var): Any {
+    return environment[expr.name].value
   }
 
-  fun eval(assign: Expr.Assign): Any = eval(assign.value).also { value ->
-    environment[assign.name] = value
+  fun eval(expr: Expr.Assign): Any = eval(expr.value).also { value ->
+    environment[expr.name] = value
   }
 
-  fun eval(logical: Expr.Logical): Any {
-    val left = eval(logical.left)
-    val right = eval(logical.right)
+  fun eval(expr: Expr.Logical): Any {
+    val left = eval(expr.left)
+    val right = eval(expr.right)
 
-    return when (logical.op.type) {
+    return when (expr.op.type) {
       TokenType.Or -> left == true || right == true
       TokenType.And -> left == true && right == true
       else -> Unit
@@ -103,15 +104,15 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
     }
   }
 
-  fun eval(binary: Expr.Binary): Any {
-    val left = eval(binary.left)
-    val right = eval(binary.right)
+  fun eval(expr: Expr.Binary): Any {
+    val left = eval(expr.left)
+    val right = eval(expr.right)
 
-    if (binary.op.type.isNumberOp() && left is Double && right is Double) {
-      val leftN = eval(binary.left).toString().toDouble()
-      val rightN = eval(binary.right).toString().toDouble()
+    if (expr.op.type.isNumberOp() && left is Double && right is Double) {
+      val leftN = eval(expr.left).toString().toDouble()
+      val rightN = eval(expr.right).toString().toDouble()
 
-      return when (binary.op.type) {
+      return when (expr.op.type) {
         TokenType.Minus -> leftN - rightN
         TokenType.Plus -> leftN + rightN
         TokenType.Star -> leftN * rightN
@@ -120,18 +121,18 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
         TokenType.Greater -> leftN > rightN
         TokenType.Less -> leftN < rightN
         TokenType.LessEqual -> leftN <= rightN
-        else -> throw UnsupportedOpError(binary.op, "number binary op")
+        else -> throw UnsupportedOpError(expr.op, "number binary op")
       }
     }
 
-    return when (binary.op.type) {
+    return when (expr.op.type) {
       TokenType.EqualEqual -> left == right
       TokenType.BangEqual -> left != right
 
       TokenType.Plus -> if (left is String) left + right else
-        throw UnsupportedOpError(binary.op)
+        throw UnsupportedOpError(expr.op)
 
-      else -> throw UnsupportedOpError(binary.op, "binary general op")
+      else -> throw UnsupportedOpError(expr.op, "binary general op")
     }
   }
 
