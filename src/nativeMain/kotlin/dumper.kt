@@ -4,28 +4,28 @@ fun dump(stmts: Collection<Stmt>) {
 }
 
 fun dump(stmt: Stmt): String {
-  fun dump(exprStmt: Stmt.ExprStmt): String {
-    return "(${dump(exprStmt.expr)})"
+  fun dump(stmt: Stmt.ExprStmt): String {
+    return "(${dump(stmt.expr)})"
   }
 
-  fun dump(printStmt: Stmt.PrintStmt): String {
-    return parenthesize("print", printStmt.expr)
+  fun dump(stmt: Stmt.PrintStmt): String {
+    return parenthesize("print", stmt.expr)
   }
 
-  fun dump(valDecl: Stmt.ValDecl): String {
-    return parenthesize("val", Expr.Literal(valDecl.name), valDecl.value)
+  fun dump(stmt: Stmt.ValDecl): String {
+    return parenthesize("val", Expr.Literal(stmt.name), stmt.value)
   }
 
-  fun dump(varDecl: Stmt.VarDecl): String {
-    return parenthesize("var", Expr.Literal(varDecl.name), varDecl.value)
+  fun dump(stmt: Stmt.VarDecl): String {
+    return parenthesize("var", Expr.Literal(stmt.name), stmt.value)
   }
 
-  fun dump(block: Stmt.Block): String {
-    return parenthesize("block", *block.decls.toTypedArray())
+  fun dump(stmt: Stmt.Block): String {
+    return parenthesize("block", *stmt.decls.toTypedArray())
   }
 
-  fun dump(whileStmt: Stmt.WhileStmt): String {
-    return parenthesize("while", *whileStmt.body.toTypedArray())
+  fun dump(stmt: Stmt.WhileStmt): String {
+    return parenthesize("while", *stmt.body.toTypedArray())
   }
 
   return when (stmt) {
@@ -39,40 +39,40 @@ fun dump(stmt: Stmt): String {
 }
 
 fun dump(expr: Expr): String {
-  fun dump(binary: Expr.Binary): String {
-    return parenthesize(binary.op.lexeme, binary.left, binary.right)
+  fun dump(expr: Expr.Binary): String {
+    return parenthesize(expr.op.lexeme, expr.left, expr.right)
   }
 
-  fun dump(grouping: Expr.Grouping): String {
-    return parenthesize("group", grouping.expr)
+  fun dump(expr: Expr.Grouping): String {
+    return parenthesize("group", expr.expr)
   }
 
-  fun dump(unary: Expr.Unary): String {
-    return parenthesize(unary.op.lexeme, unary.right)
+  fun dump(expr: Expr.Unary): String {
+    return parenthesize(expr.op.lexeme, expr.right)
   }
 
-  fun dump(assign: Expr.Assign): String {
-    return parenthesize("set", Expr.Literal(assign.name), assign.value)
+  fun dump(expr: Expr.Assign): String {
+    return parenthesize("set", Expr.Literal(expr.name), expr.value)
   }
 
-  fun dump(varExpr: Expr.Var): String {
-    return parenthesize("get", Expr.Literal(varExpr.name))
+  fun dump(expr: Expr.Var): String {
+    return parenthesize("get", Expr.Literal(expr.name))
   }
 
-  fun dump(logical: Expr.Logical): String {
-    return parenthesize(logical.op.lexeme, logical.left, logical.right)
+  fun dump(expr: Expr.Logical): String {
+    return parenthesize(expr.op.lexeme, expr.left, expr.right)
   }
 
-  fun dump(literal: Expr.Literal): String {
-    if (literal.value is String) return "\"${literal.value}\""
+  fun dump(expr: Expr.Literal): String {
+    if (expr.value is String) return "\"${expr.value}\""
 
-    return literal.value.toString()
+    return expr.value.toString()
   }
 
-  fun dump(ifExpr: Expr.IfExpr): String {
-    return parenthesize("if ${dump(ifExpr.condition)}", *ifExpr.thenBranch.toTypedArray()) +
-      if (ifExpr.elseBranch != null)
-        " " + parenthesize("else", *ifExpr.elseBranch.toTypedArray())
+  fun dump(expr: Expr.IfExpr): String {
+    return parenthesize("if ${dump(expr.condition)}", *expr.thenBranch.toTypedArray()) +
+      if (expr.elseBranch != null)
+        " " + parenthesize("else", *expr.elseBranch.toTypedArray())
       else ""
   }
   return when (expr) {
