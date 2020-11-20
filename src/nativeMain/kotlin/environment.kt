@@ -33,6 +33,8 @@ private class KoflEnvironment(private val enclosing: Environment? = null) : Muta
   override operator fun get(name: Token): KoflValue = values[name.lexeme]
     ?: enclosing?.get(name)
     ?: throw UnsolvedReferenceError(name)
+
+  override fun toString(): String = "KoflEnvironment(enclosing=$enclosing, values=$values)"
 }
 
 fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
