@@ -36,14 +36,14 @@ fun file(name: String) {
 }
 
 // TODO: typechecking
-fun run(code: String): Any? {
+fun eval(code: String): Any? {
   if (code.isEmpty()) return null
 
   val scanner = Scanner(code)
   val parser = Parser(scanner.scan())
 
   return parser.parse().let { stmts ->
-    SimpleAstDumper.dump(stmts)
-    Evaluator.eval(stmts)
+    dump(stmts)
+    eval(stmts)
   }
 }

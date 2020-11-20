@@ -51,15 +51,13 @@ internal fun repl(): Unit = memScoped {
   println()
 
   while (true) {
-    print("\r\n")
-
     print("kofl>")
 
     when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)
       ":clear" -> clearScreen()
       else -> try {
-        run(line) // interpret and run the provided code in the line
+        eval(line) // interpret and run the provided code in the line
       } catch (error: KoflError) {
         error.report() // just report error to dont crash program
       }
