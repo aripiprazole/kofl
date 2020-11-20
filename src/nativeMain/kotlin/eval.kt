@@ -16,10 +16,6 @@ fun eval(stmt: Stmt, environment: MutableEnvironment = globalEnvironment): KoflO
     return eval(stmt.expr, environment)
   }
 
-  fun eval(stmt: Stmt.PrintStmt): KoflObject {
-    return println(eval(stmt.expr)).asKoflObject()
-  }
-
   fun eval(stmt: Stmt.ValDecl): KoflObject {
     environment.define(stmt.name, eval(stmt.value, environment).asKoflValue())
 
@@ -58,7 +54,6 @@ fun eval(stmt: Stmt, environment: MutableEnvironment = globalEnvironment): KoflO
     is Stmt.Block -> eval(stmt)
     is Stmt.VarDecl -> eval(stmt)
     is Stmt.ValDecl -> eval(stmt)
-    is Stmt.PrintStmt -> eval(stmt)
     is Stmt.ExprStmt -> eval(stmt)
   }
 }
