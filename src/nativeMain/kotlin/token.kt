@@ -11,7 +11,6 @@ val RESERVED_KEYWORDS = mapOf(
   "return" to TokenType.Return,
   "while" to TokenType.While,
   "extern" to TokenType.Extern,
-  "print" to TokenType.Print,
 )
 
 enum class TokenType {
@@ -33,7 +32,7 @@ enum class TokenType {
   Identifier, String, Number,
 
   // keywords tokens
-  If, Else, This, False, True, Print, While,
+  If, Else, This, False, True, While,
   Func, Val, Var, Return, Struct, Extern,
 
   // special tokens
@@ -47,7 +46,7 @@ data class Token(
   val line: Int
 ) {
   override fun toString() = when {
-    literal != null -> "($type `$literal`)"
+    literal != null -> "$literal"
     type == TokenType.Identifier -> lexeme
     type == TokenType.Eof -> "EOF"
     else -> "$type"

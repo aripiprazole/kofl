@@ -13,9 +13,8 @@ open class ParseError(
 ) : KoflError("parse", "invalid `$token` at ${token.location}: $message")
 
 class TypeError(
-  token: Token,
   expected: Any
-) : ParseError(token, "expected type: $expected, at ${token.location}")
+) : KoflError("type error", "expected type: $expected")
 
 // syntax errors
 open class SyntaxError(

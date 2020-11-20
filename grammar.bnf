@@ -16,18 +16,16 @@ valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
 
 stmt ::= exprStmt
-    | printStmt
     | whileStmt
     | block ;
 
 exprStmt ::= expression ";" ;
-printStmt ::= "print" expression ";" ;
 
 whileStmt ::= "while" expression block;
 
 block ::= "{" decl* "}" ;
 
-expression ::= assignment | if;
+expression ::= assignment | if | func;
 
 logic_or ::= logic_and ( "or" logic_and )*;
 logic_and ::= equality ( "and " equality )*;
@@ -35,13 +33,20 @@ logic_and ::= equality ( "and " equality )*;
 assignment ::= IDENTIFIER "=" assignment
     | logic_or ;
 
-if ::= "if" expression block ( "else" block ) ?
+if ::= "if" expression block ( "else" block ) ? ;
+func ::= "func" IDENTIFIER "(" parameters? ")" block ;
+
+parameters ::= IDENTIFIER ( "," IDENTIFIER ) * ;
 
 equality ::= comparison ( ( "!=" | "==" ) comparison)* ;
 comparison ::= term ( ( ">" | ">=" | "<" | "<=" ) term)* ;
 term ::= factor ( ( "-" | "+" ) factor)* ;
 factor ::= unary ( ( "/" | "*" ) unary)* ;
-unary ::= ( "!" | "-" ) unary | primary ;
+unary ::= ( "!" | "-" ) unary | call;
+
+call ::= primary ( "(" arguments? ")" )* ;
+arguments ::= expression ( "," expression )*;
+
 primary ::= NUMBER | STRING
     | "true" | "false"
     | "(" expression ")"
