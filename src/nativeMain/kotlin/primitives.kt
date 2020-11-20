@@ -99,7 +99,7 @@ sealed class KoflCallable(val arity: Int) : KoflObject() {
         localEnvironment.define(decl.arguments[i], argument.asKoflValue())
       }
 
-      return eval(decl.body).lastOrNull() ?: KoflUnit
+      return eval(decl.body, localEnvironment).lastOrNull() ?: KoflUnit
     }
 
     override fun toString(): String = buildString {
