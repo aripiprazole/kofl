@@ -1,13 +1,13 @@
 @kotlin.native.concurrent.ThreadLocal
-private var environment = Environment()
+private val globalEnvironment = Environment()
 
-fun eval(stmts: List<Stmt>): List<Any> = stmts.map { stmt ->
-  eval(stmt)
+fun eval(stmts: List<Stmt>, environment: Environment = globalEnvironment): List<Any> = stmts.map { stmt ->
+  eval(stmt, environment)
 }
 
-fun eval(stmt: Stmt): Any {
+fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
   fun eval(exprStmt: Stmt.ExprStmt): Any {
-    return eval(exprStmt.expr)
+    return eval(exprStmt.expr, environment)
   }
 
   fun eval(printStmt: Stmt.PrintStmt) {
@@ -15,7 +15,7 @@ fun eval(stmt: Stmt): Any {
   }
 
   fun eval(valDecl: Stmt.ValDecl): Any {
-    return environment.define(valDecl.name, eval(valDecl.value))
+    return environment.define(valDecl.name, eval(valDecl.value, environment))
   }
 
   fun eval(varDecl: Stmt.VarDecl): Any {
@@ -24,21 +24,18 @@ fun eval(stmt: Stmt): Any {
 
   // TODO: do not mutate environment
   fun eval(block: Stmt.Block): Any {
-    val previous = environment
     val localEnvironment = Environment(environment)
 
-    return try {
-      environment = localEnvironment
-
-      block.decls.forEach { stmt -> eval(stmt) }
-    } finally {
-      environment = previous
+    return block.decls.forEach { stmt ->
+      eval(stmt, localEnvironment)
     }
   }
 
   fun eval(whileStmt: Stmt.WhileStmt): Any {
-    while (eval(whileStmt.condition) == true) {
-      eval(whileStmt.body)
+    val localEnvironment = Environment(environment)
+
+    while (eval(whileStmt.condition, localEnvironment) == true) {
+      eval(whileStmt.body, localEnvironment)
     }
 
     return Unit
@@ -54,7 +51,7 @@ fun eval(stmt: Stmt): Any {
   }
 }
 
-fun eval(expr: Expr): Any {
+fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
   fun eval(grouping: Expr.Grouping): Any {
     return eval(grouping.expr)
   }
@@ -83,11 +80,13 @@ fun eval(expr: Expr): Any {
   }
 
   fun eval(expr: Expr.IfExpr): Any {
+    val localEnvironment = Environment(environment)
+
     if (eval(expr.condition) == true) {
-      return eval(expr.thenBranch).lastOrNull() ?: Unit
+      return eval(expr.thenBranch, localEnvironment).lastOrNull() ?: Unit
     } else {
       expr.elseBranch?.let { stmts ->
-        return eval(stmts).lastOrNull() ?: Unit
+        return eval(stmts, localEnvironment).lastOrNull() ?: Unit
       }
     }
 
