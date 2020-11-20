@@ -1,4 +1,4 @@
-fun dump(stmts: Collection<Stmt>) {
+fun dump(stmts: List<Stmt>) {
   println("simple ast dump:")
   println(stmts.joinToString("\n") { dump(it) })
 }
@@ -75,6 +75,18 @@ fun dump(expr: Expr): String {
         " " + parenthesize("else", *expr.elseBranch.toTypedArray())
       else ""
   }
+
+  fun dump(expr: Expr.Call): String {
+    return parenthesize(dump(expr.calle), *expr.arguments.toTypedArray())
+  }
+
+  fun dump(expr: Expr.Func): String {
+    return parenthesize(
+      op = "${expr.name} (${expr.arguments.joinToString(" ")})",
+      *expr.body.toTypedArray()
+    )
+  }
+
   return when (expr) {
     is Expr.Binary -> dump(expr)
     is Expr.IfExpr -> dump(expr)
@@ -84,6 +96,8 @@ fun dump(expr: Expr): String {
     is Expr.Literal -> dump(expr)
     is Expr.Var -> dump(expr)
     is Expr.Logical -> dump(expr)
+    is Expr.Call -> dump(expr)
+    is Expr.Func -> dump(expr)
   }
 }
 

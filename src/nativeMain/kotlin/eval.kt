@@ -1,11 +1,17 @@
 @kotlin.native.concurrent.ThreadLocal
-private val globalEnvironment = Environment()
+private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 
-fun eval(stmts: List<Stmt>, environment: Environment = globalEnvironment): List<Any> = stmts.map { stmt ->
-  eval(stmt, environment)
-}
+fun eval(stmts: List<Stmt>, environment: MutableEnvironment = globalEnvironment): List<Any> =
+  stmts.map { stmt ->
+    eval(stmt, environment)
+  }
 
-fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
+fun eval(stmts: List<Expr>, environment: MutableEnvironment = globalEnvironment): List<Any> =
+  stmts.map { stmt ->
+    eval(stmt, environment)
+  }
+
+fun eval(stmt: Stmt, environment: MutableEnvironment = globalEnvironment): Any {
   fun eval(stmt: Stmt.ExprStmt): Any {
     return eval(stmt.expr, environment)
   }
@@ -19,12 +25,12 @@ fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
   }
 
   fun eval(stmt: Stmt.VarDecl): Any {
-    return environment.define(stmt.name, eval(stmt.value), immutable = false)
+    return environment.define(stmt.name, eval(stmt.value, environment), immutable = false)
   }
 
   // TODO: do not mutate environment
   fun eval(stmt: Stmt.Block): Any {
-    val localEnvironment = Environment(environment)
+    val localEnvironment = MutableEnvironment(environment)
 
     return stmt.decls.forEach { lStmt ->
       eval(lStmt, localEnvironment)
@@ -33,7 +39,7 @@ fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
 
   // TODO: add break and continue
   fun eval(stmt: Stmt.WhileStmt): Any {
-    val localEnvironment = Environment(environment)
+    val localEnvironment = MutableEnvironment(environment)
 
     while (eval(stmt.condition, localEnvironment) == true) {
       eval(stmt.body, localEnvironment)
@@ -52,7 +58,7 @@ fun eval(stmt: Stmt, environment: Environment = globalEnvironment): Any {
   }
 }
 
-fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
+fun eval(expr: Expr, environment: MutableEnvironment = globalEnvironment): Any {
   fun eval(grouping: Expr.Grouping): Any {
     return eval(grouping.expr)
   }
@@ -81,7 +87,7 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
   }
 
   fun eval(expr: Expr.IfExpr): Any {
-    val localEnvironment = Environment(environment)
+    val localEnvironment = MutableEnvironment(environment)
 
     if (eval(expr.condition) == true) {
       return eval(expr.thenBranch, localEnvironment).lastOrNull() ?: Unit
@@ -101,6 +107,18 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
       TokenType.Bang -> !eval(expr.right).toString().toBoolean()
 
       else -> throw UnsupportedOpError(expr.op, "unary")
+    }
+  }
+
+  fun eval(expr: Expr.Call): Any {
+    val arguments = eval(expr.arguments)
+
+    return when(val callee = eval(expr.calle)) {
+      is KoflCallable -> when(callee.arity) {
+        arguments.size -> callee(arguments, environment)
+        else -> throw RuntimeError("expecting ${callee.arity} args but got ${arguments.size}")
+      }
+      else -> throw TypeError("can't call a non-callable expr")
     }
   }
 
@@ -136,6 +154,10 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
     }
   }
 
+  fun eval(expr: Expr.Func): Any {
+    return environment.define(expr.name, KoflCallable.Func(expr))
+  }
+
   return when (expr) {
     is Expr.Binary -> eval(expr)
     is Expr.IfExpr -> eval(expr)
@@ -145,6 +167,8 @@ fun eval(expr: Expr, environment: Environment = globalEnvironment): Any {
     is Expr.Literal -> eval(expr)
     is Expr.Var -> eval(expr)
     is Expr.Logical -> eval(expr)
+    is Expr.Call -> eval(expr)
+    is Expr.Func -> eval(expr)
   }
 }
 

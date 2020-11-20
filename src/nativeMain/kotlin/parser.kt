@@ -92,17 +92,7 @@ class Parser(private val tokens: List<Token>) {
   }
 
   private fun statement(): Stmt {
-    if (match(TokenType.Print)) return printStatement()
-
     return exprStatement()
-  }
-
-  private fun printStatement(): Stmt {
-    val expr = expression()
-
-    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing end of line")
-
-    return Stmt.PrintStmt(expr)
   }
 
   private fun whileStatement(): Stmt {
@@ -122,26 +112,11 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.ExprStmt(expr)
   }
 
-  private fun ifExpr(): Expr {
-    val condition = expression()
-
-    if (!match(TokenType.LeftBrace))
-      throw ParseError(peek(), "Missing start of if block")
-
-    val mainBranch = block()
-    val elseBranch = if (match(TokenType.Else))
-      if (match(TokenType.LeftBrace))
-        block()
-      else throw ParseError(peek(), "Missing start of else block")
-    else null
-
-    return Expr.IfExpr(condition, mainBranch, elseBranch)
-  }
-
   // expressions
   @OptIn(ExperimentalStdlibApi::class)
   private fun expression(): Expr {
     if (match(TokenType.If)) return ifExpr()
+    if (match(TokenType.Func)) return funcExpr()
 
     val expr = or()
 
@@ -162,6 +137,48 @@ class Parser(private val tokens: List<Token>) {
     }
 
     return expr
+  }
+
+  private fun ifExpr(): Expr {
+    val condition = expression()
+
+    if (!match(TokenType.LeftBrace))
+      throw ParseError(peek(), "Missing start of if block")
+
+    val mainBranch = block()
+    val elseBranch = if (match(TokenType.Else))
+      if (match(TokenType.LeftBrace))
+        block()
+      else throw ParseError(peek(), "Missing start of else block")
+    else null
+
+    return Expr.IfExpr(condition, mainBranch, elseBranch)
+  }
+
+  @OptIn(ExperimentalStdlibApi::class)
+  private fun funcExpr(): Expr {
+    val name = consume(TokenType.Identifier)
+      ?: throw ParseError(peek(), "Expect func name")
+
+    consume(TokenType.LeftParen)
+      ?: throw ParseError(peek(), "Missing start of parameters")
+
+    val parameters = buildList {
+      if (!check(TokenType.RightParen))
+        do
+          if (size >= 32) // the limit is really 32 'cause the this is passed as a arg
+            ParseError(peek(), "Can't have more than 32 arguments in a function")
+              .report()
+          else add(consume(TokenType.Identifier) ?: throw ParseError(peek(), "Missing param name"))
+        while (match(TokenType.Comma))
+    }
+
+    consume(TokenType.RightParen) ?: throw ParseError(peek(), "Missing finish arguments decl")
+    consume(TokenType.LeftBrace) ?: throw ParseError(peek(), "Missing start of func block")
+
+    val body = block()
+
+    return Expr.Func(name, parameters, body)
   }
 
   private fun assignment(): Expr {
@@ -254,7 +271,37 @@ class Parser(private val tokens: List<Token>) {
       return Expr.Unary(op, right)
     }
 
-    return primary()
+    return call()
+  }
+
+  private fun call(): Expr {
+    var expr = primary()
+
+    while (true) when {
+      match(TokenType.LeftParen) -> expr = finishCall(expr)
+      else -> break
+    }
+
+    return expr
+  }
+
+  @OptIn(ExperimentalStdlibApi::class)
+  private fun finishCall(callee: Expr): Expr {
+    val arguments = buildList {
+      if (!check(TokenType.RightParen)) {
+        do
+          if (size >= 32) // the limit is really 32 'cause the this is passed as a arg
+            ParseError(peek(), "Can't have more than 32 arguments in a function")
+              .report()
+          else add(expression())
+        while (match(TokenType.Comma))
+      }
+    }
+
+    val paren = consume(TokenType.RightParen)
+      ?: throw ParseError(peek(), "Missing finish call")
+
+    return Expr.Call(callee, paren, arguments)
   }
 
   private fun primary(): Expr = when {
