@@ -35,6 +35,9 @@ fun file(name: String) {
   TODO("Handle file not implemented")
 }
 
+@kotlin.native.concurrent.ThreadLocal
+private val globalEnvironment = MutableEnvironment(NativeEnvironment())
+
 // TODO: typechecking
 fun eval(code: String): Any? {
   if (code.isEmpty()) return null
@@ -44,6 +47,6 @@ fun eval(code: String): Any? {
 
   return parser.parse().let { stmts ->
     dump(stmts)
-    eval(stmts)
+    eval(stmts, globalEnvironment)
   }
 }

@@ -10,4 +10,6 @@ class NativeEnvironment : Environment {
 
     else -> throw UnsolvedReferenceError(name)
   }
+
+  override fun toString(): String = "<native env>"
 }
