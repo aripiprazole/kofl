@@ -1,12 +1,12 @@
 class NativeEnvironment : Environment {
-  override fun get(name: Token): Value = when (name.lexeme) {
+  override fun get(name: Token): KoflValue = when (name.lexeme) {
     "println" -> KoflCallable.Native(1) { (message), _ ->
-      println(message)
-    }.asValue()
+      println(message).asKoflObject()
+    }.asKoflValue()
 
     "print" -> KoflCallable.Native(1) { (message), _ ->
-      print(message)
-    }.asValue()
+      print(message).asKoflObject()
+    }.asKoflValue()
 
     else -> throw UnsolvedReferenceError(name)
   }
