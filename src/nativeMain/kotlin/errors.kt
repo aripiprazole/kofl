@@ -38,4 +38,7 @@ class LexError(
   message: String = "unexpected character"
 ) : SyntaxError("lex", "unexpected `$lexeme` in line $line: $message")
 
-class UnsupportedOpError(op: Token) : SyntaxError("unsupported", "unsupported op $op")
+class UnsupportedOpError(
+  op: Token,
+  whenTrying: String? = null
+) : SyntaxError("unsupported", "unsupported op when trying to do: $op ${whenTrying?.let { "" }}")

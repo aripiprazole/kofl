@@ -1,24 +1,29 @@
-@ThreadLocal
-object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
-  fun eval(stmts: List<Stmt>): List<Any> = stmts.map { stmt ->
-    eval(stmt)
+@kotlin.native.concurrent.ThreadLocal
+private var environment = Environment()
+
+fun eval(stmts: List<Stmt>): List<Any> = stmts.map { stmt ->
+  eval(stmt)
+}
+
+fun eval(stmt: Stmt): Any {
+  fun eval(exprStmt: Stmt.ExprStmt): Any {
+    return eval(exprStmt.expr)
   }
 
-  private var environment = Environment()
+  fun eval(printStmt: Stmt.PrintStmt) {
+    println(eval(printStmt.expr))
+  }
 
-  private fun eval(expr: Expr) = expr.accept(this)
-  private fun eval(stmt: Stmt) = stmt.accept(this)
+  fun eval(valDecl: Stmt.ValDecl): Any {
+    return environment.define(valDecl.name, eval(valDecl.value))
+  }
 
-  override fun visit(exprStmt: Stmt.ExprStmt) = eval(exprStmt.expr)
-  override fun visit(printStmt: Stmt.PrintStmt) = println(eval(printStmt.expr))
-  override fun visit(valDecl: Stmt.ValDecl) =
-    environment.define(valDecl.name, eval(valDecl.value))
-
-  override fun visit(varDecl: Stmt.VarDecl) =
-    environment.define(varDecl.name, eval(varDecl.value), immutable = false)
+  fun eval(varDecl: Stmt.VarDecl): Any {
+    return environment.define(varDecl.name, eval(varDecl.value), immutable = false)
+  }
 
   // TODO: do not mutate environment
-  override fun visit(block: Stmt.Block) {
+  fun eval(block: Stmt.Block): Any {
     val previous = environment
     val localEnvironment = Environment(environment)
 
@@ -31,15 +36,75 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
     }
   }
 
-  override fun visit(whileStmt: Stmt.WhileStmt): Any {
-    while(eval(whileStmt.condition) == true) {
+  fun eval(whileStmt: Stmt.WhileStmt): Any {
+    while (eval(whileStmt.condition) == true) {
       eval(whileStmt.body)
     }
 
     return Unit
   }
 
-  override fun visit(binary: Expr.Binary): Any {
+  return when (stmt) {
+    is Stmt.WhileStmt -> eval(stmt)
+    is Stmt.Block -> eval(stmt)
+    is Stmt.VarDecl -> eval(stmt)
+    is Stmt.ValDecl -> eval(stmt)
+    is Stmt.PrintStmt -> eval(stmt)
+    is Stmt.ExprStmt -> eval(stmt)
+  }
+}
+
+fun eval(expr: Expr): Any {
+  fun eval(grouping: Expr.Grouping): Any {
+    return eval(grouping.expr)
+  }
+
+  fun eval(literal: Expr.Literal): Any {
+    return literal.value
+  }
+
+  fun eval(varExpr: Expr.Var): Any {
+    return environment[varExpr.name].value
+  }
+
+  fun eval(assign: Expr.Assign): Any = eval(assign.value).also { value ->
+    environment[assign.name] = value
+  }
+
+  fun eval(logical: Expr.Logical): Any {
+    val left = eval(logical.left)
+    val right = eval(logical.right)
+
+    return when (logical.op.type) {
+      TokenType.Or -> left == true || right == true
+      TokenType.And -> left == true && right == true
+      else -> Unit
+    }
+  }
+
+  fun eval(expr: Expr.IfExpr): Any {
+    if (eval(expr.condition) == true) {
+      return eval(expr.thenBranch).lastOrNull() ?: Unit
+    } else {
+      expr.elseBranch?.let { stmts ->
+        return eval(stmts).lastOrNull() ?: Unit
+      }
+    }
+
+    return Unit
+  }
+
+  fun eval(expr: Expr.Unary): Any {
+    return when (expr.op.type) {
+      TokenType.Plus -> +eval(expr.right).toString().toDouble()
+      TokenType.Minus -> -eval(expr.right).toString().toDouble()
+      TokenType.Bang -> !eval(expr.right).toString().toBoolean()
+
+      else -> throw UnsupportedOpError(expr.op, "unary")
+    }
+  }
+
+  fun eval(binary: Expr.Binary): Any {
     val left = eval(binary.left)
     val right = eval(binary.right)
 
@@ -56,7 +121,7 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
         TokenType.Greater -> leftN > rightN
         TokenType.Less -> leftN < rightN
         TokenType.LessEqual -> leftN <= rightN
-        else -> throw UnsupportedOpError(binary.op)
+        else -> throw UnsupportedOpError(binary.op, "number binary op")
       }
     }
 
@@ -67,48 +132,19 @@ object Evaluator : ExprVisitor<Any>, StmtVisitor<Any> {
       TokenType.Plus -> if (left is String) left + right else
         throw UnsupportedOpError(binary.op)
 
-      else -> throw UnsupportedOpError(binary.op)
+      else -> throw UnsupportedOpError(binary.op, "binary general op")
     }
   }
 
-  override fun visit(grouping: Expr.Grouping) = eval(grouping.expr)
-  override fun visit(literal: Expr.Literal) = literal.value
-  override fun visit(varExpr: Expr.Var) = environment[varExpr.name].value
-  override fun visit(assign: Expr.Assign) = eval(assign.value).also { value ->
-    environment[assign.name] = value
-  }
-
-  override fun visit(unary: Expr.Unary): Any {
-    return when (unary.op.type) {
-      TokenType.Plus -> +eval(unary.right).toString().toDouble()
-      TokenType.Minus -> -eval(unary.right).toString().toDouble()
-      TokenType.Bang -> !eval(unary.right).toString().toBoolean()
-
-      else -> throw UnsupportedOpError(unary.op)
-    }
-  }
-
-  override fun visit(ifExpr: Expr.IfExpr): Any {
-    if (eval(ifExpr.condition) == true) {
-      return eval(ifExpr.thenBranch).lastOrNull() ?: Unit
-    } else {
-      ifExpr.elseBranch?.let { stmts ->
-        return eval(stmts).lastOrNull() ?: Unit
-      }
-    }
-
-    return Unit
-  }
-
-  override fun visit(logical: Expr.Logical): Any {
-    val left = eval(logical.left)
-    val right = eval(logical.right)
-
-    return when (logical.op.type) {
-      TokenType.Or -> left == true || right == true
-      TokenType.And -> left == true && right == true
-      else -> Unit
-    }
+  return when (expr) {
+    is Expr.Binary -> eval(expr)
+    is Expr.IfExpr -> eval(expr)
+    is Expr.Unary -> eval(expr)
+    is Expr.Grouping -> eval(expr)
+    is Expr.Assign -> eval(expr)
+    is Expr.Literal -> eval(expr)
+    is Expr.Var -> eval(expr)
+    is Expr.Logical -> eval(expr)
   }
 }
 
