@@ -26,7 +26,7 @@ class Scanner(private val source: String) {
       '}' -> addToken(TokenType.RightBrace)
       '.' -> addToken(TokenType.Dot)
       ',' -> addToken(TokenType.Comma)
-      ';' ->  addToken(TokenType.Semicolon)
+      ';' -> addToken(TokenType.Semicolon)
       ':' -> addToken(TokenType.Colon)
       '@' -> addToken(TokenType.At)
 
@@ -100,6 +100,7 @@ class Scanner(private val source: String) {
     advance()
   }
 
+  // TODO: throw a language exception if double doesn't parse
   private fun scanNumber() {
     while (isDigit(peek()) && !isAtEnd) advance()
 
@@ -107,10 +108,9 @@ class Scanner(private val source: String) {
       advance()
 
       while (isDigit(peek()) && !isAtEnd) advance()
-    }
 
-    // TODO: throw a language exception if double doesn't parse
-    addToken(TokenType.Number, source.substring(start, current).toDouble())
+      addToken(TokenType.Double, source.substring(start, current).toDouble())
+    } else addToken(TokenType.Int, source.substring(start, current).toInt())
   }
 
   private fun scanString() {

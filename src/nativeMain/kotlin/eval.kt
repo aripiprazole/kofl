@@ -115,8 +115,8 @@ fun eval(expr: Expr.IfExpr, environment: MutableEnvironment): KoflObject {
 
 fun eval(expr: Expr.Unary, environment: MutableEnvironment): KoflObject {
   return when (expr.op.type) {
-    TokenType.Plus -> +eval(expr.right, environment).toString().toDouble().asKoflNumber()
-    TokenType.Minus -> -eval(expr.right, environment).toString().toDouble().asKoflNumber()
+    TokenType.Plus -> +eval(expr.right, environment).asKoflNumber()
+    TokenType.Minus -> -eval(expr.right, environment).asKoflNumber()
     TokenType.Bang -> !eval(expr.right, environment).toString().toBoolean().asKoflBoolean()
 
     else -> throw UnsupportedOpError(expr.op, "unary")
@@ -140,8 +140,8 @@ fun eval(expr: Expr.Binary, environment: MutableEnvironment): KoflObject {
   val right = eval(expr.right, environment)
 
   if (expr.op.type.isNumberOp() && left is KoflNumber<*> && right is KoflNumber<*>) {
-    val leftN = eval(expr.left, environment).unwrap().toString().toDouble().asKoflNumber()
-    val rightN = eval(expr.right, environment).unwrap().toString().toDouble().asKoflNumber()
+    val leftN = eval(expr.left, environment).asKoflNumber()
+    val rightN = eval(expr.right, environment).asKoflNumber()
 
     return when (expr.op.type) {
       TokenType.Minus -> leftN - rightN

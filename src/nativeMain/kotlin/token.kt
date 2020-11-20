@@ -29,7 +29,7 @@ enum class TokenType {
   And, Or,
 
   // literals tokens
-  Identifier, String, Number,
+  Identifier, String, Double, Int,
 
   // keywords tokens
   If, Else, This, False, True, While,
