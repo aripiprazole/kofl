@@ -116,21 +116,14 @@ sealed class KoflCallable(val arity: Int) : KoflObject() {
   }
 }
 
-fun KoflObject.unwrap(): Any = when (this) {
-  is KoflAny -> any
-  is KoflBoolean -> isTruthy()
-  is KoflCallable.Native -> TODO()
-  is KoflCallable.Func -> TODO()
-  is KoflString -> string
-  is KoflDouble -> number
-  is KoflInt -> number
-  KoflUnit -> TODO()
-}
-
 @Suppress("UNCHECKED_CAST")
-fun Number.asKoflNumber(): KoflNumber<Number> = when (this) {
-  is Double -> KoflDouble(toDouble()) as KoflNumber<Number>
-  is Int -> KoflInt(toInt()) as KoflNumber<Number>
+fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
+  is KoflAny -> when (any) {
+    is Double -> KoflDouble(any) as KoflNumber<Number>
+    is Int -> KoflInt(any) as KoflNumber<Number>
+    else -> throw TypeError("int or double")
+  }
+  is KoflNumber<*> -> this as KoflNumber<Number>
   else -> throw TypeError("int or double")
 }
 

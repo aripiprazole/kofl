@@ -308,7 +308,7 @@ class Parser(private val tokens: List<Token>) {
     match(TokenType.False) -> Expr.Literal(false)
     match(TokenType.True) -> Expr.Literal(true)
 
-    match(TokenType.Number, TokenType.String) -> Expr.Literal(previous().let {
+    match(TokenType.Double, TokenType.String, TokenType.Int) -> Expr.Literal(previous().let {
       it.literal ?: ""
     }) // TODO: fixme
 
