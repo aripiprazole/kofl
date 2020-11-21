@@ -41,6 +41,7 @@ class Resolver(private val evaluator: Evaluator) {
     is Expr.Func -> resolve(expr)
     is Expr.AnonymousFunc -> resolve(expr)
     is Expr.ExtensionFunc -> resolve(expr)
+    is Expr.ThisExpr -> resolve(expr)
     is Expr.IfExpr -> resolve(expr)
     is Expr.NativeFunc -> Unit
     is Expr.Literal -> Unit
@@ -123,6 +124,10 @@ class Resolver(private val evaluator: Evaluator) {
   private fun resolve(expr: Expr.Assign) {
     resolve(expr.value)
     resolveLocal(expr, expr.name)
+  }
+
+  private fun resolve(expr: Expr.ThisExpr) {
+    resolveLocal(expr, expr.keyword)
   }
 
   private fun resolve(expr: Expr.Grouping) {
