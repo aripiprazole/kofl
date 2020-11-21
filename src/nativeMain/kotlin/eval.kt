@@ -75,6 +75,7 @@ fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) 
   is Expr.Logical -> eval(expr, environment)
   is Expr.Call -> eval(expr, environment)
   is Expr.Func -> eval(expr, environment)
+  is Expr.AnonymousFunc -> eval(expr)
 }
 
 fun eval(grouping: Expr.Grouping, environment: MutableEnvironment): KoflObject {
@@ -180,6 +181,10 @@ fun eval(expr: Expr.Binary, environment: MutableEnvironment): KoflObject {
 
 fun eval(expr: Expr.Func, environment: MutableEnvironment): KoflObject {
   return environment.define(expr.name, KoflCallable.Func(expr).asKoflValue()).asKoflObject()
+}
+
+fun eval(expr: Expr.AnonymousFunc): KoflObject {
+  return KoflCallable.AnonymousFunc(expr)
 }
 
 private fun TokenType.isNumberOp() =
