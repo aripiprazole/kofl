@@ -42,6 +42,8 @@ class Parser(private val tokens: List<Token>) {
       match(TokenType.While) -> whileStatement()
       match(TokenType.Return) -> returnStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
+      match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
+      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
 
       else -> statement()
     }
@@ -126,8 +128,8 @@ class Parser(private val tokens: List<Token>) {
   // expressions
   @OptIn(ExperimentalStdlibApi::class)
   private fun expression(): Expr {
-    if (match(TokenType.If)) return ifExpr()
-    if (match(TokenType.Func)) return funcExpr()
+    if (match(TokenType.If)) return ifExpr(IfType.Anonymous)
+    if (match(TokenType.Func)) return funcExpr(FuncType.Anonymous)
 
     val expr = or()
 
@@ -150,7 +152,9 @@ class Parser(private val tokens: List<Token>) {
     return expr
   }
 
-  private fun ifExpr(): Expr {
+  private enum class IfType { Anonymous, If }
+
+  private fun ifExpr(type: IfType): Expr {
     val condition = expression()
 
     if (!match(TokenType.LeftBrace))
@@ -163,13 +167,18 @@ class Parser(private val tokens: List<Token>) {
       else throw ParseError(peek(), "Missing start of else block")
     else null
 
+    if (type == IfType.Anonymous && elseBranch == null) {
+      throw ParseError(peek(), "Missing else block on local if")
+    }
+
     return Expr.IfExpr(condition, mainBranch, elseBranch)
   }
 
+  private enum class FuncType { Anonymous, Func }
+
   @OptIn(ExperimentalStdlibApi::class)
-  private fun funcExpr(): Expr {
+  private fun funcExpr(type: FuncType): Expr {
     val name = consume(TokenType.Identifier)
-      ?: throw ParseError(peek(), "Expect func name")
 
     consume(TokenType.LeftParen)
       ?: throw ParseError(peek(), "Missing start of parameters")
@@ -185,11 +194,24 @@ class Parser(private val tokens: List<Token>) {
     }
 
     consume(TokenType.RightParen) ?: throw ParseError(peek(), "Missing finish arguments decl")
-    consume(TokenType.LeftBrace) ?: throw ParseError(peek(), "Missing start of func block")
 
-    val body = block()
+    val body = when {
+      consume(TokenType.LeftBrace) != null -> block()
+      consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
+        if (type == FuncType.Func)
+          consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing semicolon")
+      }
+      else -> throw ParseError(peek(), "Missing start of func block")
+    }
 
-    return Expr.Func(name, parameters, body)
+    return when (type) {
+      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body)
+      FuncType.Func -> Expr.Func(
+        name ?: throw ParseError(peek(), "Expect func name"),
+        parameters,
+        body
+      )
+    }
   }
 
   private fun assignment(): Expr {

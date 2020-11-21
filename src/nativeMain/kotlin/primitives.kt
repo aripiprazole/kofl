@@ -91,6 +91,30 @@ sealed class KoflCallable(val arity: Int) : KoflObject() {
     override fun toString(): String = "<native func>"
   }
 
+  class AnonymousFunc(private val decl: Expr.AnonymousFunc) : KoflCallable(decl.arguments.size) {
+    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
+      val localEnvironment = MutableEnvironment(environment)
+
+      arguments.forEachIndexed { i, argument ->
+        localEnvironment.define(decl.arguments[i], argument.asKoflValue())
+      }
+
+      return eval(decl.body, localEnvironment).lastOrNull() ?: KoflUnit
+    }
+
+    override fun toString(): String = buildString {
+      append("func (")
+
+      if (decl.arguments.size > 1) {
+        decl.arguments.forEach {
+          append(", ").append(it)
+        }
+      }
+
+      append("): Any { <anonymous> }")
+    }
+  }
+
   class Func(private val decl: Expr.Func) : KoflCallable(decl.arguments.size) {
     override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
