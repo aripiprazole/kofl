@@ -17,6 +17,7 @@ fun eval(stmt: Stmt, environment: MutableEnvironment): KoflObject = when (stmt) 
   is Stmt.VarDecl -> eval(stmt, environment)
   is Stmt.ValDecl -> eval(stmt, environment)
   is Stmt.ExprStmt -> eval(stmt, environment)
+  is Stmt.ReturnStmt -> eval(stmt, environment)
 }
 
 fun eval(stmt: Stmt.ExprStmt, environment: MutableEnvironment): KoflObject {
@@ -56,6 +57,10 @@ fun eval(stmt: Stmt.WhileStmt, environment: MutableEnvironment): KoflObject {
   return KoflUnit
 }
 
+fun eval(stmt: Stmt.ReturnStmt, environment: MutableEnvironment): KoflObject {
+  throw Return(eval(stmt.expr, environment))
+}
+
 //
 // EXPRESSIONS
 //
@@ -65,7 +70,7 @@ fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) 
   is Expr.Unary -> eval(expr, environment)
   is Expr.Grouping -> eval(expr, environment)
   is Expr.Assign -> eval(expr, environment)
-  is Expr.Literal -> eval(expr, environment)
+  is Expr.Literal -> eval(expr)
   is Expr.Var -> eval(expr, environment)
   is Expr.Logical -> eval(expr, environment)
   is Expr.Call -> eval(expr, environment)
@@ -76,7 +81,7 @@ fun eval(grouping: Expr.Grouping, environment: MutableEnvironment): KoflObject {
   return eval(grouping.expr, environment)
 }
 
-fun eval(expr: Expr.Literal, environment: MutableEnvironment): KoflObject {
+fun eval(expr: Expr.Literal): KoflObject {
   return expr.value.asKoflObject()
 }
 
@@ -128,7 +133,11 @@ fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
 
   return when (val callee = eval(expr.calle, environment)) {
     is KoflCallable -> when (callee.arity) {
-      arguments.size -> callee(arguments, environment)
+      arguments.size -> try {
+        callee(arguments, environment)
+      } catch (aReturn: Return) {
+        aReturn.value
+      }
       else -> throw RuntimeError("expecting ${callee.arity} args but got ${arguments.size}")
     }
     else -> throw TypeError("can't call a non-callable expr")

@@ -40,6 +40,7 @@ class Parser(private val tokens: List<Token>) {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.While) -> whileStatement()
+      match(TokenType.Return) -> returnStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
 
       else -> statement()
@@ -93,6 +94,16 @@ class Parser(private val tokens: List<Token>) {
 
   private fun statement(): Stmt {
     return exprStatement()
+  }
+
+  private fun returnStatement(): Stmt {
+    val expression = if (!check(TokenType.Semicolon)) {
+      expression()
+    } else Expr.Literal(Unit) // returns unit if hasn't value
+
+    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing semicolon")
+
+    return Stmt.ReturnStmt(expression)
   }
 
   private fun whileStatement(): Stmt {
