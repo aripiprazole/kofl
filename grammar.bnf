@@ -16,12 +16,14 @@ valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
 
 stmt ::= exprStmt
+    | returnStmt
     | whileStmt
     | block ;
 
 exprStmt ::= expression ";" ;
 
 whileStmt ::= "while" expression block;
+returnStmt ::= "return" expression ? ";" ;
 
 block ::= "{" decl* "}" ;
 
