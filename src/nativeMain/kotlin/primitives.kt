@@ -1,6 +1,6 @@
 typealias KoflFunction = (List<KoflObject>, MutableEnvironment) -> KoflObject
 
-sealed class KoflObject {
+abstract class KoflObject internal constructor() {
   abstract override fun toString(): String
 }
 
@@ -79,92 +79,22 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
   }
 }
 
-data class KoflInstance(val type: KoflStruct, val fields: MutableEnvironment) : KoflObject() {
-  override fun toString(): String = fields.asMap().entries
+
+data class KoflInstance(
+  val type: KoflStruct,
+  val fields: Map<String, KoflValue>
+) : KoflObject() {
+  operator fun get(name: Token): KoflValue = fields[name.lexeme] ?: throw UnresolvedFieldError(name.lexeme, type)
+  operator fun set(name: Token, newValue: KoflObject): Unit = when (val value = this[name]) {
+    is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable field")
+    is KoflValue.Mutable -> value.value = newValue
+  }
+
+  override fun toString(): String = fields.entries
     .joinToString(
       prefix = "${type.name}(",
       postfix = ")"
     )
-}
-
-class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fields.size) {
-  private val fields = stmt.fields
-  val name = stmt.name
-
-  override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
-    val structEnvironment = MutableEnvironment(environment)
-
-    arguments.forEachIndexed { i, argument ->
-      structEnvironment.define(fields[i], argument.asKoflValue())
-    }
-
-    return KoflInstance(this, structEnvironment)
-  }
-
-  override fun toString(): String = "struct $name"
-}
-
-sealed class KoflCallable(val arity: Int) : KoflObject() {
-  abstract operator fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject
-  abstract override fun toString(): String
-
-  class Native(arity: Int, private val call: KoflFunction) : KoflCallable(arity) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
-      return call(arguments, environment)
-    }
-
-    override fun toString(): String = "<native func>"
-  }
-
-  class AnonymousFunc(private val decl: Expr.AnonymousFunc, private val evaluator: Evaluator) :
-    KoflCallable(decl.arguments.size) {
-
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
-      val localEnvironment = MutableEnvironment(environment)
-
-      arguments.forEachIndexed { i, argument ->
-        localEnvironment.define(decl.arguments[i], argument.asKoflValue())
-      }
-
-      return evaluator.eval(decl.body, localEnvironment).lastOrNull() ?: KoflUnit
-    }
-
-    override fun toString(): String = buildString {
-      append("func (")
-
-      if (decl.arguments.size > 1) {
-        decl.arguments.forEach {
-          append(", ").append(it)
-        }
-      }
-
-      append("): Any { <anonymous> }")
-    }
-  }
-
-  class Func(private val decl: Expr.Func, private val evaluator: Evaluator) : KoflCallable(decl.arguments.size) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
-      val localEnvironment = MutableEnvironment(environment)
-
-      arguments.forEachIndexed { i, argument ->
-        localEnvironment.define(decl.arguments[i], argument.asKoflValue())
-      }
-
-      return evaluator.eval(decl.body, localEnvironment).lastOrNull() ?: KoflUnit
-    }
-
-    override fun toString(): String = buildString {
-      append("func ${decl.name}(")
-
-      if (decl.arguments.size > 1) {
-        decl.arguments.forEach {
-          append(", ").append(it)
-        }
-      }
-
-      append("): Any { TODO }")
-    }
-  }
 }
 
 @Suppress("UNCHECKED_CAST")

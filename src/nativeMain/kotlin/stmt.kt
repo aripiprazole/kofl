@@ -9,6 +9,6 @@ sealed class Stmt {
   data class VarDecl(val name: Token, val value: Expr) : Stmt()
 
   sealed class TypeDef : Stmt() {
-    data class Struct(val name: Token, val fields: List<Token>) : TypeDef()
+    data class Struct(val name: Token, val fieldsDef: List<Token>) : TypeDef()
   }
 }
