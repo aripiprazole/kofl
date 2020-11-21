@@ -84,11 +84,12 @@ data class KoflInstance(
   val type: KoflStruct,
   val fields: Map<String, KoflValue>
 ) : KoflObject() {
-  operator fun get(name: Token): KoflValue = fields[name.lexeme] ?: throw UnresolvedFieldError(name.lexeme, type)
-  operator fun set(name: Token, newValue: KoflObject): Unit = when (val value = this[name]) {
-    is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable field")
-    is KoflValue.Mutable -> value.value = newValue
-  }
+  operator fun get(name: Token): KoflValue? = fields[name.lexeme]
+  operator fun set(name: Token, newValue: KoflObject): Unit =
+    when (val value = this[name] ?: throw UnresolvedFieldError(name.lexeme, type)) {
+      is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable field")
+      is KoflValue.Mutable -> value.value = newValue
+    }
 
   override fun toString(): String = fields.entries
     .joinToString(
