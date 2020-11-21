@@ -1,8 +1,13 @@
 sealed class KoflValue {
   abstract val value: KoflObject
 
-  data class Immutable(override val value: KoflObject) : KoflValue()
-  data class Mutable(override var value: KoflObject) : KoflValue()
+  data class Immutable(override val value: KoflObject) : KoflValue(){
+    override fun toString(): String = value.toString()
+  }
+
+  data class Mutable(override var value: KoflObject) : KoflValue() {
+    override fun toString(): String = value.toString()
+  }
 }
 
 interface Environment {
@@ -13,6 +18,8 @@ interface Environment {
 }
 
 interface MutableEnvironment : Environment {
+  fun asMap(): Map<String, KoflValue>
+
   fun define(name: Token, value: KoflValue)
 
   @KoflResolverInternals
@@ -33,6 +40,10 @@ fun MutableEnvironment(enclosing: Environment? = null): MutableEnvironment {
 @KoflResolverInternals
 private class KoflEnvironment(override val enclosing: Environment? = null) : MutableEnvironment {
   private val values = mutableMapOf<String, KoflValue>()
+
+  override fun asMap(): Map<String, KoflValue> {
+    return values
+  }
 
   override fun define(name: Token, value: KoflValue) = if (values[name.lexeme] == null) {
     values[name.lexeme] = value

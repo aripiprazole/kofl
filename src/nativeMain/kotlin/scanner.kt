@@ -1,5 +1,6 @@
 val RESERVED_KEYWORDS = mapOf(
   "struct" to TokenType.Struct,
+  "typedef" to TokenType.Typedef,
   "func" to TokenType.Func,
   "this" to TokenType.This,
   "if" to TokenType.If,

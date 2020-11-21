@@ -48,6 +48,7 @@ class Parser(private val tokens: List<Token>) {
       }
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
+      match(TokenType.Typedef) -> typeDeclaration()
       match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
       match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
@@ -70,21 +71,46 @@ class Parser(private val tokens: List<Token>) {
       stmts += declaration(scopeType) ?: continue
     }
 
-    consume(TokenType.RightBrace) ?: throw error(end("block"))
+    consume(TokenType.RightBrace) ?: throw error(expecting(end("block")))
 
     return stmts
   }
 
   private fun initializer(): Expr {
     if (!match(TokenType.Equal))
-      throw error(expecting("a initializer"))
+      throw error(expecting("initializer"))
 
     val initializer = expression()
 
-    consume(TokenType.Semicolon)
-      ?: throw error(expecting(TokenType.Semicolon))
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
     return initializer
+  }
+
+  @OptIn(ExperimentalStdlibApi::class)
+  private fun typeDeclaration(): Stmt {
+    consume(TokenType.Struct) ?: throw error(expecting(TokenType.Struct))
+
+    val name = consume(TokenType.Identifier) ?: throw error(expecting("struct name"))
+
+    val fields: List<Token> = when {
+      match(TokenType.Semicolon) -> listOf()
+      match(TokenType.LeftParen) -> buildList {
+        if (!check(TokenType.RightParen))
+          do {
+            if (size >= MAX_ARGS) {
+              error(MAX_ARGS_ERROR_MESSAGE).report()
+            } else {
+              add(consume(TokenType.Identifier) ?: throw error(expecting("parameter's name")))
+            }
+          } while (match(TokenType.Comma))
+
+        consume(TokenType.RightParen) ?: throw error(expecting(end("fields")))
+      }
+      else -> throw error(expecting(TokenType.Semicolon))
+    }
+
+    return Stmt.TypeDef.Struct(name, fields)
   }
 
   private fun valDeclaration(): Stmt {
@@ -119,7 +145,7 @@ class Parser(private val tokens: List<Token>) {
     val condition = expression()
 
     if (!match(TokenType.LeftBrace))
-      throw error("Missing start of while block")
+      throw error(expecting(start("while body")))
 
     return Stmt.WhileStmt(condition, block())
   }

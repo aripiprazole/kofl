@@ -20,6 +20,7 @@ class Resolver(private val evaluator: Evaluator) {
     is Stmt.ReturnStmt -> resolve(stmt)
     is Stmt.ValDecl -> resolve(stmt)
     is Stmt.VarDecl -> resolve(stmt)
+    is Stmt.TypeDef.Struct -> resolve(stmt)
   }
 
   private fun resolve(expr: Expr): Unit = when (expr) {
@@ -63,9 +64,25 @@ class Resolver(private val evaluator: Evaluator) {
     define(stmt.name)
   }
 
+  private fun resolve(stmt: Stmt.TypeDef.Struct) {
+    declare(stmt.name)
+    define(stmt.name)
+
+    beginScope()
+
+    scopes.peek()?.set("this", true) ?: throw UndefinedScopeAccessError(stmt.name.lexeme)
+
+    stmt.fields.forEach {
+      declare(it)
+      define(it)
+    }
+
+    endScope()
+  }
+
   private fun resolve(stmt: Stmt.Block) {
     beginScope()
-    this.resolve(stmt.decls)
+    resolve(stmt.decls)
     endScope()
   }
 
@@ -85,7 +102,7 @@ class Resolver(private val evaluator: Evaluator) {
   // EXPRESSIONS
   private fun resolve(expr: Expr.IfExpr) {
     resolve(expr.condition)
-    this.resolve(expr.thenBranch)
+    resolve(expr.thenBranch)
     expr.elseBranch?.also { this.resolve(it) }
   }
 
@@ -132,7 +149,7 @@ class Resolver(private val evaluator: Evaluator) {
       declare(it)
       define(it)
     }
-    this.resolve(expr.body)
+    resolve(expr.body)
     endScope()
   }
 
@@ -145,7 +162,7 @@ class Resolver(private val evaluator: Evaluator) {
       declare(it)
       define(it)
     }
-    this.resolve(expr.body)
+    resolve(expr.body)
     endScope()
   }
 

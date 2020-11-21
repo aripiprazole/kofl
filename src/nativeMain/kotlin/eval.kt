@@ -21,6 +21,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     is Stmt.ValDecl -> eval(stmt, environment)
     is Stmt.ExprStmt -> eval(stmt, environment)
     is Stmt.ReturnStmt -> eval(stmt, environment)
+    is Stmt.TypeDef.Struct -> eval(stmt, environment)
   }
 
   private fun eval(stmt: Stmt.ExprStmt, environment: MutableEnvironment): KoflObject {
@@ -29,6 +30,12 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(stmt: Stmt.ValDecl, environment: MutableEnvironment): KoflObject {
     environment.define(stmt.name, eval(stmt.value, environment).asKoflValue())
+
+    return KoflUnit
+  }
+
+  private fun eval(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment): KoflObject {
+    environment.define(stmt.name, KoflStruct(stmt).asKoflValue())
 
     return KoflUnit
   }
@@ -197,7 +204,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   // utils
   @OptIn(KoflResolverInternals::class)
   private fun lookup(name: Token, expr: Expr, environment: MutableEnvironment): KoflValue {
-    val distance = locals[expr] ?:  return globalEnvironment[name]
+    val distance = locals[expr] ?: return globalEnvironment[name]
 
     return environment.getAt(distance, name)
   }
