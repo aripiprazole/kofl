@@ -1,10 +1,10 @@
-class UndeclaredVarError(val name: Token) : RuntimeError("trying to assign $name when it wasn't declared")
-class UninitializedVarError(val name: Token) : RuntimeError("trying to access $name when it isn't initialized")
+class UnresolvedVarError(val name: Token) : KoflRuntimeError("unresolved variable $name")
+class UninitializedVarError(val name: Token) : KoflRuntimeError("trying to access $name when it isn't initialized")
 class AlreadyDeclaredVarError(val name: Token) :
-  RuntimeError("trying to re-declare $name a variable that already exists")
+  KoflRuntimeError("trying to re-declare $name a variable that already exists")
 
 class UndefinedScopeAccessError(val name: String) :
-  RuntimeError("undefined scope when trying to use or define $name")
+  KoflRuntimeError("undefined scope when trying to use or define $name")
 
 class Resolver(private val evaluator: Evaluator) {
   private val scopes = Stack<MutableMap<String, Boolean>>(512_000)
@@ -13,7 +13,7 @@ class Resolver(private val evaluator: Evaluator) {
     stmts.forEach { resolve(it) }
   }
 
-  fun resolve(stmt: Stmt): Unit = when (stmt) {
+  private fun resolve(stmt: Stmt): Unit = when (stmt) {
     is Stmt.ExprStmt -> resolve(stmt)
     is Stmt.Block -> resolve(stmt)
     is Stmt.WhileStmt -> resolve(stmt)
@@ -22,7 +22,7 @@ class Resolver(private val evaluator: Evaluator) {
     is Stmt.VarDecl -> resolve(stmt)
   }
 
-  fun resolve(expr: Expr): Unit = when (expr) {
+  private fun resolve(expr: Expr): Unit = when (expr) {
     is Expr.Assign -> resolve(expr)
     is Expr.Binary -> resolve(expr)
     is Expr.Logical -> resolve(expr)
@@ -162,7 +162,7 @@ class Resolver(private val evaluator: Evaluator) {
     if (scopes.isEmpty) return
 
     val scope = scopes.peek() ?: throw UndefinedScopeAccessError(name.lexeme)
-    if (scope[name.lexeme] == null) throw UndeclaredVarError(name)
+    if (scope[name.lexeme] == null) throw UnresolvedVarError(name)
 
     scope[name.lexeme] = true
   }

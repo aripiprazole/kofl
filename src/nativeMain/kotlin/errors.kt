@@ -4,7 +4,12 @@ sealed class KoflError(private val type: String, message: String) : RuntimeExcep
   }
 }
 
-open class RuntimeError(message: String) : KoflError("runtime", message)
+open class KoflRuntimeError(message: String) : KoflError("runtime", message)
+class TypeError(expected: Any) : KoflRuntimeError("expected type: $expected")
+class IllegalOperationError(
+  identifier: Token,
+  operation: String
+) : KoflRuntimeError("illegal operation: $operation at ${identifier.location}")
 
 // parse errors
 open class ParseError(
@@ -12,32 +17,11 @@ open class ParseError(
   message: String = "invalid token: `$token`"
 ) : KoflError("parse", "invalid `$token` at ${token.location}: $message")
 
-class TypeError(
-  expected: Any
-) : KoflError("type error", "expected type: $expected")
-
 // syntax errors
-open class SyntaxError(
-  type: String,
-  message: String
-) : KoflError("(syntax) $type", message)
-
-class UnsolvedReferenceError(
-  identifier: Token
-) : SyntaxError("unsolved reference", "Unsolved reference to $identifier")
-
-class IllegalOperationError(
-  identifier: Token,
-  operation: String
-) : SyntaxError("illegal access", "Trying to do illegal: $operation at ${identifier.location}")
+open class SyntaxError(message: String) : KoflError("syntax error", message)
 
 class LexError(
   line: Int,
   lexeme: String,
   message: String = "unexpected character"
-) : SyntaxError("lex", "unexpected `$lexeme` in line $line: $message")
-
-class UnsupportedOpError(
-  op: Token,
-  whenTrying: String? = null
-) : SyntaxError("unsupported", "unsupported op when trying to do: $op ${whenTrying?.let { "" }}")
+) : SyntaxError("unexpected `$lexeme` in line $line: $message")

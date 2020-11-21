@@ -128,7 +128,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
       TokenType.Minus -> -eval(expr.right, environment).asKoflNumber()
       TokenType.Bang -> !eval(expr.right, environment).toString().toBoolean().asKoflBoolean()
 
-      else -> throw UnsupportedOpError(expr.op, "unary")
+      else -> throw IllegalOperationError(expr.op, "unary")
     }
   }
 
@@ -142,7 +142,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
         } catch (aReturn: Return) {
           aReturn.value
         }
-        else -> throw RuntimeError("expecting ${callee.arity} args but got ${arguments.size}")
+        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size}")
       }
       else -> throw TypeError("can't call a non-callable expr")
     }
@@ -165,7 +165,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
         TokenType.Greater -> (leftN > rightN).asKoflBoolean()
         TokenType.Less -> (leftN < rightN).asKoflBoolean()
         TokenType.LessEqual -> (leftN <= rightN).asKoflBoolean()
-        else -> throw UnsupportedOpError(expr.op, "number binary op")
+        else -> throw IllegalOperationError(expr.op, "number binary op")
       }
     }
 
@@ -175,10 +175,10 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
       TokenType.Plus -> when (left) {
         is KoflString -> (left + right.asKoflObject()).asKoflObject()
-        else -> throw UnsupportedOpError(expr.op)
+        else -> throw IllegalOperationError(expr.op, "add types that aren't string or number")
       }
 
-      else -> throw UnsupportedOpError(expr.op, "binary general op")
+      else -> throw IllegalOperationError(expr.op, "binary general op")
     }
   }
 

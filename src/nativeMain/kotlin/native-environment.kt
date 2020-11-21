@@ -9,7 +9,7 @@ class NativeEnvironment : Environment {
       print(message).asKoflObject()
     }.asKoflValue()
 
-    else -> throw UnsolvedReferenceError(name)
+    else -> throw UnresolvedVarError(name)
   }
 
   override fun toString(): String = "<native env>"

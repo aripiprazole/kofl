@@ -18,7 +18,7 @@ fun main(args: Array<String>) = try {
   error.report()
 
   exit(65)
-} catch (error: RuntimeError) {
+} catch (error: KoflRuntimeError) {
   error.report()
 
   exit(70)

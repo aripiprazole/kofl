@@ -1,18 +1,3 @@
-val RESERVED_KEYWORDS = mapOf(
-  "struct" to TokenType.Struct,
-  "func" to TokenType.Func,
-  "this" to TokenType.This,
-  "if" to TokenType.If,
-  "else" to TokenType.Else,
-  "false" to TokenType.False,
-  "true" to TokenType.True,
-  "val" to TokenType.Val,
-  "var" to TokenType.Var,
-  "return" to TokenType.Return,
-  "while" to TokenType.While,
-  "extern" to TokenType.Extern,
-)
-
 enum class TokenType {
   // single-character tokens
   LeftParen, RightParen, LeftBrace,
