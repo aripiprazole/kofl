@@ -72,8 +72,8 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   }
 
   //
-// EXPRESSIONS
-//
+  // EXPRESSIONS
+  //
   private fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) {
     is Expr.Binary -> eval(expr, environment)
     is Expr.IfExpr -> eval(expr, environment)
@@ -83,6 +83,8 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     is Expr.Literal -> eval(expr)
     is Expr.Var -> eval(expr, environment)
     is Expr.Logical -> eval(expr, environment)
+    is Expr.Get -> eval(expr, environment)
+    is Expr.Set -> eval(expr, environment)
     is Expr.Call -> eval(expr, environment)
     is Expr.Func -> eval(expr, environment)
     is Expr.AnonymousFunc -> eval(expr)
@@ -101,7 +103,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   }
 
   private fun eval(expr: Expr.Assign, environment: MutableEnvironment): KoflObject {
-    return assign(expr.name, expr, environment).asKoflObject()
+    return assign(expr.name, expr.value, environment).asKoflObject()
   }
 
   private fun eval(expr: Expr.Logical, environment: MutableEnvironment): KoflObject {
@@ -137,6 +139,22 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
       else -> throw IllegalOperationError(expr.op, "unary")
     }
+  }
+
+  private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
+    return when (val receiver = eval(expr.receiver, environment)) {
+      is KoflInstance -> receiver[expr.name].value
+      else -> throw TypeError("can't get fields from non-instances")
+    }
+  }
+
+  private fun eval(expr: Expr.Set, environment: MutableEnvironment): KoflObject {
+    when (val receiver = eval(expr.receiver, environment)) {
+      is KoflInstance -> receiver[expr.name] = eval(expr.value, environment)
+      else -> throw TypeError("can't set fields from non-instances")
+    }
+
+    return KoflUnit
   }
 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {

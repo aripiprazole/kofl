@@ -174,6 +174,8 @@ class Parser(private val tokens: List<Token>) {
         val (name) = expr
 
         return Expr.Assign(name, value)
+      } else if(expr is Expr.Get) {
+        return Expr.Set(expr.receiver, expr.name, value)
       }
 
       // we report the error but don't throw
@@ -343,8 +345,14 @@ class Parser(private val tokens: List<Token>) {
   private fun call(): Expr {
     var expr = primary()
 
-    while (true) when {
-      match(TokenType.LeftParen) -> expr = finishCall(expr)
+    while (true) expr = when {
+      match(TokenType.LeftParen) -> finishCall(expr)
+      match(TokenType.Dot) -> {
+        val name = consume(TokenType.Identifier)
+          ?: throw error(expecting("identifier after ${TokenType.Dot}"))
+
+        Expr.Get(expr, name)
+      }
       else -> break
     }
 

@@ -7,6 +7,8 @@ sealed class Expr {
   data class Unary(val op: Token, val right: Expr) : Expr()
   data class Var(val name: Token) : Expr()
   data class Call(val calle: Expr, val arguments: List<Expr>) : Expr()
+  data class Get(val receiver: Expr, val name: Token) : Expr()
+  data class Set(val receiver: Expr, val name: Token, val value: Expr) : Expr()
   data class Func(val name: Token, val arguments: List<Token>, val body: List<Stmt>) : Expr()
   data class AnonymousFunc(val arguments: List<Token>, val body: List<Stmt>) : Expr()
   data class IfExpr(val condition: Expr, val thenBranch: List<Stmt>, val elseBranch: List<Stmt>?) : Expr()

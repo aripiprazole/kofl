@@ -1,4 +1,7 @@
 class UnresolvedVarError(val name: Token) : KoflRuntimeError("unresolved variable $name")
+class UnresolvedFieldError(val name: String, val type: KoflStruct) :
+  KoflRuntimeError("unresolved field $name in $type")
+
 class UninitializedVarError(val name: Token) : KoflRuntimeError("trying to access $name when it isn't initialized")
 class AlreadyDeclaredVarError(val name: Token) :
   KoflRuntimeError("trying to re-declare $name a variable that already exists")
@@ -30,6 +33,8 @@ class Resolver(private val evaluator: Evaluator) {
     is Expr.Grouping -> resolve(expr)
     is Expr.Unary -> resolve(expr)
     is Expr.Var -> resolve(expr)
+    is Expr.Get -> resolve(expr)
+    is Expr.Set -> resolve(expr)
     is Expr.Call -> resolve(expr)
     is Expr.Func -> resolve(expr)
     is Expr.AnonymousFunc -> resolve(expr)
@@ -72,7 +77,7 @@ class Resolver(private val evaluator: Evaluator) {
 
     scopes.peek()?.set("this", true) ?: throw UndefinedScopeAccessError(stmt.name.lexeme)
 
-    stmt.fields.forEach {
+    stmt.fieldsDef.forEach {
       declare(it)
       define(it)
     }
@@ -104,6 +109,15 @@ class Resolver(private val evaluator: Evaluator) {
     resolve(expr.condition)
     resolve(expr.thenBranch)
     expr.elseBranch?.also { this.resolve(it) }
+  }
+
+  private fun resolve(expr: Expr.Get) {
+    resolve(expr.receiver)
+  }
+
+  private fun resolve(expr: Expr.Set) {
+    resolve(expr.receiver)
+    resolve(expr.value)
   }
 
   private fun resolve(expr: Expr.Var) {
