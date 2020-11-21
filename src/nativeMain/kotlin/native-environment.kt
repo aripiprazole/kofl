@@ -1,4 +1,5 @@
 class NativeEnvironment : Environment {
+  @OptIn(KoflResolverInternals::class)
   override fun get(name: Token): KoflValue = when (name.lexeme) {
     "println" -> KoflCallable.Native(1) { (message), _ ->
       println(message).asKoflObject()
