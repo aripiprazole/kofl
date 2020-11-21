@@ -18,8 +18,8 @@ enum class TokenType {
 
   // keywords tokens
   If, Else, This, False, True, While,
-  Func, Val, Var, Return, Struct, Extern,
-  Typedef,
+  Func, Val, Var, Return, Struct,
+  Typedef, External,
 
   // special tokens
   Eof
@@ -28,7 +28,7 @@ enum class TokenType {
 data class Token(
   val type: TokenType,
   val lexeme: String,
-  val literal: Any?,
+  val literal: Any? = null,
   val line: Int
 ) {
   override fun toString() = when {
@@ -38,6 +38,8 @@ data class Token(
     else -> "$type"
   }
 }
+
+fun String.asToken(): Token = Token(TokenType.Identifier, this, null, -1)
 
 val Token.location: String
   get() = if (type == TokenType.Eof) "EOF" else "line $line"

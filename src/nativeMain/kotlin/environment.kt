@@ -20,6 +20,7 @@ interface Environment {
 interface MutableEnvironment : Environment {
   fun asMap(): Map<String, KoflValue>
 
+  fun define(name: String, value: KoflValue)
   fun define(name: Token, value: KoflValue)
 
   @KoflResolverInternals
@@ -45,9 +46,11 @@ private class KoflEnvironment(override val enclosing: Environment? = null) : Mut
     return values
   }
 
-  override fun define(name: Token, value: KoflValue) = if (values[name.lexeme] == null) {
-    values[name.lexeme] = value
-  } else throw IllegalOperationError(name, "define a variable that already exists")
+  override fun define(name: String, value: KoflValue) = if (values[name] == null) {
+    values[name] = value
+  } else throw IllegalOperationError(name.asToken(), "define a variable that already exists")
+
+  override fun define(name: Token, value: KoflValue) = define(name.lexeme, value)
 
   override fun getAt(distance: Int, name: Token): KoflValue {
     return ancestor(distance)[name]

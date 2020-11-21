@@ -1,5 +1,7 @@
-class UnresolvedVarError(val name: Token) : KoflRuntimeError("unresolved variable $name")
-class UnresolvedFieldError(val name: String, val type: KoflStruct) :
+class UnresolvedVarError(val name: String) : KoflRuntimeError("unresolved variable $name"){
+  constructor(name: Token) : this(name.lexeme)
+}
+class UnresolvedFieldError(val name: String, val type: KoflObject) :
   KoflRuntimeError("unresolved field $name in $type")
 
 class UninitializedVarError(val name: Token) : KoflRuntimeError("trying to access $name when it isn't initialized")
@@ -38,7 +40,9 @@ class Resolver(private val evaluator: Evaluator) {
     is Expr.Call -> resolve(expr)
     is Expr.Func -> resolve(expr)
     is Expr.AnonymousFunc -> resolve(expr)
+    is Expr.ExtensionFunc -> resolve(expr)
     is Expr.IfExpr -> resolve(expr)
+    is Expr.NativeFunc -> Unit
     is Expr.Literal -> Unit
   }
 
@@ -72,17 +76,6 @@ class Resolver(private val evaluator: Evaluator) {
   private fun resolve(stmt: Stmt.TypeDef.Struct) {
     declare(stmt.name)
     define(stmt.name)
-
-    beginScope()
-
-    scopes.peek()?.set("this", true) ?: throw UndefinedScopeAccessError(stmt.name.lexeme)
-
-    stmt.fieldsDef.forEach {
-      declare(it)
-      define(it)
-    }
-
-    endScope()
   }
 
   private fun resolve(stmt: Stmt.Block) {
@@ -97,7 +90,7 @@ class Resolver(private val evaluator: Evaluator) {
 
   private fun resolve(stmt: Stmt.WhileStmt) {
     resolve(stmt.condition)
-    this.resolve(stmt.body)
+    resolve(stmt.body)
   }
 
   private fun resolve(stmt: Stmt.ExprStmt) {
@@ -164,6 +157,25 @@ class Resolver(private val evaluator: Evaluator) {
       define(it)
     }
     resolve(expr.body)
+    endScope()
+  }
+
+  private fun resolve(expr: Expr.ExtensionFunc) {
+    declare(expr.name)
+    define(expr.name)
+
+    beginScope()
+
+    val scope = scopes.peek() ?: throw UndefinedScopeAccessError(expr.name.lexeme)
+    scope["this"] = true
+
+    expr.arguments.forEach {
+      declare(it)
+      define(it)
+    }
+
+    resolve(expr.body)
+
     endScope()
   }
 

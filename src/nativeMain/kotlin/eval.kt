@@ -87,7 +87,11 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     is Expr.Set -> eval(expr, environment)
     is Expr.Call -> eval(expr, environment)
     is Expr.Func -> eval(expr, environment)
+    is Expr.ExtensionFunc -> eval(expr, environment)
     is Expr.AnonymousFunc -> eval(expr)
+    // do nothing 'cause the env already have the native func, that was made
+    // just for tooling be easier
+    is Expr.NativeFunc -> KoflUnit
   }
 
   private fun eval(grouping: Expr.Grouping, environment: MutableEnvironment): KoflObject {
@@ -143,7 +147,10 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
     return when (val receiver = eval(expr.receiver, environment)) {
-      is KoflInstance -> receiver[expr.name].value
+      is KoflInstance -> when (val field = receiver[expr.name]?.value) {
+        is KoflValue -> field.value
+        else -> lookup(expr.name, expr.receiver, environment).value
+      }
       else -> throw TypeError("can't get fields from non-instances")
     }
   }
@@ -161,13 +168,23 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     val arguments = eval(expr.arguments, environment)
 
     return when (val callee = eval(expr.calle, environment)) {
-      is KoflCallable -> when (callee.arity) {
+      is KoflCallable.Common -> when (callee.arity) {
         arguments.size -> try {
           callee(arguments, environment)
         } catch (aReturn: Return) {
           aReturn.value
         }
-        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size}")
+        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size} on call $callee")
+      }
+      is KoflCallable.ExtensionFunc -> when (callee.arity) {
+        arguments.size -> try {
+          callee.run {
+            eval(expr.calle, environment).invoke(arguments, environment)
+          }
+        } catch (aReturn: Return) {
+          aReturn.value
+        }
+        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size} on call $callee")
       }
       else -> throw TypeError("can't call a non-callable expr")
     }
@@ -200,7 +217,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
       TokenType.Plus -> when (left) {
         is KoflString -> (left + right.asKoflObject()).asKoflObject()
-        else -> throw IllegalOperationError(expr.op, "add types that aren't string or number")
+        else -> throw IllegalOperationError(expr.op, "add: $left and $right")
       }
 
       else -> throw IllegalOperationError(expr.op, "binary general op")
@@ -209,6 +226,10 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(expr: Expr.Func, environment: MutableEnvironment): KoflObject {
     return environment.define(expr.name, KoflCallable.Func(expr, this).asKoflValue()).asKoflObject()
+  }
+
+  private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
+    return environment.define(expr.name, KoflCallable.ExtensionFunc(expr, this).asKoflValue()).asKoflObject()
   }
 
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {

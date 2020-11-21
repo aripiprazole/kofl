@@ -7,9 +7,11 @@ sealed class KoflError(private val type: String, message: String) : RuntimeExcep
 open class KoflRuntimeError(message: String) : KoflError("runtime", message)
 class TypeError(expected: Any) : KoflRuntimeError("expected type: $expected")
 class IllegalOperationError(
-  identifier: Token,
+  identifier: String,
   operation: String
-) : KoflRuntimeError("illegal operation: $operation at ${identifier.location}")
+) : KoflRuntimeError("illegal operation: $operation at $identifier") {
+  constructor(token: Token, operation: String) : this(token.lexeme, operation)
+}
 
 // parse errors
 open class ParseError(

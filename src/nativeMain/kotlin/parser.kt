@@ -174,7 +174,7 @@ class Parser(private val tokens: List<Token>) {
         val (name) = expr
 
         return Expr.Assign(name, value)
-      } else if(expr is Expr.Get) {
+      } else if (expr is Expr.Get) {
         return Expr.Set(expr.receiver, expr.name, value)
       }
 
@@ -212,11 +212,56 @@ class Parser(private val tokens: List<Token>) {
   private enum class FuncType { Anonymous, Func }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun funcExpr(type: FuncType): Expr {
-    val name = consume(TokenType.Identifier)
+  private fun funcExpr(type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
+    val name = consume(TokenType.Identifier) ?: throw error(expecting("function's name"))
+
+    if (match(TokenType.Identifier)) {
+      return extensionFuncExpr(name, type, modifiers)
+    } else {
+      consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
+    }
+
+
+    val parameters = parameters()
+    val body = if (TokenType.External !in modifiers) funcBody(type) else {
+      return Expr.NativeFunc(name, parameters).also {
+        requireSemicolon()
+      }
+    }
+
+    return when (type) {
+      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body)
+      FuncType.Func -> Expr.Func(name, parameters, body)
+    }
+  }
+
+  private fun extensionFuncExpr(receiver: Token, type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
+    val name = previous()
 
     consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
 
+    val parameters = parameters()
+    val body = if (TokenType.External !in modifiers) funcBody(type) else {
+      return Expr.NativeFunc(name, parameters).also {
+        requireSemicolon()
+      }
+    }
+
+    return Expr.ExtensionFunc(receiver, name, parameters, body)
+  }
+
+  private fun funcBody(type: FuncType): List<Stmt> {
+    return when {
+      consume(TokenType.LeftBrace) != null -> block(ScopeType.Func)
+      consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
+        if (type == FuncType.Func) requireSemicolon()
+      }
+      else -> throw error(expecting(start("function's body")))
+    }
+  }
+
+  @OptIn(ExperimentalStdlibApi::class)
+  private fun parameters(): List<Token> {
     val parameters = buildList {
       if (!check(TokenType.RightParen))
         do {
@@ -230,23 +275,7 @@ class Parser(private val tokens: List<Token>) {
 
     consume(TokenType.RightParen) ?: throw error(expecting(end("arguments")))
 
-    val body = when {
-      consume(TokenType.LeftBrace) != null -> block(ScopeType.Func)
-      consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
-        if (type == FuncType.Func)
-          consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
-      }
-      else -> throw error(expecting(start("function's body")))
-    }
-
-    return when (type) {
-      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body)
-      FuncType.Func -> Expr.Func(
-        name = name ?: throw error(expecting("function's name")),
-        parameters,
-        body
-      )
-    }
+    return parameters
   }
 
   private fun assignment(): Expr {
@@ -432,6 +461,9 @@ class Parser(private val tokens: List<Token>) {
   private fun previous(): Token {
     return tokens[current - 1]
   }
+
+  private fun requireSemicolon(): Token = consume(TokenType.Semicolon)
+    ?: throw error(expecting(TokenType.Semicolon))
 
   private fun error(message: String = "", token: Token = peek()) = ParseError(token, message)
 
