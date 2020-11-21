@@ -79,12 +79,14 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
   }
 }
 
-
 data class KoflInstance(
   val type: KoflStruct,
   val fields: Map<String, KoflValue>
 ) : KoflObject() {
-  operator fun get(name: Token): KoflValue? = fields[name.lexeme]
+  operator fun get(name: Token): KoflValue? {
+    return fields[name.lexeme] ?: type.functions[name.lexeme]?.asKoflValue()
+  }
+
   operator fun set(name: Token, newValue: KoflObject): Unit =
     when (val value = this[name] ?: throw UnresolvedFieldError(name.lexeme, type)) {
       is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable field")

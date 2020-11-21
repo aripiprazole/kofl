@@ -84,6 +84,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     is Expr.Var -> eval(expr, environment)
     is Expr.Logical -> eval(expr, environment)
     is Expr.Get -> eval(expr, environment)
+    is Expr.ThisExpr -> eval(expr, environment)
     is Expr.Set -> eval(expr, environment)
     is Expr.Call -> eval(expr, environment)
     is Expr.Func -> eval(expr, environment)
@@ -104,6 +105,10 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(expr: Expr.Var, environment: MutableEnvironment): KoflObject {
     return lookup(expr.name, expr, environment).value
+  }
+
+  private fun eval(expr: Expr.ThisExpr, environment: MutableEnvironment): KoflObject {
+    return lookup(expr.keyword, expr, environment).value
   }
 
   private fun eval(expr: Expr.Assign, environment: MutableEnvironment): KoflObject {
@@ -147,11 +152,8 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
     return when (val receiver = eval(expr.receiver, environment)) {
-      is KoflInstance -> when (val field = receiver[expr.name]?.value) {
-        is KoflValue -> field.value
-        else -> lookup(expr.name, expr.receiver, environment).value
-      }
-      else -> throw TypeError("can't get fields from non-instances")
+      is KoflInstance -> receiver[expr.name]?.value ?: throw UnresolvedFieldError(expr.name.lexeme, receiver)
+      else -> throw TypeError("can't get fields from non-instances: $receiver")
     }
   }
 
@@ -168,19 +170,9 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
     val arguments = eval(expr.arguments, environment)
 
     return when (val callee = eval(expr.calle, environment)) {
-      is KoflCallable.Common -> when (callee.arity) {
+      is KoflCallable -> when (callee.arity) {
         arguments.size -> try {
           callee(arguments, environment)
-        } catch (aReturn: Return) {
-          aReturn.value
-        }
-        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size} on call $callee")
-      }
-      is KoflCallable.ExtensionFunc -> when (callee.arity) {
-        arguments.size -> try {
-          callee.run {
-            eval(expr.calle, environment).invoke(arguments, environment)
-          }
         } catch (aReturn: Return) {
           aReturn.value
         }
@@ -229,7 +221,11 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   }
 
   private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
-    return environment.define(expr.name, KoflCallable.ExtensionFunc(expr, this).asKoflValue()).asKoflObject()
+    val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeError("struct type")
+
+    struct.functions[expr.name.lexeme] = KoflCallable.ExtensionFunc(expr, this)
+
+    return KoflUnit
   }
 
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {
@@ -243,7 +239,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   // utils
   @OptIn(KoflResolverInternals::class)
   private fun lookup(name: Token, expr: Expr, environment: MutableEnvironment): KoflValue {
-    val distance = locals[expr] ?: return globalEnvironment[name]
+    val distance = locals[expr] ?: return environment[name]
 
     return environment.getAt(distance, name)
   }
@@ -251,7 +247,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   @OptIn(KoflResolverInternals::class)
   private fun assign(name: Token, expr: Expr, environment: MutableEnvironment) {
     val distance = locals[expr] ?: return Unit.also {
-      globalEnvironment[name] = eval(expr, environment)
+      environment[name] = eval(expr, environment)
     }
 
     environment.setAt(distance, name, eval(expr, environment))
