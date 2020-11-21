@@ -19,6 +19,7 @@ enum class TokenType {
   // keywords tokens
   If, Else, This, False, True, While,
   Func, Val, Var, Return, Struct, Extern,
+  Typedef,
 
   // special tokens
   Eof

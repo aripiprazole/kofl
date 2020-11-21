@@ -7,4 +7,8 @@ sealed class Stmt {
   data class ReturnStmt(val expr: Expr) : Stmt()
   data class ValDecl(val name: Token, val value: Expr) : Stmt()
   data class VarDecl(val name: Token, val value: Expr) : Stmt()
+
+  sealed class TypeDef : Stmt() {
+    data class Struct(val name: Token, val fields: List<Token>) : TypeDef()
+  }
 }

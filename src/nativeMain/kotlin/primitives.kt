@@ -79,6 +79,31 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
   }
 }
 
+data class KoflInstance(val type: KoflStruct, val fields: MutableEnvironment) : KoflObject() {
+  override fun toString(): String = fields.asMap().entries
+    .joinToString(
+      prefix = "${type.name}(",
+      postfix = ")"
+    )
+}
+
+class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fields.size) {
+  private val fields = stmt.fields
+  val name = stmt.name
+
+  override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
+    val structEnvironment = MutableEnvironment(environment)
+
+    arguments.forEachIndexed { i, argument ->
+      structEnvironment.define(fields[i], argument.asKoflValue())
+    }
+
+    return KoflInstance(this, structEnvironment)
+  }
+
+  override fun toString(): String = "struct $name"
+}
+
 sealed class KoflCallable(val arity: Int) : KoflObject() {
   abstract operator fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String

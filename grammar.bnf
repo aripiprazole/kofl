@@ -1,19 +1,12 @@
-//expression ::= literal | unary | binary | grouping ;
-//
-//literal ::= NUMBER | STRING | "true" | "false" ;
-//grouping ::= "(" expression ")" ;
-//unary ::= ("-" | "!") expression ;
-//binary ::= expression operator expression ;
-//operator ::= "=="
-//    | "!=" | "<" | "<=" | ">" | ">="
-//    | "+"  | "-"  | "*" | "/" ;
-
 program ::= decl* EOF ;
 
-decl ::= valDecl | varDecl | stmt ;
+decl ::= valDecl | varDecl | typeDecl | stmt ;
 
 valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
+typeDecl ::= "typedef" IDENTIFIER "=" type;
+
+type ::= "struct" ( ( "(" parameters ")" ) | ";" ) ;
 
 stmt ::= exprStmt
     | returnStmt
@@ -36,7 +29,7 @@ assignment ::= IDENTIFIER "=" assignment
     | logic_or ;
 
 if ::= "if" expression block ( "else" block ) ? ;
-func ::= "func" IDENTIFIER "(" parameters? ")" block ;
+func ::= "func" IDENTIFIER "(" parameters? ")" ( block | "=" expression ";" ) ";";
 
 parameters ::= IDENTIFIER ( "," IDENTIFIER ) * ;
 
