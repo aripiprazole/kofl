@@ -1,6 +1,9 @@
+private const val MAX_ARGS = 32  // the limit is really 31 'cause the this is passed as a arg
+private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"
+private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
+
 class Parser(private val tokens: List<Token>) {
   private val isAtEnd get() = peek().type == TokenType.Eof
-
   private var current = 0
 
   fun parse(): List<Stmt> {
@@ -40,7 +43,7 @@ class Parser(private val tokens: List<Token>) {
   private fun declaration(scopeType: ScopeType = ScopeType.Global): Stmt? = try {
     when {
       match(TokenType.Return) -> when (scopeType) {
-        ScopeType.Global -> throw ParseError(previous(), "Not expecting return")
+        ScopeType.Global -> throw error(notExpecting(TokenType.Return), token = previous())
         ScopeType.Func -> returnStatement()
       }
       match(TokenType.Val) -> valDeclaration()
@@ -67,34 +70,33 @@ class Parser(private val tokens: List<Token>) {
       stmts += declaration(scopeType) ?: continue
     }
 
-    consume(TokenType.RightBrace) ?: throw ParseError(peek(), "expecting finish block")
+    consume(TokenType.RightBrace) ?: throw error(end("block"))
 
     return stmts
   }
 
-  // TODO: remove
   private fun initializer(): Expr {
     if (!match(TokenType.Equal))
-      throw ParseError(peek(), "expecting a declaration initializer")
+      throw error(expecting("a initializer"))
 
     val initializer = expression()
 
     consume(TokenType.Semicolon)
-      ?: throw ParseError(peek(), "expecting a semicolon after a declaration")
+      ?: throw error(expecting(TokenType.Semicolon))
 
     return initializer
   }
 
   private fun valDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
-      ?: throw ParseError(peek(), "expecting a declaration name")
+      ?: throw error(expecting("declaration name"))
 
     return Stmt.ValDecl(name, initializer())
   }
 
   private fun varDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
-      ?: throw ParseError(peek(), "expecting a declaration name")
+      ?: throw error(expecting("declaration name"))
 
     return Stmt.VarDecl(name, initializer())
   }
@@ -108,7 +110,7 @@ class Parser(private val tokens: List<Token>) {
       expression()
     } else Expr.Literal(Unit) // returns unit if hasn't value
 
-    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing semicolon")
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
     return Stmt.ReturnStmt(expression)
   }
@@ -117,7 +119,7 @@ class Parser(private val tokens: List<Token>) {
     val condition = expression()
 
     if (!match(TokenType.LeftBrace))
-      throw ParseError(peek(), "Missing start of while block")
+      throw error("Missing start of while block")
 
     return Stmt.WhileStmt(condition, block())
   }
@@ -125,7 +127,7 @@ class Parser(private val tokens: List<Token>) {
   private fun exprStatement(): Stmt {
     val expr = expression()
 
-    consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing end of line")
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
     return Stmt.ExprStmt(expr)
   }
@@ -150,7 +152,7 @@ class Parser(private val tokens: List<Token>) {
 
       // we report the error but don't throw
       // to enter in panic mode and synchronize
-      ParseError(equals, "Invalid right-associative assignment")
+      error(INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE, token = equals)
         .report()
     }
 
@@ -163,17 +165,17 @@ class Parser(private val tokens: List<Token>) {
     val condition = expression()
 
     if (!match(TokenType.LeftBrace))
-      throw ParseError(peek(), "Missing start of if block")
+      throw error(expecting(start("if body")))
 
     val mainBranch = block()
     val elseBranch = if (match(TokenType.Else))
       if (match(TokenType.LeftBrace))
         block()
-      else throw ParseError(peek(), "Missing start of else block")
+      else throw error(expecting(start("else body")))
     else null
 
     if (type == IfType.Anonymous && elseBranch == null) {
-      throw ParseError(peek(), "Missing else block on local if")
+      throw error(expecting("else body on local if"))
     }
 
     return Expr.IfExpr(condition, mainBranch, elseBranch)
@@ -185,34 +187,34 @@ class Parser(private val tokens: List<Token>) {
   private fun funcExpr(type: FuncType): Expr {
     val name = consume(TokenType.Identifier)
 
-    consume(TokenType.LeftParen)
-      ?: throw ParseError(peek(), "Missing start of parameters")
+    consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
 
     val parameters = buildList {
       if (!check(TokenType.RightParen))
-        do
-          if (size >= 32) // the limit is really 32 'cause the this is passed as a arg
-            ParseError(peek(), "Can't have more than 32 arguments in a function")
-              .report()
-          else add(consume(TokenType.Identifier) ?: throw ParseError(peek(), "Missing param name"))
-        while (match(TokenType.Comma))
+        do {
+          if (size >= MAX_ARGS) {
+            error(MAX_ARGS_ERROR_MESSAGE).report()
+          } else {
+            add(consume(TokenType.Identifier) ?: throw error(expecting("parameter's name")))
+          }
+        } while (match(TokenType.Comma))
     }
 
-    consume(TokenType.RightParen) ?: throw ParseError(peek(), "Missing finish arguments decl")
+    consume(TokenType.RightParen) ?: throw error(expecting(end("arguments")))
 
     val body = when {
       consume(TokenType.LeftBrace) != null -> block(ScopeType.Func)
       consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
         if (type == FuncType.Func)
-          consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing semicolon")
+          consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
       }
-      else -> throw ParseError(peek(), "Missing start of func block")
+      else -> throw error(expecting(start("function's body")))
     }
 
     return when (type) {
       FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body)
       FuncType.Func -> Expr.Func(
-        name ?: throw ParseError(peek(), "Expect func name"),
+        name = name ?: throw error(expecting("function's name")),
         parameters,
         body
       )
@@ -327,19 +329,19 @@ class Parser(private val tokens: List<Token>) {
   private fun finishCall(callee: Expr): Expr {
     val arguments = buildList {
       if (!check(TokenType.RightParen)) {
-        do
-          if (size >= 32) // the limit is really 32 'cause the this is passed as a arg
-            ParseError(peek(), "Can't have more than 32 arguments in a function")
-              .report()
-          else add(expression())
-        while (match(TokenType.Comma))
+        do {
+          if (size >= MAX_ARGS) {
+            error(MAX_ARGS_ERROR_MESSAGE).report()
+          } else {
+            add(expression())
+          }
+        } while (match(TokenType.Comma))
       }
     }
 
-    val paren = consume(TokenType.RightParen)
-      ?: throw ParseError(peek(), "Missing finish call")
+    consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
 
-    return Expr.Call(callee, paren, arguments)
+    return Expr.Call(callee, arguments)
   }
 
   private fun primary(): Expr = when {
@@ -351,12 +353,12 @@ class Parser(private val tokens: List<Token>) {
     }) // TODO: fixme
 
     match(TokenType.LeftParen) -> Expr.Grouping(expression().also {
-      consume(TokenType.RightParen) ?: throw ParseError(peek(), "Unfinished grouping")
+      consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
     })
 
     match(TokenType.Identifier) -> Expr.Var(previous())
 
-    else -> throw ParseError(peek())
+    else -> throw error()
   }
 
   // utils
@@ -396,8 +398,12 @@ class Parser(private val tokens: List<Token>) {
   private fun previous(): Token {
     return tokens[current - 1]
   }
+
+  private fun error(message: String = "", token: Token = peek()) = ParseError(token, message)
+
+  private fun expecting(type: Any) = "expecting $type"
+  private fun notExpecting(type: Any) = "not expecting $type"
+  private fun start(type: Any) = "start of $type"
+  private fun end(type: Any) = "end of $type"
 }
 
-fun debug(msg: String) {
-  println("[debug] $msg")
-}

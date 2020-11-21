@@ -1,3 +1,18 @@
+val RESERVED_KEYWORDS = mapOf(
+  "struct" to TokenType.Struct,
+  "func" to TokenType.Func,
+  "this" to TokenType.This,
+  "if" to TokenType.If,
+  "else" to TokenType.Else,
+  "false" to TokenType.False,
+  "true" to TokenType.True,
+  "val" to TokenType.Val,
+  "var" to TokenType.Var,
+  "return" to TokenType.Return,
+  "while" to TokenType.While,
+  "extern" to TokenType.Extern,
+)
+
 class Scanner(private val source: String) {
   private val tokens = mutableListOf<Token>()
   private val isAtEnd get() = current >= source.length
