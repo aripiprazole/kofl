@@ -44,9 +44,12 @@ fun eval(code: String): Any? {
 
   val scanner = Scanner(code)
   val parser = Parser(scanner.scan())
+  val evaluator = Evaluator(globalEnvironment)
+  val resolver = Resolver(evaluator)
 
   return parser.parse().let { stmts ->
     dump(stmts)
-    eval(stmts, globalEnvironment)
+    resolver.resolve(stmts)
+    evaluator.eval(stmts)
   }
 }

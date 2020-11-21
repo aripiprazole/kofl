@@ -35,12 +35,17 @@ class Parser(private val tokens: List<Token>) {
   }
 
   // stmts
-  private fun declaration(): Stmt? = try {
+  enum class ScopeType { Global, Func }
+
+  private fun declaration(scopeType: ScopeType = ScopeType.Global): Stmt? = try {
     when {
+      match(TokenType.Return) -> when (scopeType) {
+        ScopeType.Global -> throw ParseError(previous(), "Not expecting return")
+        ScopeType.Func -> returnStatement()
+      }
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.While) -> whileStatement()
-      match(TokenType.Return) -> returnStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
       match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
@@ -55,11 +60,11 @@ class Parser(private val tokens: List<Token>) {
     null
   }
 
-  private fun block(): MutableList<Stmt> {
+  private fun block(scopeType: ScopeType = ScopeType.Global): MutableList<Stmt> {
     val stmts = mutableListOf<Stmt>()
 
     while (!check(TokenType.RightBrace) && !isAtEnd) {
-      stmts += declaration() ?: continue
+      stmts += declaration(scopeType) ?: continue
     }
 
     consume(TokenType.RightBrace) ?: throw ParseError(peek(), "expecting finish block")
@@ -196,7 +201,7 @@ class Parser(private val tokens: List<Token>) {
     consume(TokenType.RightParen) ?: throw ParseError(peek(), "Missing finish arguments decl")
 
     val body = when {
-      consume(TokenType.LeftBrace) != null -> block()
+      consume(TokenType.LeftBrace) != null -> block(ScopeType.Func)
       consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
         if (type == FuncType.Func)
           consume(TokenType.Semicolon) ?: throw ParseError(peek(), "Missing semicolon")
