@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 /**
  * This class will push all global declarations lazy
  * to globalEnvironment, that was made to make

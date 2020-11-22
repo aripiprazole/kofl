@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 import platform.posix.exit
 import platform.posix.fopen
 

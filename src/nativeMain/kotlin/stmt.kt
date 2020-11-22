@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 class Return(val value: KoflObject) : RuntimeException(null, null)
 
 sealed class Stmt {

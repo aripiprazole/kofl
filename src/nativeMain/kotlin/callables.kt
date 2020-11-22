@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() {
   abstract operator fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String

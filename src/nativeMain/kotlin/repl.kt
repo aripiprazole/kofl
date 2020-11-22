@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
+package com.lorenzoog.kofl.interpreter
 
 import kotlinx.cinterop.*
 import platform.posix.*

@@ -23,7 +23,7 @@ kotlin {
   nativeTarget.apply {
     binaries {
       executable {
-        entryPoint = "main"
+        entryPoint = "com.lorenzoog.kofl.interpreter.main"
       }
     }
   }

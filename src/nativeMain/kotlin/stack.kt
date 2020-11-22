@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 class StackOverflowException : Error()
 class StackUnderflowException : Error()
 

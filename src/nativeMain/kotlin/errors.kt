@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 sealed class KoflError(private val type: String, message: String) : RuntimeException(message) {
   open fun report() {
     printerr("[$type error] $message")

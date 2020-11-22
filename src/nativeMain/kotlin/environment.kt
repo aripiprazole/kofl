@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 sealed class KoflValue {
   abstract val value: KoflObject
 

@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 /**
  * Signature is made for be possible call-by-pattern,
  * and function overload in the environment, and can be useful
