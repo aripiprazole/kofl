@@ -16,16 +16,15 @@ class Parser(private val tokens: List<Token>) {
     return stmts
   }
 
-  private fun synchronize(): Boolean {
+  private fun synchronize() {
     advance()
 
     while (!isAtEnd) {
-      if (peek().type == TokenType.Semicolon) return true
-
-      when (peek().type) {
+      when (peek().type) { // TODO: report useless char
         TokenType.Struct, TokenType.Func,
         TokenType.Val, TokenType.If, TokenType.Else,
-        TokenType.Return, TokenType.Var -> return true
+        TokenType.Return, TokenType.Var,
+        TokenType.Semicolon -> return
         else -> {
           // do nothing
         }
@@ -33,33 +32,24 @@ class Parser(private val tokens: List<Token>) {
 
       advance()
     }
-
-    return false
   }
 
   // stmts
   enum class ScopeType { Global, Func }
 
-  private fun declaration(scopeType: ScopeType = ScopeType.Global): Stmt? = try {
+  private fun declaration(): Stmt? = try {
     when {
-      match(TokenType.Return) -> when (scopeType) {
-        ScopeType.Global -> throw error(notExpecting(TokenType.Return), token = previous())
-        ScopeType.Func -> returnStatement()
-      }
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.Typedef) -> typeDeclaration()
-      match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block())
-      match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
 
-      else -> statement()
+      else -> throw error(expecting("declaration"))
     }
   } catch (error: ParseError) {
     // panic mode
-    if (!synchronize())
-      error.report()
+    synchronize()
 
     null
   }
@@ -68,7 +58,7 @@ class Parser(private val tokens: List<Token>) {
     val stmts = mutableListOf<Stmt>()
 
     while (!check(TokenType.RightBrace) && !isAtEnd) {
-      stmts += declaration(scopeType) ?: continue
+      stmts += statement(scopeType)
     }
 
     consume(TokenType.RightBrace) ?: throw error(expecting(end("block")))
@@ -127,8 +117,22 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.VarDecl(name, initializer())
   }
 
-  private fun statement(): Stmt {
-    return exprStatement()
+  private fun statement(type: ScopeType): Stmt {
+    return when {
+      match(TokenType.Return) -> when (type) {
+        ScopeType.Global -> throw error(notExpecting(TokenType.Return), token = previous())
+        ScopeType.Func -> returnStatement()
+      }
+      match(TokenType.Val) -> valDeclaration()
+      match(TokenType.Var) -> varDeclaration()
+      match(TokenType.Typedef) -> typeDeclaration()
+      match(TokenType.While) -> whileStatement()
+      match(TokenType.LeftBrace) -> Stmt.Block(block())
+      match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
+      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
+
+      else -> exprStatement()
+    }
   }
 
   private fun returnStatement(): Stmt {

@@ -104,8 +104,10 @@ data class KoflInstance(
 
   operator fun set(name: Token, newValue: KoflObject): Unit =
     when (val value = this[name] ?: throw UnresolvedFieldError(name.lexeme, type)) {
-      is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable field")
+      is KoflValue.Immutable, is KoflValue.Lazy.Immutable ->
+        throw IllegalOperationError(name, "update an immutable field")
       is KoflValue.Mutable -> value.value = newValue
+      is KoflValue.Lazy.Mutable -> value.value = newValue
     }
 
   override fun toString(): String = fields.entries

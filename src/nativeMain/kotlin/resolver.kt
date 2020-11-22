@@ -11,7 +11,7 @@ class AlreadyDeclaredVarError(val name: Token) :
 class UndefinedScopeAccessError(val name: String) :
   KoflRuntimeError("undefined scope when trying to use or define $name")
 
-class Resolver(private val evaluator: Evaluator) {
+class Resolver(private val locals: MutableMap<Expr, Int>) {
   private val scopes = Stack<MutableMap<String, Boolean>>(512_000)
 
   fun resolve(stmts: List<Stmt>) {
@@ -223,7 +223,7 @@ class Resolver(private val evaluator: Evaluator) {
   private fun resolveLocal(expr: Expr, name: Token) {
     for (index in (scopes.size - 1) downTo 0) {
       if (scopes[index]?.containsKey(name.lexeme) == true) {
-        evaluator.resolve(expr, index - 1 - scopes.size)
+        locals[expr] = index - 1 - scopes.size
       }
     }
   }

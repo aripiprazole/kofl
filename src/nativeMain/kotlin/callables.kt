@@ -10,7 +10,7 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     override fun toString(): String = "<native func>"
   }
 
-  class AnonymousFunc(private val decl: Expr.AnonymousFunc, private val evaluator: Evaluator) :
+  class AnonymousFunc(private val decl: Expr.AnonymousFunc, private val evaluator: CodeEvaluator) :
     KoflCallable(decl.arguments.size) {
 
     override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
@@ -36,7 +36,7 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     }
   }
 
-  class Func(private val decl: Expr.Func, private val evaluator: Evaluator) :
+  class Func(private val decl: Expr.Func, private val evaluator: CodeEvaluator) :
     KoflCallable(decl.arguments.size) {
     override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
@@ -60,7 +60,7 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     }
   }
 
-  class ExtensionFunc(private val decl: Expr.ExtensionFunc, private val evaluator: Evaluator) :
+  class ExtensionFunc(private val decl: Expr.ExtensionFunc, private val evaluator: CodeEvaluator) :
     KoflCallable(decl.arguments.size) {
     private var self: KoflInstance? = null
 
