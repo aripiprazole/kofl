@@ -1,6 +1,8 @@
-program ::= decl* EOF ;
+program ::= globalDecl* EOF ;
 
-decl ::= valDecl | varDecl | typeDecl | stmt ;
+globalDecl ::= decl | typeDecl
+
+decl ::= valDecl | varDecl  | func;
 
 valDecl ::= "val" IDENTIFIER "=" expression ";" ;
 varDecl ::= "var" IDENTIFIER "=" expression ";" ;
@@ -11,6 +13,7 @@ type ::= "struct" ( ( "(" parameters ")" ) | ";" ) ;
 stmt ::= exprStmt
     | returnStmt
     | whileStmt
+    | decl
     | block ;
 
 exprStmt ::= expression ";" ;
@@ -18,7 +21,7 @@ exprStmt ::= expression ";" ;
 whileStmt ::= "while" expression block;
 returnStmt ::= "return" expression ? ";" ;
 
-block ::= "{" decl* "}" ;
+block ::= "{" stmt* "}" ;
 
 expression ::= assignment | if | func;
 

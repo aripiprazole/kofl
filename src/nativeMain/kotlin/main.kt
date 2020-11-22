@@ -38,17 +38,22 @@ fun file(name: String) {
 @kotlin.native.concurrent.ThreadLocal
 private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 
+@kotlin.native.concurrent.ThreadLocal
+private val locals = mutableMapOf<Expr, Int>()
+
 // TODO: typechecking
 fun eval(code: String): Any? {
   if (code.isEmpty()) return null
 
   val scanner = Scanner(code)
   val parser = Parser(scanner.scan())
-  val evaluator = Evaluator(globalEnvironment)
-  val resolver = Resolver(evaluator)
+  val resolver = Resolver(locals)
+  val evaluator = CodeEvaluator(globalEnvironment, locals)
+  val declEvaluator = DeclEvaluator(globalEnvironment, locals, evaluator)
 
   return parser.parse().let { stmts ->
     dump(stmts)
+    declEvaluator.eval(stmts)
     resolver.resolve(stmts)
     evaluator.eval(stmts)
   }

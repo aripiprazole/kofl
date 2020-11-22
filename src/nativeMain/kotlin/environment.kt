@@ -1,12 +1,30 @@
 sealed class KoflValue {
   abstract val value: KoflObject
 
-  data class Immutable(override val value: KoflObject) : KoflValue(){
+  data class Immutable(override val value: KoflObject) : KoflValue() {
     override fun toString(): String = value.toString()
   }
 
   data class Mutable(override var value: KoflObject) : KoflValue() {
     override fun toString(): String = value.toString()
+  }
+
+  sealed class Lazy : KoflValue() {
+    class Mutable(private val lazy: () -> KoflObject) : Lazy() {
+      private var _value: KoflObject? = null
+
+      override var value: KoflObject
+        set(value) {
+          _value = value
+        }
+        get() = lazy().also {
+          _value = it
+        }
+    }
+
+    class Immutable(lazy: () -> KoflObject) : Lazy() {
+      override val value: KoflObject by lazy(lazy)
+    }
   }
 }
 
@@ -61,7 +79,9 @@ private class KoflEnvironment(override val enclosing: Environment? = null) : Mut
   }
 
   override operator fun set(name: Token, newValue: KoflObject) = when (val value = this[name]) {
-    is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable variable")
+    is KoflValue.Immutable, is KoflValue.Lazy.Immutable ->
+      throw IllegalOperationError(name, "update an immutable variable")
+    is KoflValue.Lazy.Mutable -> value.value = newValue
     is KoflValue.Mutable -> value.value = newValue
   }
 

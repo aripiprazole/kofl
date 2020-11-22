@@ -1,20 +1,26 @@
-class Evaluator(private val globalEnvironment: MutableEnvironment) {
-  private val locals = mutableMapOf<Expr, Int>()
+interface Evaluator<T> {
+  val globalEnvironment: MutableEnvironment
 
-  fun eval(stmts: List<Stmt>, environment: MutableEnvironment = globalEnvironment): List<KoflObject> =
-    stmts.map { stmt ->
-      eval(stmt, environment)
-    }
+  fun eval(exprs: List<Expr>, environment: MutableEnvironment = globalEnvironment): List<T> {
+    return exprs.map { eval(it, environment) }
+  }
 
-  private fun eval(stmts: List<Expr>, environment: MutableEnvironment = globalEnvironment): List<KoflObject> =
-    stmts.map { stmt ->
-      eval(stmt, environment)
-    }
+  fun eval(stmts: List<Stmt>, environment: MutableEnvironment = globalEnvironment): List<T> {
+    return stmts.map { eval(it, environment) }
+  }
 
+  fun eval(stmt: Stmt, environment: MutableEnvironment): T
+  fun eval(expr: Expr, environment: MutableEnvironment): T
+}
+
+class CodeEvaluator(
+  override val globalEnvironment: MutableEnvironment,
+  private val locals: Map<Expr, Int>
+) : Evaluator<KoflObject> {
   //
   // STATEMENTS
   //
-  private fun eval(stmt: Stmt, environment: MutableEnvironment): KoflObject = when (stmt) {
+  override fun eval(stmt: Stmt, environment: MutableEnvironment): KoflObject = when (stmt) {
     is Stmt.WhileStmt -> eval(stmt, environment)
     is Stmt.Block -> eval(stmt, environment)
     is Stmt.VarDecl -> eval(stmt, environment)
@@ -74,7 +80,7 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
   //
   // EXPRESSIONS
   //
-  private fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) {
+  override fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) {
     is Expr.Binary -> eval(expr, environment)
     is Expr.IfExpr -> eval(expr, environment)
     is Expr.Unary -> eval(expr, environment)
@@ -230,10 +236,6 @@ class Evaluator(private val globalEnvironment: MutableEnvironment) {
 
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {
     return KoflCallable.AnonymousFunc(expr, this)
-  }
-
-  fun resolve(expr: Expr, depth: Int) {
-    locals[expr] = depth
   }
 
   // utils
