@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 typealias KoflFunction = (List<KoflObject>, MutableEnvironment) -> KoflObject
 
 abstract class KoflObject internal constructor() {

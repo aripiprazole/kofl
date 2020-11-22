@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 interface Evaluator<T> {
   val globalEnvironment: MutableEnvironment
 

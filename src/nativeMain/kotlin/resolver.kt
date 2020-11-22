@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 class UnresolvedVarError(val name: String) : KoflRuntimeError("unresolved variable $name"){
   constructor(name: Token) : this(name.lexeme)
 }

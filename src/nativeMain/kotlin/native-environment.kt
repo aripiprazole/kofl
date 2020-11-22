@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 class NativeEnvironment : Environment {
   private val environment = mapOf(
     "Double" to KoflDouble,

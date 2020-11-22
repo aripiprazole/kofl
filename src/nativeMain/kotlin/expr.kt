@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 sealed class Expr {
   data class Assign(val name: Token, val value: Expr) : Expr()
   data class Binary(val left: Expr, val op: Token, val right: Expr) : Expr()

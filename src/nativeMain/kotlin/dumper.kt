@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 fun dump(stmts: List<Stmt>) {
   println("simple ast dump:")
   println(stmts.joinToString(";\n"))

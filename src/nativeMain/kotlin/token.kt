@@ -1,3 +1,5 @@
+package com.lorenzoog.kofl.interpreter
+
 enum class TokenType {
   // single-character tokens
   LeftParen, RightParen, LeftBrace,
