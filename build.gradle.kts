@@ -23,21 +23,18 @@ kotlin {
   nativeTarget.apply {
     binaries {
       executable {
-        entryPoint = "com.lorenzoog.kofl.interpreter.main"
+        entryPoint = "main"
       }
     }
   }
 
   sourceSets {
-    val nativeMain by getting {
-      dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
-      }
-    }
+    val nativeMain by getting
     val nativeTest by getting
   }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile>() {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
   kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
 }
+
