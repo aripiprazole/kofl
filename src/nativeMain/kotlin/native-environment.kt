@@ -1,16 +1,22 @@
 class NativeEnvironment : Environment {
-  @OptIn(KoflResolverInternals::class)
-  override fun get(name: Token): KoflValue = when (name.lexeme) {
-    "println" -> KoflCallable.Native(1) { (message), _ ->
+  private val environment = mapOf(
+    "Double" to KoflDouble,
+    "Int" to KoflInt,
+    "Unit" to KoflUnit,
+    "Boolean" to KoflBoolean,
+
+    "println" to KoflCallable.Native(1) { (message), _ ->
       println(message).asKoflObject()
-    }.asKoflValue()
+    },
 
-    "print" -> KoflCallable.Native(1) { (message), _ ->
+    "print" to KoflCallable.Native(1) { (message), _ ->
       print(message).asKoflObject()
-    }.asKoflValue()
+    }
+  )
 
-    else -> throw UnresolvedVarError(name)
-  }
+  @OptIn(KoflResolverInternals::class)
+  override fun get(name: Token): KoflValue =
+    environment[name.lexeme]?.asKoflValue() ?: throw UnresolvedVarError(name)
 
   override fun toString(): String = "<native env>"
 }

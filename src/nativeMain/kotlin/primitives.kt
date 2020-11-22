@@ -49,6 +49,11 @@ data class KoflDouble(override val number: Double) : KoflNumber<Double>() {
   override fun compareTo(another: KoflNumber<Double>): Int = number.compareTo(another.number)
 
   override fun toString() = number.toString()
+
+  companion object : KoflPrimitive<Double>(Double::class) {
+    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflDouble(arguments.first().toString().toDouble())
+  }
 }
 
 data class KoflInt(override val number: Int) : KoflNumber<Int>() {
@@ -65,6 +70,11 @@ data class KoflInt(override val number: Int) : KoflNumber<Int>() {
   override fun compareTo(another: KoflNumber<Int>): Int = number.compareTo(another.number)
 
   override fun toString() = number.toString()
+
+  companion object : KoflPrimitive<Int>(Int::class) {
+    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflInt(arguments.first().toString().toInt())
+  }
 }
 
 sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
@@ -76,6 +86,11 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
 
   object False : KoflBoolean(false) {
     override fun toString(): String = "false"
+  }
+
+  companion object : KoflPrimitive<Boolean>(Boolean::class) {
+    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
+      if (arguments.first().isTruthy()) True else False
   }
 }
 
