@@ -1,28 +1,4 @@
-class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fieldsDef.size) {
-  private val fieldsDef = stmt.fieldsDef
-  val functions = mutableMapOf<String, ExtensionFunc>()
-  val name = stmt.name
-
-  override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject {
-    val fields = mutableMapOf<String, KoflValue>()
-
-    arguments.forEachIndexed { i, argument ->
-      fields[fieldsDef[i].lexeme] = argument.asKoflValue()
-    }
-
-    val instance = KoflInstance(this, fields)
-
-    functions.forEach { (_, func) ->
-      func.bind(instance)
-    }
-
-    return instance
-  }
-
-  override fun toString(): String = "struct $name"
-}
-
-sealed class KoflCallable(val arity: Int) : KoflObject() {
+abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() {
   abstract operator fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String
 
