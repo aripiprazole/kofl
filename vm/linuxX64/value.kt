@@ -4,8 +4,13 @@ import platform.posix.printf
 
 typealias Value = Double
 
-fun Value.print() {
-  printf("%g", this)
+fun Value?.print() {
+  if(this == null) {
+    printf("null")
+    return
+  }
+  @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+  printf("%g", this!!)
 }
 
 /**
