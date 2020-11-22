@@ -12,10 +12,11 @@ fun Value.print() {
  * This is a [Value] constant array, to be stored
  * in [Chunk]
  */
-class ValueArray {
-  var capacity = 0
-  var count = 0
-  var values = arrayOfNulls<Value>(0)
+data class ValueArray(
+  var capacity: Int = 0,
+  var count: Int = 0,
+  var values: Array<Value?> = arrayOfNulls(0)
+) {
 
   /**
    * 1. Allocate a new array with [capacity] by [growCapacity];
@@ -30,5 +31,23 @@ class ValueArray {
 
     values[count] = value
     count++
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is ValueArray) return false
+
+    if (capacity != other.capacity) return false
+    if (count != other.count) return false
+    if (!values.contentEquals(other.values)) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = capacity.hashCode()
+    result = 31 * result + count.hashCode()
+    result = 31 * result + values.contentHashCode()
+    return result
   }
 }

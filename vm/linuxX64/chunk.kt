@@ -15,11 +15,12 @@ object OpCode {
  * total is the [capacity], and the amount allocated is [count], and
  * this count the amount opcodes are stored in a [Chunk]
  */
-class Chunk {
-  var count: Int = 0
-  var capacity: Int = 0
-  var code: Array<UByte?> = arrayOfNulls(0)
-  var constants = ValueArray()
+data class Chunk(
+  var count: Int = 0,
+  var capacity: Int = 0,
+  var code: Array<UByte?> = arrayOfNulls(0),
+  var constants: ValueArray = ValueArray()
+) {
 
   // TODO: use something like run-length encoding instead of current line encoding
   var lines = arrayOfNulls<Int>(0)
