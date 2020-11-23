@@ -36,7 +36,9 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
     OpCode.OpSum -> simpleInstruction("OP_SUM", offset)
     OpCode.OpSubtract -> simpleInstruction("OP_SUBTRACT", offset)
     OpCode.OpDivide -> simpleInstruction("OP_DIVIDE", offset)
-    OpCode.OpConstant -> constantInstruction("OP_CONSTANT", offset)
+    OpCode.OpConstant, OpCode.OpTrue, OpCode.OpFalse ->
+      constantInstruction("OP_CONSTANT", offset)
+    OpCode.OpNot -> simpleInstruction("OP_NOT", offset)
     else -> {
       println("unknown opcode: $opcode")
       offset + 1

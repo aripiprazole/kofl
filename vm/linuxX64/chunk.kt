@@ -13,6 +13,9 @@ object OpCode {
   const val OpSubtract: UByte = 4u // size: 1
   const val OpMultiply: UByte = 5u // size: 1
   const val OpDivide: UByte = 6u // size: 1
+  const val OpTrue: UByte = 7u // size: 1
+  const val OpFalse: UByte = 8u // size: 1
+  const val OpNot: UByte = 9u // size: 1
 }
 
 /**

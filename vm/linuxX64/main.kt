@@ -12,8 +12,10 @@ private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 // TODO: use a own heap
 fun main(): Unit = memScoped {
   val compiler = Compiler()
-  val code = "1 + 4;"
+  val code = "!true;"
   val (expr, _) = Interpreter.parse(code).first() as? Stmt.ExprStmt ?: error("$code must be Stmt.ExprStmt")
+
+  println("EXPR: $expr")
 
   println("COMPILED:")
   val chunk = compiler.compile(listOf(expr), globalEnvironment).first()

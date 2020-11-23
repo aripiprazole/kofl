@@ -49,13 +49,18 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
 
   override fun visitLiteralExpr(expr: Expr.Literal, environment: MutableEnvironment) {
     when (expr.value) {
+      is Int -> emit(OpCode.OpConstant, makeConst(expr.value as Int), expr.line)
       is Number -> emit(OpCode.OpConstant, makeConst((expr.value as Number).toDouble()), expr.line)
+      is Boolean -> emit(OpCode.OpConstant, makeConst(expr.value as Boolean), expr.line)
     }
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary, environment: MutableEnvironment) {
+    visit(expr.right, environment)
+
     when (expr.op.type) {
       TokenType.Minus -> emit(OpCode.OpNegate, expr.line)
+      TokenType.Bang -> emit(OpCode.OpNot, expr.line)
     }
   }
 
@@ -127,7 +132,11 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     TODO("Not yet implemented")
   }
 
-  private fun makeConst(value: Double): UByte {
+  private fun makeConst(value: Boolean) = makeConst(BoolValue(value))
+  private fun makeConst(value: Int) = makeConst(IntValue(value))
+  private fun makeConst(value: Double) = makeConst(DoubleValue(value))
+
+  private fun <T> makeConst(value: Value<T>): UByte {
     val const = chunk().addConstant(value)
 
     if (const > UINT8_MAX) {
@@ -135,10 +144,6 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     }
 
     return const.toUByte()
-  }
-
-  private fun parsePrecedence(precedence: Int) {
-
   }
 
   private fun chunk(): Chunk {
