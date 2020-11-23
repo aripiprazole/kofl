@@ -24,6 +24,11 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
 
   return when (val opcode = code[offset]) {
     OpCode.OpReturn -> simpleInstruction("OP_RETURN", offset)
+    OpCode.OpNegate -> simpleInstruction("OP_NEGATE", offset)
+    OpCode.OpMultiply -> simpleInstruction("OP_MULTIPLY", offset)
+    OpCode.OpSum -> simpleInstruction("OP_SUM", offset)
+    OpCode.OpSubtract -> simpleInstruction("OP_SUBTRACT", offset)
+    OpCode.OpDivide -> simpleInstruction("OP_DIVIDE", offset)
     OpCode.OpConstant -> constantInstruction("OP_CONSTANT", offset)
     else -> {
       printf("unknown opcode: $opcode\n")

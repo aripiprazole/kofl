@@ -8,6 +8,11 @@ package com.lorenzoog.kofl.vm
 object OpCode {
   const val OpReturn: UByte = 0u // size: 1
   const val OpConstant: UByte = 1u // size: 2
+  const val OpNegate: UByte = 2u // size: 1
+  const val OpSum: UByte = 3u // size: 1
+  const val OpSubtract: UByte = 4u // size: 1
+  const val OpMultiply: UByte = 5u // size: 1
+  const val OpDivide: UByte = 6u // size: 1
 }
 
 /**

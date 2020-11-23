@@ -66,19 +66,26 @@ class KVM(private val heap: NativePlacement) {
         chunks[ci].disassembleInstructions(ipi - ci)
       }
 
-      when (val instruction = ip[ipi]) {
+      when (ip[ipi]) {
         OpCode.OpReturn -> {
           printf("RETURN: ")
           pop().print()
           printf("\n")
           return InterpreterResult.Ok
         }
+        OpCode.OpNegate -> push(-pop())
+        OpCode.OpDivide -> push(pop() / pop())
+        OpCode.OpMultiply -> push(pop() * pop())
+        OpCode.OpSum -> push(pop() + pop())
+        OpCode.OpSubtract -> push(pop() - pop())
         OpCode.OpConstant -> {
           val const = chunks[ci].constants.values[ipi++]
-          push(const!!)
+          printf("CONST VALUES: ${chunks[ci].constants.values.toList()} ${ipi}\n")
           printf("PUSH: ")
+          push(const!!)
           const.print()
           printf("\n")
+          continue
         }
       }
 
