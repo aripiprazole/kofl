@@ -48,14 +48,14 @@ fun eval(code: String): Any? {
   if (code.isEmpty()) return null
 
   val scanner = Scanner(code)
-  val parser = Parser(scanner.scan())
+  val parser = Parser(scanner.scan(), repl = true)
   val resolver = Resolver(locals)
   val evaluator = CodeEvaluator(globalEnvironment, locals)
-  val declEvaluator = DeclEvaluator(globalEnvironment, locals, evaluator)
+//  val declEvaluator = DeclEvaluator(globalEnvironment, locals, evaluator)
 
   return parser.parse().let { stmts ->
     dump(stmts)
-    declEvaluator.eval(stmts)
+//    declEvaluator.eval(stmts)
     resolver.resolve(stmts)
     evaluator.eval(stmts)
   }

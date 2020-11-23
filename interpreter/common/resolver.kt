@@ -7,8 +7,8 @@ class UnresolvedFieldError(val name: String, val type: KoflObject) :
   KoflRuntimeError("unresolved field $name in $type")
 
 class UninitializedVarError(val name: Token) : KoflRuntimeError("trying to access $name when it isn't initialized")
-class AlreadyDeclaredVarError(val name: Token) :
-  KoflRuntimeError("trying to re-declare $name a variable that already exists")
+class AlreadyDeclaredVarError(val name: Token, resolver: Boolean = false) :
+  KoflRuntimeError("trying to re-declare $name a variable that already exists: resolver = $resolver")
 
 class UndefinedScopeAccessError(val name: String) :
   KoflRuntimeError("undefined scope when trying to use or define $name")
@@ -203,7 +203,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     if (scopes.isEmpty) return
 
     val scope = scopes.peek() ?: throw UndefinedScopeAccessError(name.lexeme)
-    if (scope[name.lexeme] != null) throw AlreadyDeclaredVarError(name)
+    if (scope[name.lexeme] != null) throw AlreadyDeclaredVarError(name, resolver = true)
 
     scope[name.lexeme] = false
   }
