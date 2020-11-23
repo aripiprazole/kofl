@@ -16,7 +16,6 @@ fun main(): Unit = memScoped {
 
   chunk.write(OpCode.OpSum, 123)
   chunk.write(OpCode.OpReturn, 123)
-//  chunk.disassemble("test chunk")
 
   vm.interpret(arrayOf(chunk))
 }

@@ -1,16 +1,24 @@
 package com.lorenzoog.kofl.vm
 
-import platform.posix.printf
+import kotlinx.cinterop.*
+import platform.posix.sprintf
 
 typealias Value = Double
 
-fun Value?.print() {
-  if(this == null) {
-    printf("null")
-    return
+fun Value?.print(): String {
+  if (this == null) {
+    return "null"
   }
-  @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-  printf("%g", this!!)
+
+  return printNonNullable()
+}
+
+private fun Value.printNonNullable(): String {
+  return memScoped {
+    val str = alloc<ByteVar>()
+    sprintf(str.ptr, "%g", this@printNonNullable)
+    str.ptr.toKString()
+  }
 }
 
 /**
