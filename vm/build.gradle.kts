@@ -24,6 +24,10 @@ kotlin {
   sourceSets {
     val linuxX64Main by getting {
       kotlin.srcDir("linuxX64")
+
+      dependencies {
+        implementation(project(":interpreter"))
+      }
     }
 
     val commonMain by getting {

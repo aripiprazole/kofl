@@ -3,11 +3,10 @@
 package com.lorenzoog.kofl.vm
 
 import kotlinx.cinterop.*
-import platform.posix.printf
 import platform.posix.sprintf
 
 fun Chunk.disassemble(name: String) {
-  printf("== $name ==\n")
+  println("== $name ==")
 
   var offset = 0
   while (offset < count) {
