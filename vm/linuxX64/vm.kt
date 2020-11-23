@@ -4,10 +4,14 @@ package com.lorenzoog.kofl.vm
 
 import kotlinx.cinterop.NativePlacement
 
-class StackOutOfBoundsError : RuntimeException()
-class MissingValueInStackError(val index: Int) : RuntimeException()
+open class VmException(message: String, throwable: Throwable? = null) : RuntimeException(message, throwable)
 
-const val STACK_MAX = 256
+class StackOutOfBoundsException(index: Int) : VmException("stack out of bounds when trying to get $index")
+class StackOverflowException : VmException("stack overflow")
+class InvalidTypeException(current: String, expected: String, index: Int) :
+  VmException("expected $expected but got $current when getting $index from stack")
+
+const val STACK_MAX = 1024
 
 enum class InterpreterResult {
   Ok, CompileError, RuntimeError
@@ -44,8 +48,9 @@ class KVM(private val heap: NativePlacement) {
 
   fun interpret(chunks: Array<Chunk?>): InterpreterResult {
     this.chunks = chunks.filterNotNull().toTypedArray()
-    this.ip = chunks.filterNotNull().flatMap { it.code.toList() }
-      .filterNotNull().toTypedArray()
+    this.ip = chunks.filterNotNull().flatMap {
+      it.code.toList().filterNotNull()
+    }.toTypedArray()
 
     return run()
   }
@@ -103,26 +108,27 @@ class KVM(private val heap: NativePlacement) {
   private fun push(value: Boolean): Unit = push(BoolValue(value))
 
   private fun <T> push(value: Value<T>) {
-    stack[stackt++] = value
+    stackt += 1
+
+    if (stackt > STACK_MAX) throw StackOverflowException()
+
+    stack[stackt] = value
   }
 
   private fun popAny(): Value<out Any> = pop()
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T> popOrNull(): T? = try {
+  private inline fun <reified T> popOrNull(): T? = try {
     stackt -= 1
-    (stack[stackt] as? Value<T>?)?.value
+    (stack[stackt] as? Value<T>?)?.value?.also {
+      throw InvalidTypeException(T::class.toString(), it::class.toString(), stackt)
+    }
   } catch (ignored: ArrayIndexOutOfBoundsException) {
     null
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T> pop(): T = try {
-    stackt -= 1
-    (stack[stackt] as? Value<T>?)?.value ?: throw StackOutOfBoundsError()
-  } catch (ignored: ArrayIndexOutOfBoundsException) {
-    throw StackOutOfBoundsError()
-  }
+  private inline fun <reified T> pop(): T = popOrNull<T>() ?: throw StackOutOfBoundsException(stackt)
 
   private fun resetStack() {
     stackt = stacki

@@ -16,7 +16,7 @@ inline class DoubleValue(override val value: Double) : Value<Double> {
   override fun toString(): String = value.toString()
 }
 
-inline class IntValue(override val value: Int) :  Value<Int> {
+inline class IntValue(override val value: Int) : Value<Int> {
   override fun toString(): String = value.toString()
 }
 
@@ -35,7 +35,7 @@ data class ValueArray(
 ) {
   @Suppress("UNCHECKED_CAST")
   operator fun <T> get(index: Int): Value<T> =
-    values[index] as? Value<T>? ?: error("INVALID VALUE IN INDEX: @$this#$index")
+    values[index] as? Value<T>? ?: throw ArrayIndexOutOfBoundsException("value array ($this) $index out of bounds")
 
   /**
    * 1. Allocate a new array with [capacity] by [growCapacity];
