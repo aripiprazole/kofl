@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.vm
 
-fun <T> Value<T>?.print(): String {
+fun Value<*>?.print(): String {
   if (this == null) {
     return "null"
   }

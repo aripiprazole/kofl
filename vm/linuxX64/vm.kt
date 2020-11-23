@@ -11,7 +11,7 @@ class StackOverflowException : VmException("stack overflow")
 class InvalidTypeException(current: String, expected: String, index: Int) :
   VmException("expected $expected but got $current when getting $index from stack")
 
-const val STACK_MAX = 1024
+const val STACK_MAX = 512_000
 
 enum class InterpreterResult {
   Ok, CompileError, RuntimeError
@@ -46,6 +46,8 @@ class KVM(private val heap: NativePlacement) {
   /** ipi means the index in chunk.code in [chunks] */
   private var ci = 0
 
+  private val globalEnvironment = mutableMapOf<String, Any>()
+
   fun interpret(chunks: Array<Chunk?>): InterpreterResult {
     this.chunks = chunks.filterNotNull().toTypedArray()
     this.ip = chunks.filterNotNull().flatMap {
@@ -58,6 +60,7 @@ class KVM(private val heap: NativePlacement) {
   @OptIn(ExperimentalUnsignedTypes::class)
   fun run(): InterpreterResult {
     while (true) {
+      println("=>>")
       if (debugging) {
         print("          ")
 
@@ -83,14 +86,32 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpMultiply -> push(popNumber() * popNumber())
         OpCode.OpSum -> push(popNumber() + popNumber())
         OpCode.OpSubtract -> push(popNumber() - popNumber())
+        OpCode.OpPop -> popOrNull<Any>()
+        OpCode.OpAccessGlobal -> {
+          val name: String = pop()
+          println("POP: $name")
+          val value = globalEnvironment[name]
+          println("VALUE: $value ")
+          when (value) {  // TODO: create a exception
+            is Int -> push(value)
+            is Double -> push(value)
+            is String -> push(value)
+            is Boolean -> push(value)
+          }
+        }
+        OpCode.OpStoreGlobal -> {
+          val value: Any = pop()
+          val name: String = pop()
+          globalEnvironment[name] = value
+        }
         OpCode.OpConcat -> push(pop<String>() + pop<String>())
         OpCode.OpConstant -> {
           ipi += 1
-          push(chunks[ci].constants.values[ip[ipi].toInt()]!!.also {
-            println("PUSH: ${it.print()}")
-          })
+          push(chunks[ci].constants.values[ip[ipi].toInt()]!!)
         }
       }
+
+      println("<<=")
 
       ipi++
     }
@@ -100,30 +121,32 @@ class KVM(private val heap: NativePlacement) {
     resetStack()
   }
 
-  private fun popNumber(): Double {
+  private inline fun popNumber(): Double {
     return popOrNull<Double>() ?: pop<Int>().toDouble()
   }
 
-  private fun push(value: Double): Unit = push(DoubleValue(value))
-  private fun push(value: Int): Unit = push(IntValue(value))
-  private fun push(value: Boolean): Unit = push(BoolValue(value))
-  private fun push(value: String): Unit = push(StrValue(value))
+  private inline fun push(value: Double): Unit = push(DoubleValue(value))
+  private inline fun push(value: Int): Unit = push(IntValue(value))
+  private inline fun push(value: Boolean): Unit = push(BoolValue(value))
+  private inline fun push(value: String): Unit = push(StrValue(value))
 
   private fun <T> push(value: Value<T>) {
+    println("PUSH: ${value.print()}")
+
     if (stackt > STACK_MAX) throw StackOverflowException()
 
     stack[stackt] = value
     stackt += 1
   }
 
-  private fun popAny(): Any = pop()
+  private inline fun popAny(): Any = pop()
 
   @Suppress("UNCHECKED_CAST")
   private inline fun <reified T> popOrNull(): T? = try {
     stackt -= 1
     val valueFromStack = stack[stackt]
     if (valueFromStack !is Value<*> && valueFromStack?.value !is T) {
-      val gotType = if(valueFromStack != null) valueFromStack::class.toString() else "null"
+      val gotType = if (valueFromStack != null) valueFromStack::class.toString() else "null"
       throw InvalidTypeException(T::class.toString(), gotType, stackt)
     }
     (stack[stackt] as? Value<T>?)?.value
@@ -132,7 +155,8 @@ class KVM(private val heap: NativePlacement) {
   }
 
   @Suppress("UNCHECKED_CAST")
-  private inline fun <reified T> pop(): T = popOrNull<T>() ?: throw StackOutOfBoundsException(stackt)
+  private inline fun <reified T> pop(): T = popOrNull<T>()
+    ?: throw StackOutOfBoundsException(stackt)
 
   private fun resetStack() {
     stackt = stacki

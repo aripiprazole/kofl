@@ -15,6 +15,13 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private var ci = 0
   private var chunks = arrayOf(Chunk())
 
+  fun compile(stmts: List<Stmt>, environment: MutableEnvironment): Array<Chunk> {
+    visit(stmts, environment)
+    endCompiler()
+
+    return chunks
+  }
+
   fun compile(exprs: List<Expr>, environment: MutableEnvironment): Array<Chunk> {
     visit(exprs, environment)
     endCompiler()
@@ -62,12 +69,14 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     when (expr.op.type) {
       TokenType.Minus -> emit(OpCode.OpNegate, expr.line)
       TokenType.Bang -> emit(OpCode.OpNot, expr.line)
-      else -> {}
+      else -> {
+      }
     }
   }
 
   override fun visitVarExpr(expr: Expr.Var, environment: MutableEnvironment) {
-    TODO("Not yet implemented")
+    emit(OpCode.OpConstant, makeConst(expr.name.lexeme), expr.line)
+    emit(OpCode.OpAccessGlobal, expr.line)
   }
 
   override fun visitCallExpr(expr: Expr.Call, environment: MutableEnvironment) {
@@ -107,7 +116,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt, environment: MutableEnvironment) {
-    TODO("Not yet implemented")
+    visit(stmt.expr, environment)
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block, environment: MutableEnvironment) {
@@ -123,7 +132,9 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl, environment: MutableEnvironment) {
-    TODO("Not yet implemented")
+    emit(OpCode.OpConstant, makeConst(stmt.name.lexeme), stmt.line)
+    visit(stmt.value, environment)
+    emit(OpCode.OpStoreGlobal, stmt.line)
   }
 
   override fun visitVarDeclStmt(stmt: Stmt.VarDecl, environment: MutableEnvironment) {
