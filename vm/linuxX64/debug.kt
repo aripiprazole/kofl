@@ -47,11 +47,12 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
 
 fun Chunk.constantInstruction(name: String, offset: Int): Int {
   val const = code[offset + 1]!!
-  println(memScoped {
+  val offsetStr = memScoped {
     val str = alloc<ByteVar>()
-    sprintf(str.ptr, "%-16s %4d '%s'", name, constants.values[const.toInt()]!!.print(), const)
+    sprintf(str.ptr, "%04d", const)
     str.ptr.toKString()
-  })
+  }
+  println("$name $offsetStr '${constants.values[const.toInt()]!!.print()}'")
   return offset + 2
 }
 

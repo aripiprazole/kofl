@@ -56,7 +56,7 @@ class KVM(private val heap: NativePlacement) {
         print("          ")
 
         // stackli = stack local index
-        for(stackli in (stacki..stackt)) {
+        for (stackli in (stacki..stackt)) {
           print("[ ${stack[stackli].print()} ]")
         }
 
@@ -76,9 +76,9 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpSum -> push(pop() + pop())
         OpCode.OpSubtract -> push(pop() - pop())
         OpCode.OpConstant -> {
-          val const = chunks[ci].constants.values[ipi++]!!
-          push(const)
-          println("PUSH: ${const.print()}")
+          push(chunks[ci].constants.values[ipi++]!!.also {
+            println("PUSH: ${it.print()}")
+          })
           continue
         }
       }
