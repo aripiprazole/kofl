@@ -8,33 +8,46 @@ package com.lorenzoog.kofl.interpreter
 class DeclEvaluator(
   private val locals: MutableMap<Expr, Int>,
   private val evaluator: CodeEvaluator
-) : Expr.Visitor<Unit> by DefaultExprVisitor(Unit),
-  Stmt.Visitor<Unit> by DefaultStmtVisitor(Unit) {
-  override fun visitValDeclStmt(stmt: Stmt.ValDecl, environment: MutableEnvironment) {
+) : Evaluator<Unit> {
+  override fun eval(stmt: Stmt, environment: MutableEnvironment): Unit = when (stmt) {
+    is Stmt.VarDecl -> eval(stmt, environment)
+    is Stmt.ValDecl -> eval(stmt, environment)
+    is Stmt.TypeDef.Struct -> eval(stmt, environment)
+    else -> Unit
+  }
+
+  private fun eval(stmt: Stmt.ValDecl, environment: MutableEnvironment) {
     environment.define(stmt.name, KoflValue.Lazy.Immutable {
-      evaluator.visit(stmt.value, environment)
+      evaluator.eval(stmt.value, environment)
     })
   }
 
-  override fun visitVarDeclStmt(stmt: Stmt.VarDecl, environment: MutableEnvironment) {
+  private fun eval(stmt: Stmt.VarDecl, environment: MutableEnvironment) {
     environment.define(stmt.name, KoflValue.Lazy.Mutable {
-      evaluator.visit(stmt.value, environment)
+      evaluator.eval(stmt.value, environment)
     })
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment) {
+  private fun eval(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment) {
     environment.define(stmt.name, KoflStruct(stmt).asKoflValue())
   }
 
   @OptIn(KoflResolverInternals::class)
-  override fun visitFuncExpr(expr: Expr.Func, environment: MutableEnvironment) {
+  override fun eval(expr: Expr, environment: MutableEnvironment): Unit = when (expr) {
+    is Expr.Func -> eval(expr, environment)
+    is Expr.ExtensionFunc -> eval(expr, environment)
+    else -> Unit
+  }
+
+  @OptIn(KoflResolverInternals::class)
+  private fun eval(expr: Expr.Func, environment: MutableEnvironment) {
     locals[expr] = 0
 
     environment.define(expr.name, KoflCallable.Func(expr, evaluator).asKoflValue()).asKoflObject()
   }
 
   @OptIn(KoflResolverInternals::class)
-  override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc, environment: MutableEnvironment) {
+  private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment) {
     locals[expr] = 0
 
     environment.define(expr.name, KoflCallable.ExtensionFunc(expr, evaluator).asKoflValue()).asKoflObject()

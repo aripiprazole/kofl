@@ -37,26 +37,12 @@ fun file(name: String) {
   TODO("Handle file not implemented")
 }
 
-@kotlin.native.concurrent.ThreadLocal
-private val globalEnvironment = MutableEnvironment(NativeEnvironment())
-
-@kotlin.native.concurrent.ThreadLocal
-private val locals = mutableMapOf<Expr, Int>()
+@ThreadLocal
+private val interpreter = Interpreter()
 
 // TODO: typechecking
 fun eval(code: String): Any? {
   if (code.isEmpty()) return null
 
-  val scanner = Scanner(code)
-  val parser = Parser(scanner.scan(), repl = true)
-  val resolver = Resolver(locals)
-  val evaluator = CodeEvaluator(locals)
-//  val declEvaluator = DeclEvaluator(locals, evaluator)
-
-  return parser.parse().let { stmts ->
-    dump(stmts)
-//    declEvaluator.visit(stmts, globalEnvironment)
-    resolver.resolve(stmts)
-    evaluator.visit(stmts, globalEnvironment)
-  }
+  return interpreter.eval(code)
 }
