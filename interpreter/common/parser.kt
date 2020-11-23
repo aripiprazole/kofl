@@ -4,7 +4,7 @@ private const val MAX_ARGS = 32  // the limit is really 31 'cause the this is pa
 private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"
 private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
 
-class Parser(private val tokens: List<Token>) {
+class Parser(private val tokens: List<Token>, private val repl: Boolean = false) {
   private val isAtEnd get() = peek().type == TokenType.Eof
   private var current = 0
 
@@ -47,7 +47,7 @@ class Parser(private val tokens: List<Token>) {
       match(TokenType.LeftBrace) -> Stmt.Block(block())
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
 
-      else -> throw error(expecting("declaration"))
+      else -> if (repl) statement() else throw error(expecting("declaration"))
     }
   } catch (error: ParseError) {
     // panic mode
@@ -119,9 +119,9 @@ class Parser(private val tokens: List<Token>) {
     return Stmt.VarDecl(name, initializer())
   }
 
-  private fun statement(type: ScopeType): Stmt {
+  private fun statement(scopeType: ScopeType = ScopeType.Global): Stmt {
     return when {
-      match(TokenType.Return) -> when (type) {
+      match(TokenType.Return) -> when (scopeType) {
         ScopeType.Global -> throw error(notExpecting(TokenType.Return), token = previous())
         ScopeType.Func -> returnStatement()
       }

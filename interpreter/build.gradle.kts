@@ -12,9 +12,13 @@ repositories {
 kotlin {
   linuxX64("linuxX64") {
     binaries {
-      executable {
-        entryPoint = "com.lorenzoog.kofl.interpreter.main"
-      }
+      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
+    }
+  }
+
+  mingwX64("windowsX64") {
+    binaries {
+      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
     }
   }
 

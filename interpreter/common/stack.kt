@@ -31,7 +31,7 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
 
   override operator fun get(index: Int): T? = try {
     items[index]
-  } catch (ignored: ArrayIndexOutOfBoundsException) {
+  } catch (ignored: Throwable) {
     null
   }
 
