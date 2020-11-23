@@ -50,13 +50,13 @@ fun eval(code: String): Any? {
   val scanner = Scanner(code)
   val parser = Parser(scanner.scan(), repl = true)
   val resolver = Resolver(locals)
-  val evaluator = CodeEvaluator(globalEnvironment, locals)
-//  val declEvaluator = DeclEvaluator(globalEnvironment, locals, evaluator)
+  val evaluator = CodeEvaluator(locals)
+//  val declEvaluator = DeclEvaluator(locals, evaluator)
 
   return parser.parse().let { stmts ->
     dump(stmts)
-//    declEvaluator.eval(stmts)
+//    declEvaluator.visit(stmts, globalEnvironment)
     resolver.resolve(stmts)
-    evaluator.eval(stmts)
+    evaluator.visit(stmts, globalEnvironment)
   }
 }
