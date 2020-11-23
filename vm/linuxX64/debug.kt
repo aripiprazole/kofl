@@ -37,6 +37,9 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
     OpCode.OpSubtract -> simpleInstruction("OP_SUBTRACT", offset)
     OpCode.OpDivide -> simpleInstruction("OP_DIVIDE", offset)
     OpCode.OpConcat -> simpleInstruction("OP_CONCAT", offset)
+    OpCode.OpPop -> simpleInstruction("OP_POP", offset)
+    OpCode.OpStoreGlobal -> simpleInstruction("OP_STORE_GLOBAL", offset)
+    OpCode.OpAccessGlobal -> simpleInstruction("OP_ACCESS_GLOBAL", offset)
     OpCode.OpConstant,
     OpCode.OpTrue,
     OpCode.OpFalse -> constantInstruction("OP_CONSTANT", offset)

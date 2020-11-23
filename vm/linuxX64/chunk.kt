@@ -5,6 +5,7 @@ package com.lorenzoog.kofl.vm
 /**
  * This is the possible instructions at execution time
  */
+@Suppress("EXPERIMENTAL_UNSIGNED_LITERALS")
 object OpCode {
   const val OpReturn: UByte = 0u // size: 1
   const val OpConstant: UByte = 1u // size: 2
@@ -17,6 +18,9 @@ object OpCode {
   const val OpFalse: UByte = 8u // size: 1
   const val OpNot: UByte = 9u // size: 1
   const val OpConcat: UByte = 10u // size: 1
+  const val OpPop: UByte = 11u // size: 1
+  const val OpStoreGlobal: UByte = 12u // size: 1
+  const val OpAccessGlobal: UByte = 13u // size: 1
 }
 
 /**

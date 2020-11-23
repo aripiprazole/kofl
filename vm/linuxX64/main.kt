@@ -3,7 +3,6 @@ package com.lorenzoog.kofl.vm
 import com.lorenzoog.kofl.interpreter.Interpreter
 import com.lorenzoog.kofl.interpreter.MutableEnvironment
 import com.lorenzoog.kofl.interpreter.NativeEnvironment
-import com.lorenzoog.kofl.interpreter.Stmt
 import kotlinx.cinterop.memScoped
 
 @ThreadLocal
@@ -13,16 +12,18 @@ private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 fun main(): Unit = memScoped {
   val compiler = Compiler()
   val code = """
-    "hello, world";
+    val x = "!";
+    val y = x;
+    "";
   """.trimIndent()
-  val (expr, _) = Interpreter.parse(code).first() as? Stmt.ExprStmt ?: error("$code must be Stmt.ExprStmt")
+  val stmts = Interpreter.parse(code)
+  println("AST: $stmts")
 
-  println("EXPR: $expr")
   println("COMPILED:")
-  val chunk = compiler.compile(listOf(expr), globalEnvironment).first()
+  val chunk = compiler.compile(stmts, globalEnvironment).first()
 
   chunk.disassemble("CODE")
-  println("==    ==")
+  println("==-==-==-==")
 
   val vm = KVM(this)
   vm.start()
