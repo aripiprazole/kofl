@@ -1,7 +1,5 @@
 package com.lorenzoog.kofl.vm
 
-import kotlinx.cinterop.*
-import platform.posix.sprintf
 
 typealias Value = Double
 
@@ -14,11 +12,6 @@ fun Value?.print(): String {
 }
 
 private fun Value.printNonNullable(): String {
-//  return nativeHeap.run {
-//    val str = alloc<ByteVar>()
-//    sprintf(str.ptr, "%g", this@printNonNullable)
-//    str.ptr.toKString()
-//  }
   return toString()
 }
 

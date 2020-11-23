@@ -66,9 +66,8 @@ class KVM(private val heap: NativePlacement) {
       }
 
       when (ip[ipi]) {
-        OpCode.OpReturn -> {
-          println("RETURN: ${pop().print()}")
-          return InterpreterResult.Ok
+        OpCode.OpReturn -> return InterpreterResult.Ok.also {
+          println("RETURN: ${pop()}")
         }
         OpCode.OpNegate -> push(-pop())
         OpCode.OpDivide -> push(pop() / pop())
@@ -76,10 +75,10 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpSum -> push(pop() + pop())
         OpCode.OpSubtract -> push(pop() - pop())
         OpCode.OpConstant -> {
-          push(chunks[ci].constants.values[ipi++]!!.also {
+          ipi += 1
+          push(chunks[ci].constants.values[ip[ipi].toInt()]!!.also {
             println("PUSH: ${it.print()}")
           })
-          continue
         }
       }
 
