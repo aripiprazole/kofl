@@ -12,6 +12,10 @@ interface Value<T> {
   val value: T
 }
 
+inline class StrValue(override val value: String) : Value<String> {
+  override fun toString(): String = value
+}
+
 inline class DoubleValue(override val value: Double) : Value<Double> {
   override fun toString(): String = value.toString()
 }

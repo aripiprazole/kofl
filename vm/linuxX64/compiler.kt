@@ -31,7 +31,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     visit(expr.right, environment)
 
     when (expr.op.type) {
-      TokenType.Plus -> emit(OpCode.OpSum, expr.line)
+      TokenType.Plus -> emit(OpCode.OpSum, expr.line) // TODO: compile OpCode.Concat when have typechecking
       TokenType.Minus -> emit(OpCode.OpSubtract, expr.line)
       TokenType.Slash -> emit(OpCode.OpDivide, expr.line)
       TokenType.Star -> emit(OpCode.OpMultiply, expr.line)
@@ -48,10 +48,11 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal, environment: MutableEnvironment) {
-    when (expr.value) {
-      is Int -> emit(OpCode.OpConstant, makeConst(expr.value as Int), expr.line)
-      is Number -> emit(OpCode.OpConstant, makeConst((expr.value as Number).toDouble()), expr.line)
-      is Boolean -> emit(OpCode.OpConstant, makeConst(expr.value as Boolean), expr.line)
+    when (val value = expr.value) {
+      is Int -> emit(OpCode.OpConstant, makeConst(value), expr.line)
+      is Number -> emit(OpCode.OpConstant, makeConst(value.toDouble()), expr.line)
+      is Boolean -> emit(OpCode.OpConstant, makeConst(value), expr.line)
+      is String -> emit(OpCode.OpConstant, makeConst(value), expr.line)
     }
   }
 
@@ -61,6 +62,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     when (expr.op.type) {
       TokenType.Minus -> emit(OpCode.OpNegate, expr.line)
       TokenType.Bang -> emit(OpCode.OpNot, expr.line)
+      else -> {}
     }
   }
 
@@ -135,6 +137,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private fun makeConst(value: Boolean) = makeConst(BoolValue(value))
   private fun makeConst(value: Int) = makeConst(IntValue(value))
   private fun makeConst(value: Double) = makeConst(DoubleValue(value))
+  private fun makeConst(value: String) = makeConst(StrValue(value))
 
   private fun <T> makeConst(value: Value<T>): UByte {
     val const = chunk().addConstant(value)

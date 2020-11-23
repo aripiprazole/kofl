@@ -83,6 +83,7 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpMultiply -> push(popNumber() * popNumber())
         OpCode.OpSum -> push(popNumber() + popNumber())
         OpCode.OpSubtract -> push(popNumber() - popNumber())
+        OpCode.OpConcat -> push(pop<String>() + pop<String>())
         OpCode.OpConstant -> {
           ipi += 1
           push(chunks[ci].constants.values[ip[ipi].toInt()]!!.also {
@@ -106,23 +107,26 @@ class KVM(private val heap: NativePlacement) {
   private fun push(value: Double): Unit = push(DoubleValue(value))
   private fun push(value: Int): Unit = push(IntValue(value))
   private fun push(value: Boolean): Unit = push(BoolValue(value))
+  private fun push(value: String): Unit = push(StrValue(value))
 
   private fun <T> push(value: Value<T>) {
-    stackt += 1
-
     if (stackt > STACK_MAX) throw StackOverflowException()
 
     stack[stackt] = value
+    stackt += 1
   }
 
-  private fun popAny(): Value<out Any> = pop()
+  private fun popAny(): Any = pop()
 
   @Suppress("UNCHECKED_CAST")
   private inline fun <reified T> popOrNull(): T? = try {
     stackt -= 1
-    (stack[stackt] as? Value<T>?)?.value?.also {
-      throw InvalidTypeException(T::class.toString(), it::class.toString(), stackt)
+    val valueFromStack = stack[stackt]
+    if (valueFromStack !is Value<*> && valueFromStack?.value !is T) {
+      val gotType = if(valueFromStack != null) valueFromStack::class.toString() else "null"
+      throw InvalidTypeException(T::class.toString(), gotType, stackt)
     }
+    (stack[stackt] as? Value<T>?)?.value
   } catch (ignored: ArrayIndexOutOfBoundsException) {
     null
   }
