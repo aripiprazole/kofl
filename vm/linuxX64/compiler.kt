@@ -8,7 +8,7 @@ import com.lorenzoog.kofl.interpreter.Stmt
 import com.lorenzoog.kofl.interpreter.TokenType
 import platform.posix.UINT8_MAX
 
-open class CompilationException : RuntimeException()
+open class CompilationException(message: String) : RuntimeException(message)
 
 class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   // chunk index

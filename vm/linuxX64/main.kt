@@ -16,7 +16,6 @@ fun main(): Unit = memScoped {
   val (expr, _) = Interpreter.parse(code).first() as? Stmt.ExprStmt ?: error("$code must be Stmt.ExprStmt")
 
   println("EXPR: $expr")
-
   println("COMPILED:")
   val chunk = compiler.compile(listOf(expr), globalEnvironment).first()
 
@@ -25,16 +24,5 @@ fun main(): Unit = memScoped {
 
   val vm = KVM(this)
   vm.start()
-//
-//  val chunk = Chunk()
-//  chunk.write(OpCode.OpConstant, 123)
-//  chunk.write(chunk.addConstant(1.2), 123)
-//
-//  chunk.write(OpCode.OpConstant, 123)
-//  chunk.write(chunk.addConstant(13.2), 123)
-//
-//  chunk.write(OpCode.OpSum, 123)
-//  chunk.write(OpCode.OpReturn, 123)
-//
   vm.interpret(arrayOf(chunk))
 }
