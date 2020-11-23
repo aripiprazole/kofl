@@ -16,40 +16,42 @@ sealed class Stmt {
     fun visitStructTypedefStmt(stmt: TypeDef.Struct, environment: MutableEnvironment): T
   }
 
+  abstract val line: Int
+
   abstract fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T
 
-  data class ExprStmt(val expr: Expr) : Stmt() {
+  data class ExprStmt(val expr: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitExprStmt(this, environment)
   }
 
-  data class Block(val decls: List<Stmt>) : Stmt() {
+  data class Block(val decls: List<Stmt>, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitBlockStmt(this, environment)
   }
 
-  data class WhileStmt(val condition: Expr, val body: List<Stmt>) : Stmt() {
+  data class WhileStmt(val condition: Expr, val body: List<Stmt>, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitWhileStmt(this, environment)
   }
 
-  data class ReturnStmt(val expr: Expr) : Stmt() {
+  data class ReturnStmt(val expr: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitReturnStmt(this, environment)
   }
 
-  data class ValDecl(val name: Token, val value: Expr) : Stmt() {
+  data class ValDecl(val name: Token, val value: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitValDeclStmt(this, environment)
   }
 
-  data class VarDecl(val name: Token, val value: Expr) : Stmt() {
+  data class VarDecl(val name: Token, val value: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
       visitor.visitVarDeclStmt(this, environment)
   }
 
   sealed class TypeDef : Stmt() {
-    data class Struct(val name: Token, val fieldsDef: List<Token>) : TypeDef() {
+    data class Struct(val name: Token, val fieldsDef: List<Token>, override val line: Int) : TypeDef() {
       override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
         visitor.visitStructTypedefStmt(this, environment)
     }

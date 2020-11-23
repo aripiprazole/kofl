@@ -44,8 +44,8 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.Typedef) -> typeDeclaration()
-      match(TokenType.LeftBrace) -> Stmt.Block(block())
-      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
+      match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
+      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
 
       else -> if (repl) statement() else throw error(expecting("declaration"))
     }
@@ -102,21 +102,21 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       else -> throw error(expecting(TokenType.Semicolon))
     }
 
-    return Stmt.TypeDef.Struct(name, fields)
+    return Stmt.TypeDef.Struct(name, fields, line())
   }
 
   private fun valDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.ValDecl(name, initializer())
+    return Stmt.ValDecl(name, initializer(), line())
   }
 
   private fun varDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.VarDecl(name, initializer())
+    return Stmt.VarDecl(name, initializer(), line())
   }
 
   private fun statement(scopeType: ScopeType = ScopeType.Global): Stmt {
@@ -129,9 +129,9 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.Typedef) -> typeDeclaration()
       match(TokenType.While) -> whileStatement()
-      match(TokenType.LeftBrace) -> Stmt.Block(block())
-      match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If))
-      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func))
+      match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
+      match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If), line())
+      match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
 
       else -> exprStatement()
     }
@@ -140,11 +140,11 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun returnStatement(): Stmt {
     val expression = if (!check(TokenType.Semicolon)) {
       expression()
-    } else Expr.Literal(Unit) // returns unit if hasn't value
+    } else Expr.Literal(Unit, line()) // returns unit if hasn't value
 
     consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
-    return Stmt.ReturnStmt(expression)
+    return Stmt.ReturnStmt(expression, line())
   }
 
   private fun whileStatement(): Stmt {
@@ -153,7 +153,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     if (!match(TokenType.LeftBrace))
       throw error(expecting(start("while body")))
 
-    return Stmt.WhileStmt(condition, block())
+    return Stmt.WhileStmt(condition, block(), line())
   }
 
   private fun exprStatement(): Stmt {
@@ -161,7 +161,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
-    return Stmt.ExprStmt(expr)
+    return Stmt.ExprStmt(expr, line())
   }
 
   // expressions
@@ -177,11 +177,11 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val value = assignment()
 
       if (expr is Expr.Var) {
-        val (name) = expr
+        val (name, _) = expr
 
-        return Expr.Assign(name, value)
+        return Expr.Assign(name, value, line())
       } else if (expr is Expr.Get) {
-        return Expr.Set(expr.receiver, expr.name, value)
+        return Expr.Set(expr.receiver, expr.name, value, line())
       }
 
       // we report the error but don't throw
@@ -212,7 +212,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       throw error(expecting("else body on local if"))
     }
 
-    return Expr.IfExpr(condition, mainBranch, elseBranch)
+    return Expr.IfExpr(condition, mainBranch, elseBranch, line())
   }
 
   private enum class FuncType { Anonymous, Func }
@@ -232,15 +232,15 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     val parameters = parameters()
     val body = if (TokenType.External !in modifiers) funcBody(type) else {
-      return Expr.NativeFunc(name.orThrow(), parameters)
+      return Expr.NativeFunc(name.orThrow(), parameters, line())
         .also {
           requireSemicolon()
         }
     }
 
     return when (type) {
-      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body)
-      FuncType.Func -> Expr.Func(name.orThrow(), parameters, body)
+      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body, line())
+      FuncType.Func -> Expr.Func(name.orThrow(), parameters, body, line())
     }
   }
 
@@ -251,18 +251,18 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     val parameters = parameters()
     val body = if (TokenType.External !in modifiers) funcBody(type) else {
-      return Expr.NativeFunc(name, parameters).also {
+      return Expr.NativeFunc(name, parameters, line()).also {
         requireSemicolon()
       }
     }
 
-    return Expr.ExtensionFunc(receiver, name, parameters, body)
+    return Expr.ExtensionFunc(receiver, name, parameters, body, line())
   }
 
   private fun funcBody(type: FuncType): List<Stmt> {
     return when {
       consume(TokenType.LeftBrace) != null -> block(ScopeType.Func)
-      consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression())).also {
+      consume(TokenType.Equal) != null -> listOf(Stmt.ReturnStmt(expression(), line())).also {
         if (type == FuncType.Func) requireSemicolon()
       }
       else -> throw error(expecting(start("function's body")))
@@ -298,7 +298,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = equality()
 
-      expr = Expr.Logical(expr, op, right)
+      expr = Expr.Logical(expr, op, right, line())
     }
 
     return expr
@@ -311,7 +311,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = equality()
 
-      expr = Expr.Logical(expr, op, right)
+      expr = Expr.Logical(expr, op, right, line())
     }
 
     return expr
@@ -324,7 +324,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = comparison()
 
-      expr = Expr.Binary(expr, op, right)
+      expr = Expr.Binary(expr, op, right, line())
     }
 
     return expr
@@ -337,7 +337,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = term()
 
-      expr = Expr.Binary(expr, op, right)
+      expr = Expr.Binary(expr, op, right, line())
     }
 
     return expr
@@ -350,7 +350,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = factor()
 
-      expr = Expr.Binary(expr, op, right)
+      expr = Expr.Binary(expr, op, right, line())
     }
 
     return expr
@@ -363,7 +363,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = unary()
 
-      expr = Expr.Binary(expr, op, right)
+      expr = Expr.Binary(expr, op, right, line())
     }
 
     return expr
@@ -374,7 +374,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       val op = previous()
       val right = unary()
 
-      return Expr.Unary(op, right)
+      return Expr.Unary(op, right, line())
     }
 
     return call()
@@ -389,7 +389,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
         val name = consume(TokenType.Identifier)
           ?: throw error(expecting("identifier after ${TokenType.Dot}"))
 
-        Expr.Get(expr, name)
+        Expr.Get(expr, name, line())
       }
       else -> break
     }
@@ -413,24 +413,24 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
 
-    return Expr.Call(callee, arguments)
+    return Expr.Call(callee, arguments, line())
   }
 
   private fun primary(): Expr = when {
-    match(TokenType.False) -> Expr.Literal(false)
-    match(TokenType.True) -> Expr.Literal(true)
+    match(TokenType.False) -> Expr.Literal(false, line())
+    match(TokenType.True) -> Expr.Literal(true, line())
 
-    match(TokenType.This) -> Expr.ThisExpr(previous())
+    match(TokenType.This) -> Expr.ThisExpr(previous(), line())
 
     match(TokenType.Double, TokenType.String, TokenType.Int) -> Expr.Literal(previous().let {
       it.literal ?: ""
-    }) // TODO: fixme
+    }, line()) // TODO: fixme
 
     match(TokenType.LeftParen) -> Expr.Grouping(expression().also {
       consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
-    })
+    }, line())
 
-    match(TokenType.Identifier) -> Expr.Var(previous())
+    match(TokenType.Identifier) -> Expr.Var(previous(), line())
 
     else -> throw error()
   }
@@ -463,6 +463,10 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     if (!isAtEnd) current++
 
     return previous()
+  }
+
+  private fun line(): Int {
+    return previous().line
   }
 
   private fun peek(): Token {

@@ -42,10 +42,6 @@ data class Chunk(
       lines = lines.copyOf(capacity)
     }
 
-    println("CHUNK->CODE[$count] = UByte($byte)")
-    println("CHUNK->LINES[$count] = Int($line)")
-    println("NEXT")
-
     code[count] = byte
     lines[count] = line
     count++
