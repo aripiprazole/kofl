@@ -1,18 +1,27 @@
 package com.lorenzoog.kofl.vm
 
-
-typealias Value = Double
-
-fun Value?.print(): String {
+fun <T> Value<T>?.print(): String {
   if (this == null) {
     return "null"
   }
 
-  return printNonNullable()
+  return toString()
 }
 
-private fun Value.printNonNullable(): String {
-  return toString()
+interface Value<T> {
+  val value: T
+}
+
+inline class DoubleValue(override val value: Double) : Value<Double> {
+  override fun toString(): String = value.toString()
+}
+
+inline class IntValue(override val value: Int) :  Value<Int> {
+  override fun toString(): String = value.toString()
+}
+
+inline class BoolValue(override val value: Boolean) : Value<Boolean> {
+  override fun toString(): String = value.toString()
 }
 
 /**
@@ -22,15 +31,18 @@ private fun Value.printNonNullable(): String {
 data class ValueArray(
   var capacity: Int = 0,
   var count: Int = 0,
-  var values: Array<Value?> = arrayOfNulls(0)
+  var values: Array<Value<*>?> = arrayOfNulls(0)
 ) {
+  @Suppress("UNCHECKED_CAST")
+  operator fun <T> get(index: Int): Value<T> =
+    values[index] as? Value<T>? ?: error("INVALID VALUE IN INDEX: @$this#$index")
 
   /**
    * 1. Allocate a new array with [capacity] by [growCapacity];
    * 2. Copy the existing content in [values] to a new array and update itself;
    * 3. Store new capacity.
    */
-  fun write(value: Value) {
+  fun <T> write(value: Value<T>) {
     if (capacity < count + 1) {
       capacity = growCapacity(capacity)
       values = values.copyOf(capacity)
@@ -39,6 +51,10 @@ data class ValueArray(
     values[count] = value
     count++
   }
+
+  fun write(value: Double): Unit = write(DoubleValue(value))
+  fun write(value: Int): Unit = write(IntValue(value))
+  fun write(value: Boolean): Unit = write(BoolValue(value))
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

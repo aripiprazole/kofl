@@ -5,6 +5,7 @@ package com.lorenzoog.kofl.vm
 import kotlinx.cinterop.NativePlacement
 
 class StackOutOfBoundsError : RuntimeException()
+class MissingValueInStackError(val index: Int) : RuntimeException()
 
 const val STACK_MAX = 256
 
@@ -16,30 +17,30 @@ class KVM(private val heap: NativePlacement) {
   /**
    * debugging means the program will print the chunks
    */
-  var debugging = true
+  private var debugging = true
 
   /** callstack */
-  var stack = arrayOfNulls<Value>(STACK_MAX)
+  private var stack = arrayOfNulls<Value<*>>(STACK_MAX)
 
   /** stack index */
-  var stacki = 0
+  private var stacki = 0
 
   /** stack top */
-  var stackt = 0
+  private var stackt = 0
 
-  lateinit var chunks: Array<Chunk>
+  private lateinit var chunks: Array<Chunk>
 
   /**
    * IP means Instruction Pointer, can be called also
    * as PC, Program Counter
    */
-  lateinit var ip: Array<UByte>
+  private lateinit var ip: Array<UByte>
 
   /** ipi means the index in [ip] */
-  var ipi = 0
+  private var ipi = 0
 
   /** ipi means the index in chunk.code in [chunks] */
-  var ci = 0
+  private var ci = 0
 
   fun interpret(chunks: Array<Chunk?>): InterpreterResult {
     this.chunks = chunks.filterNotNull().toTypedArray()
@@ -67,13 +68,13 @@ class KVM(private val heap: NativePlacement) {
 
       when (ip[ipi]) {
         OpCode.OpReturn -> return InterpreterResult.Ok.also {
-          println("RETURN: ${pop()}")
+          println("RETURN: ${popAny()}")
         }
-        OpCode.OpNegate -> push(-pop())
-        OpCode.OpDivide -> push(pop() / pop())
-        OpCode.OpMultiply -> push(pop() * pop())
-        OpCode.OpSum -> push(pop() + pop())
-        OpCode.OpSubtract -> push(pop() - pop())
+        OpCode.OpNegate -> push(-popNumber())
+        OpCode.OpDivide -> push(popNumber() / popNumber())
+        OpCode.OpMultiply -> push(popNumber() * popNumber())
+        OpCode.OpSum -> push(popNumber() + popNumber())
+        OpCode.OpSubtract -> push(popNumber() - popNumber())
         OpCode.OpConstant -> {
           ipi += 1
           push(chunks[ci].constants.values[ip[ipi].toInt()]!!.also {
@@ -90,22 +91,37 @@ class KVM(private val heap: NativePlacement) {
     resetStack()
   }
 
-  fun stop() {
-
+  private fun popNumber(): Double {
+    return popOrNull<Double>()?.value
+      ?: popOrNull<Int>()?.value?.toDouble()
+      ?: throw MissingValueInStackError(stacki)
   }
 
-  fun push(value: Value) {
+  private fun push(value: Double): Unit = push(DoubleValue(value))
+  private fun push(value: Int): Unit = push(IntValue(value))
+  private fun push(value: Boolean): Unit = push(BoolValue(value))
+
+  private fun <T> push(value: Value<T>) {
     stack[stackt++] = value
   }
 
-  fun pop(): Value = try {
+  private fun popAny(): Value<out Any> = pop()
+
+  private fun <T> popOrNull(): Value<T>? = try {
     stackt -= 1
-    stack[stackt] ?: throw StackOutOfBoundsError()
+    stack[stackt] as? Value<T>? ?: null
+  } catch (ignored: ArrayIndexOutOfBoundsException) {
+    null
+  }
+
+  private fun <T> pop(): Value<T> = try {
+    stackt -= 1
+    stack[stackt] as? Value<T>? ?: throw StackOutOfBoundsError()
   } catch (ignored: ArrayIndexOutOfBoundsException) {
     throw StackOutOfBoundsError()
   }
 
-  fun resetStack() {
+  private fun resetStack() {
     stackt = stacki
   }
 }

@@ -46,6 +46,10 @@ kotlin {
         implementation(kotlin("test-annotations-common"))
       }
     }
+
+    all {
+      languageSettings.enableLanguageFeature("InlineClasses")
+    }
   }
 }
 
