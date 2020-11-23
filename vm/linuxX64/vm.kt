@@ -70,6 +70,9 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpReturn -> return InterpreterResult.Ok.also {
           println("RETURN: ${popAny()}")
         }
+        OpCode.OpNot -> push(!pop<Boolean>())
+        OpCode.OpTrue -> push(BoolValue(true))
+        OpCode.OpFalse -> push(BoolValue(false))
         OpCode.OpNegate -> push(-popNumber())
         OpCode.OpDivide -> push(popNumber() / popNumber())
         OpCode.OpMultiply -> push(popNumber() * popNumber())
@@ -92,9 +95,7 @@ class KVM(private val heap: NativePlacement) {
   }
 
   private fun popNumber(): Double {
-    return popOrNull<Double>()?.value
-      ?: popOrNull<Int>()?.value?.toDouble()
-      ?: throw MissingValueInStackError(stacki)
+    return popOrNull<Double>() ?: pop<Int>().toDouble()
   }
 
   private fun push(value: Double): Unit = push(DoubleValue(value))
@@ -107,16 +108,18 @@ class KVM(private val heap: NativePlacement) {
 
   private fun popAny(): Value<out Any> = pop()
 
-  private fun <T> popOrNull(): Value<T>? = try {
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> popOrNull(): T? = try {
     stackt -= 1
-    stack[stackt] as? Value<T>? ?: null
+    (stack[stackt] as? Value<T>?)?.value
   } catch (ignored: ArrayIndexOutOfBoundsException) {
     null
   }
 
-  private fun <T> pop(): Value<T> = try {
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> pop(): T = try {
     stackt -= 1
-    stack[stackt] as? Value<T>? ?: throw StackOutOfBoundsError()
+    (stack[stackt] as? Value<T>?)?.value ?: throw StackOutOfBoundsError()
   } catch (ignored: ArrayIndexOutOfBoundsException) {
     throw StackOutOfBoundsError()
   }
