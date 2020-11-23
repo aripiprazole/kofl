@@ -35,6 +35,10 @@ kotlin {
       kotlin.srcDir("linuxX64")
     }
 
+    val windowsX64Main by getting {
+      kotlin.srcDir("windowsX64")
+    }
+
     val commonTest by getting {
       kotlin.srcDir("test")
 
