@@ -16,6 +16,7 @@ object OpCode {
   const val OpTrue: UByte = 7u // size: 1
   const val OpFalse: UByte = 8u // size: 1
   const val OpNot: UByte = 9u // size: 1
+  const val OpConcat: UByte = 10u // size: 1
 }
 
 /**
