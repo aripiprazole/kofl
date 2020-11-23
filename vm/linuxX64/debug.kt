@@ -2,7 +2,9 @@
 
 package com.lorenzoog.kofl.vm
 
+import kotlinx.cinterop.*
 import platform.posix.printf
+import platform.posix.sprintf
 
 fun Chunk.disassemble(name: String) {
   printf("== $name ==\n")
@@ -14,13 +16,19 @@ fun Chunk.disassemble(name: String) {
 }
 
 fun Chunk.disassembleInstructions(offset: Int): Int {
-  printf("%04d ", offset)
-
-  if (offset > 0 && lines[offset] == lines[offset - 1]) {
-    printf("   | ") // indicates that the above instruction is the same here.
-  } else {
-    printf("%04d ", lines[offset]!!)
+  val line = if (offset > 0 && lines[offset] == lines[offset - 1])
+    "   | " // indicates that the above instruction is the same here.
+  else memScoped {
+    val str = alloc<ByteVar>()
+    sprintf(str.ptr, "%04d ", lines[offset]!!)
+    str.ptr.toKString()
   }
+
+  print(memScoped {
+    val str = alloc<ByteVar>()
+    sprintf(str.ptr, "%04d $line", offset)
+    str.ptr.toKString()
+  })
 
   return when (val opcode = code[offset]) {
     OpCode.OpReturn -> simpleInstruction("OP_RETURN", offset)
@@ -31,7 +39,7 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
     OpCode.OpDivide -> simpleInstruction("OP_DIVIDE", offset)
     OpCode.OpConstant -> constantInstruction("OP_CONSTANT", offset)
     else -> {
-      printf("unknown opcode: $opcode\n")
+      println("unknown opcode: $opcode")
       offset + 1
     }
   }
@@ -39,13 +47,15 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
 
 fun Chunk.constantInstruction(name: String, offset: Int): Int {
   val const = code[offset + 1]!!
-  printf("%-16s %4d '", name, const)
-  constants.values[const.toInt()]!!.print()
-  printf("'\n")
+  println(memScoped {
+    val str = alloc<ByteVar>()
+    sprintf(str.ptr, "%-16s %4d '%s'", name, constants.values[const.toInt()]!!.print(), const)
+    str.ptr.toKString()
+  })
   return offset + 2
 }
 
 private fun simpleInstruction(name: String, offset: Int): Int {
-  printf("$name\n")
+  println(name)
   return offset + 1
 }

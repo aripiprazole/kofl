@@ -3,7 +3,6 @@
 package com.lorenzoog.kofl.vm
 
 import kotlinx.cinterop.NativePlacement
-import platform.posix.printf
 
 class StackOutOfBoundsError : RuntimeException()
 
@@ -54,23 +53,21 @@ class KVM(private val heap: NativePlacement) {
   fun run(): InterpreterResult {
     while (true) {
       if (debugging) {
-        printf("          ")
+        print("          ")
 
+        // stackli = stack local index
         for(stackli in (stacki..stackt)) {
-          printf("[ ")
-          stack[stackli].print()
-          printf(" ]")
+          print("[ ${stack[stackli].print()} ]")
         }
-        printf("\n")
+
+        println()
 
         chunks[ci].disassembleInstructions(ipi - ci)
       }
 
       when (ip[ipi]) {
         OpCode.OpReturn -> {
-          printf("RETURN: ")
-          pop().print()
-          printf("\n")
+          println("RETURN: ${pop().print()}")
           return InterpreterResult.Ok
         }
         OpCode.OpNegate -> push(-pop())
@@ -79,12 +76,9 @@ class KVM(private val heap: NativePlacement) {
         OpCode.OpSum -> push(pop() + pop())
         OpCode.OpSubtract -> push(pop() - pop())
         OpCode.OpConstant -> {
-          val const = chunks[ci].constants.values[ipi++]
-          printf("CONST VALUES: ${chunks[ci].constants.values.toList()} ${ipi}\n")
-          printf("PUSH: ")
-          push(const!!)
-          const.print()
-          printf("\n")
+          val const = chunks[ci].constants.values[ipi++]!!
+          push(const)
+          println("PUSH: ${const.print()}")
           continue
         }
       }
