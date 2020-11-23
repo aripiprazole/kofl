@@ -51,7 +51,11 @@ data class Chunk(
   fun write(n: Long, line: Int): Unit = write(n.toUByte(), line)
   fun write(n: Short, line: Int): Unit = write(n.toUByte(), line)
 
-  fun addConstant(constant: Value): Int {
+  fun addConstant(constant: Double) = addConstant(DoubleValue(constant))
+  fun addConstant(constant: Int) = addConstant(IntValue(constant))
+  fun addConstant(constant: Boolean) = addConstant(BoolValue(constant))
+
+  fun <T> addConstant(constant: Value<T>): Int {
     constants.write(constant)
     return constants.count - 1
   }

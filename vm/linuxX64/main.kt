@@ -1,6 +1,9 @@
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.interpreter.*
+import com.lorenzoog.kofl.interpreter.Interpreter
+import com.lorenzoog.kofl.interpreter.MutableEnvironment
+import com.lorenzoog.kofl.interpreter.NativeEnvironment
+import com.lorenzoog.kofl.interpreter.Stmt
 import kotlinx.cinterop.memScoped
 
 @ThreadLocal
@@ -9,12 +12,8 @@ private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 // TODO: use a own heap
 fun main(): Unit = memScoped {
   val compiler = Compiler()
-  val expr = Expr.Binary(
-    left = Expr.Literal(10, 1),
-    op = Token(TokenType.Plus, "+", null, 1),
-    right = Expr.Literal(20, 1),
-    line = 1
-  )
+  val code = "1 + 4;"
+  val (expr, _) = Interpreter.parse(code).first() as? Stmt.ExprStmt ?: error("$code must be Stmt.ExprStmt")
 
   println("COMPILED:")
   val chunk = compiler.compile(listOf(expr), globalEnvironment).first()
