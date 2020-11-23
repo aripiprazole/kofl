@@ -8,6 +8,9 @@ import kotlinx.cinterop.memScoped
 @ThreadLocal
 private val globalEnvironment = MutableEnvironment(NativeEnvironment())
 
+@ThreadLocal
+val interpreter = Interpreter()
+
 // TODO: use a own heap
 fun main(): Unit = memScoped {
   val compiler = Compiler()
@@ -16,7 +19,7 @@ fun main(): Unit = memScoped {
     val y = x;
     "";
   """.trimIndent()
-  val stmts = Interpreter.parse(code)
+  val stmts = interpreter.parse(code, repl = false)
   println("AST: $stmts")
 
   println("COMPILED:")
