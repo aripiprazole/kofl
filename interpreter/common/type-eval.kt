@@ -61,11 +61,14 @@ class TypeEvaluator(
   }
 
   override fun visitFuncExpr(expr: Expr.CommonFunc): KoflType {
-    println("FUNC EXPR")
-    val returnType = findTypeOrNull(expr.returnType?.lexeme) ?: KoflUnit
+    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
+  }
+
+  private fun funcType(returnTypeStr: String?, arguments: Map<Token, Token>, body: List<Stmt>): KoflCallable.Type {
+    val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
 
     if (returnType != KoflUnit) {
-      val returnStmt = expr.body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
+      val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
         ?: throw MissingReturnException()
       val gotType = visit(returnStmt)
 
@@ -74,11 +77,11 @@ class TypeEvaluator(
     }
 
     return KoflCallable.Type(
-      parameters = expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
+      parameters = arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
         findType(value.lexeme)
       },
       returnType
-    ).also{ println(it)}
+    )
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): KoflType {
@@ -86,11 +89,11 @@ class TypeEvaluator(
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): KoflType {
-    TODO("Not yet implemented")
+    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): KoflType {
-    TODO("Not yet implemented")
+    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): KoflType {
@@ -98,7 +101,26 @@ class TypeEvaluator(
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
-    TODO("Not yet implemented")
+    val condition = visit(expr.condition)
+    if (condition != KoflBoolean) throw InvalidDeclaredTypeException(condition.toString(), KoflBoolean.toString())
+
+    val thenBranch = expr.thenBranch
+    val thenLast = thenBranch.lastOrNull()
+    val elseBranch = expr.elseBranch
+    val elseLast = elseBranch?.lastOrNull()
+
+    if (thenBranch.isNotEmpty() && thenLast != null && elseBranch != null && elseBranch.isNotEmpty()) {
+      val thenType = visit((thenLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
+      val elseType = visit((elseLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
+
+      if (thenType != elseType) {
+        throw InvalidDeclaredTypeException(elseType.toString(), thenType.toString())
+      }
+
+      return thenType
+    }
+
+    return KoflUnit
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): KoflType {

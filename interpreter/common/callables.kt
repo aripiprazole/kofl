@@ -95,7 +95,7 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     }
   }
 
-  class Type(
+  data class Type(
     val parameters: Map<String, KoflType>,
     val returnType: KoflType,
   ) : KoflType {
