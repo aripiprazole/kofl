@@ -34,13 +34,13 @@ class DeclEvaluator(
 
   @OptIn(KoflResolverInternals::class)
   override fun eval(expr: Expr, environment: MutableEnvironment): Unit = when (expr) {
-    is Expr.Func -> eval(expr, environment)
+    is Expr.CommonFunc -> eval(expr, environment)
     is Expr.ExtensionFunc -> eval(expr, environment)
     else -> Unit
   }
 
   @OptIn(KoflResolverInternals::class)
-  private fun eval(expr: Expr.Func, environment: MutableEnvironment) {
+  private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment) {
     locals[expr] = 0
 
     environment.define(expr.name, KoflCallable.Func(expr, evaluator).asKoflValue()).asKoflObject()

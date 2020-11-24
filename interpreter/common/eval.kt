@@ -90,7 +90,7 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
     is Expr.ThisExpr -> eval(expr, environment)
     is Expr.Set -> eval(expr, environment)
     is Expr.Call -> eval(expr, environment)
-    is Expr.Func -> eval(expr, environment)
+    is Expr.CommonFunc -> eval(expr, environment)
     is Expr.ExtensionFunc -> eval(expr, environment)
     is Expr.AnonymousFunc -> eval(expr)
     // do nothing 'cause the env already have the native func, that was made
@@ -170,7 +170,13 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
   }
 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
-    val arguments = eval(expr.arguments, environment)
+    val arguments = expr.arguments
+      .mapKeys { (key) ->
+        key.lexeme
+      }
+      .mapValues { (_, value) ->
+        eval(value, environment)
+      }
 
     return when (val callee = eval(expr.calle, environment)) {
       is KoflCallable -> when (callee.arity) {
@@ -219,7 +225,7 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
     }
   }
 
-  private fun eval(expr: Expr.Func, environment: MutableEnvironment): KoflObject {
+  private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
     return environment.define(expr.name, KoflCallable.Func(expr, this).asKoflValue()).asKoflObject()
   }
 

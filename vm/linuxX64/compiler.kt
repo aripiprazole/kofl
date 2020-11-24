@@ -3,7 +3,6 @@
 package com.lorenzoog.kofl.vm
 
 import com.lorenzoog.kofl.interpreter.Expr
-import com.lorenzoog.kofl.interpreter.MutableEnvironment
 import com.lorenzoog.kofl.interpreter.Stmt
 import com.lorenzoog.kofl.interpreter.TokenType
 import platform.posix.UINT8_MAX
@@ -91,7 +90,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     TODO("Not yet implemented")
   }
 
-  override fun visitFuncExpr(expr: Expr.Func) {
+  override fun visitFuncExpr(expr: Expr.CommonFunc) {
     TODO("Not yet implemented")
   }
 

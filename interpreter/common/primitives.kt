@@ -1,12 +1,12 @@
 package com.lorenzoog.kofl.interpreter
 
-typealias KoflFunction = (List<KoflObject>, MutableEnvironment) -> KoflObject
+typealias KoflFunction = (Map<String, KoflObject>, MutableEnvironment) -> KoflObject
 
 abstract class KoflObject internal constructor() {
   abstract override fun toString(): String
 }
 
-object KoflUnit : KoflObject() {
+object KoflUnit : KoflObject(), KoflType {
   override fun toString(): String = "Unit"
 }
 
@@ -20,8 +20,8 @@ data class KoflString(val string: String) : KoflObject(), CharSequence by string
   override fun toString() = string
 
   companion object : KoflPrimitive<String>(String::class) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
-      KoflString(arguments.first().toString())
+    override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflString(arguments.entries.first().value.toString())
   }
 }
 
@@ -58,8 +58,8 @@ data class KoflDouble(override val number: Double) : KoflNumber<Double>() {
   override fun toString() = number.toString()
 
   companion object : KoflPrimitive<Double>(Double::class) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
-      KoflDouble(arguments.first().toString().toDouble())
+    override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflDouble(arguments.entries.first().value.toString().toDouble())
   }
 }
 
@@ -79,8 +79,8 @@ data class KoflInt(override val number: Int) : KoflNumber<Int>() {
   override fun toString() = number.toString()
 
   companion object : KoflPrimitive<Int>(Int::class) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
-      KoflInt(arguments.first().toString().toInt())
+    override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflInt(arguments.entries.first().value.toString().toInt())
   }
 }
 
@@ -96,8 +96,8 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
   }
 
   companion object : KoflPrimitive<Boolean>(Boolean::class) {
-    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
-      if (arguments.first().isTruthy()) True else False
+    override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject =
+      if (arguments.entries.first().value.isTruthy()) True else False
   }
 }
 

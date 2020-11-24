@@ -52,6 +52,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   } catch (error: ParseError) {
     // panic mode
     synchronize()
+    error.report()
 
     null
   }
@@ -109,14 +110,14 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.ValDecl(name, typeNotation(), initializer(), line())
+    return Stmt.ValDecl(name, typeNotationOrNull(), initializer(), line())
   }
 
   private fun varDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.VarDecl(name, typeNotation(), initializer(), line())
+    return Stmt.VarDecl(name, typeNotationOrNull(), initializer(), line())
   }
 
   private fun statement(scopeType: ScopeType = ScopeType.Global): Stmt {
@@ -221,6 +222,8 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun funcExpr(type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
     fun Token?.orThrow() = this ?: throw error(expecting("function's name"))
 
+    println("FUNC EXPR PARSE")
+
     val name = consume(TokenType.Identifier)
 
     if (match(TokenType.Identifier)) {
@@ -229,18 +232,20 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
     }
 
-
     val parameters = parameters()
+    val returnType = typeNotationOrNull()
     val body = if (TokenType.External !in modifiers) funcBody(type) else {
-      return Expr.NativeFunc(name.orThrow(), parameters, line())
+      return Expr.NativeFunc(name.orThrow(), parameters, returnType, line())
         .also {
           requireSemicolon()
         }
     }
 
+    println("END FUNC PARSE $type")
+
     return when (type) {
-      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body, line())
-      FuncType.Func -> Expr.Func(name.orThrow(), parameters, body, line())
+      FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body, returnType, line())
+      FuncType.Func -> Expr.CommonFunc(name.orThrow(), parameters, body, returnType, line())
     }
   }
 
@@ -250,13 +255,14 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
 
     val parameters = parameters()
+    val returnType = typeNotationOrNull()
     val body = if (TokenType.External !in modifiers) funcBody(type) else {
-      return Expr.NativeFunc(name, parameters, line()).also {
+      return Expr.NativeFunc(name, parameters, returnType, line()).also {
         requireSemicolon()
       }
     }
 
-    return Expr.ExtensionFunc(receiver, name, parameters, body, line())
+    return Expr.ExtensionFunc(receiver, name, parameters, body, returnType, line())
   }
 
   private fun funcBody(type: FuncType): List<Stmt> {
@@ -270,14 +276,17 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun parameters(): List<Token> {
-    val parameters = buildList {
+  private fun parameters(): Map<Token, Token> {
+    val parameters = buildMap<Token, Token> {
       if (!check(TokenType.RightParen))
         do {
           if (size >= MAX_ARGS) {
             error(MAX_ARGS_ERROR_MESSAGE).report()
           } else {
-            add(consume(TokenType.Identifier) ?: throw error(expecting("parameter's name")))
+            val name = consume(TokenType.Identifier) ?: throw error(expecting("parameter's name"))
+            val notation = typeNotation()
+
+            this[name] = notation
           }
         } while (match(TokenType.Comma))
     }
@@ -399,13 +408,18 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun finishCall(callee: Expr): Expr {
-    val arguments = buildList {
+    val arguments = buildMap<Token, Expr> {
       if (!check(TokenType.RightParen)) {
         do {
           if (size >= MAX_ARGS) {
             error(MAX_ARGS_ERROR_MESSAGE).report()
           } else {
-            add(expression())
+            val name = (consume(TokenType.Identifier) ?: throw error(expecting("param name"))).also {
+              consume(TokenType.Colon) ?: throw error(expecting(TokenType.Colon))
+            }
+            val value = expression()
+
+            this[name] = value
           }
         } while (match(TokenType.Comma))
       }
@@ -435,7 +449,10 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     else -> throw error()
   }
 
-  private fun typeNotation(): Token? {
+  private fun typeNotation(): Token =
+    typeNotationOrNull() ?: throw error(expecting("type notation"), token = previous())
+
+  private fun typeNotationOrNull(): Token? {
     consume(TokenType.Colon) ?: return null
 
     return consume(TokenType.Identifier)

@@ -15,7 +15,7 @@ sealed class Expr {
     fun visitCallExpr(expr: Call): T
     fun visitGetExpr(expr: Get): T
     fun visitSetExpr(expr: Set): T
-    fun visitFuncExpr(expr: Func): T
+    fun visitFuncExpr(expr: CommonFunc): T
     fun visitThisExpr(expr: ThisExpr): T
     fun visitExtensionFuncExpr(expr: ExtensionFunc): T
     fun visitAnonymousFuncExpr(expr: AnonymousFunc): T
@@ -55,7 +55,7 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarExpr(this)
   }
 
-  data class Call(val calle: Expr, val arguments: List<Expr>, override val line: Int) : Expr() {
+  data class Call(val calle: Expr, val arguments: Map<Token, Expr>, override val line: Int) : Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallExpr(this)
   }
 
@@ -67,28 +67,8 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetExpr(this)
   }
 
-  data class Func(val name: Token, val arguments: List<Token>, val body: List<Stmt>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitFuncExpr(this)
-  }
-
   data class ThisExpr(val keyword: Token, override val line: Int) : Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitThisExpr(this)
-  }
-
-  data class ExtensionFunc(
-    val receiver: Token, val name: Token,
-    val arguments: List<Token>, val body: List<Stmt>,
-    override val line: Int
-  ) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExtensionFuncExpr(this)
-  }
-
-  data class AnonymousFunc(val arguments: List<Token>, val body: List<Stmt>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAnonymousFuncExpr(this)
-  }
-
-  data class NativeFunc(val name: Token, val arguments: List<Token>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeFuncExpr(this)
   }
 
   data class IfExpr(
@@ -98,5 +78,44 @@ sealed class Expr {
     override val line: Int
   ) : Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitIfExpr(this)
+  }
+
+  data class CommonFunc(
+    val name: Token,
+    val arguments: Map<Token, Token>,
+    val body: List<Stmt>,
+    val returnType: Token?,
+    override val line: Int
+  ) : Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitFuncExpr(this)
+  }
+
+  data class ExtensionFunc(
+    val receiver: Token,
+    val name: Token,
+    val arguments: Map<Token, Token>,
+    val body: List<Stmt>,
+    val returnType: Token?,
+    override val line: Int
+  ) : Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExtensionFuncExpr(this)
+  }
+
+  data class AnonymousFunc(
+    val arguments: Map<Token, Token>,
+    val body: List<Stmt>,
+    val returnType: Token?,
+    override val line: Int
+  ) : Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAnonymousFuncExpr(this)
+  }
+
+  data class NativeFunc(
+    val name: Token,
+    val arguments: Map<Token, Token>,
+    val returnType: Token?,
+    override val line: Int
+  ) : Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeFuncExpr(this)
   }
 }
