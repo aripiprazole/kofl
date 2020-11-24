@@ -15,27 +15,27 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private var ci = 0
   private var chunks = arrayOf(Chunk())
 
-  fun compile(stmts: List<Stmt>, environment: MutableEnvironment): Array<Chunk> {
-    visit(stmts, environment)
+  fun compile(stmts: List<Stmt>): Array<Chunk> {
+    visit(stmts)
     endCompiler()
 
     return chunks
   }
 
-  fun compile(exprs: List<Expr>, environment: MutableEnvironment): Array<Chunk> {
-    visit(exprs, environment)
+  fun compile(exprs: List<Expr>): Array<Chunk> {
+    visit(exprs)
     endCompiler()
 
     return chunks
   }
 
-  override fun visitAssignExpr(expr: Expr.Assign, environment: MutableEnvironment) {
+  override fun visitAssignExpr(expr: Expr.Assign) {
     TODO("Not yet implemented")
   }
 
-  override fun visitBinaryExpr(expr: Expr.Binary, environment: MutableEnvironment) {
-    visit(expr.left, environment)
-    visit(expr.right, environment)
+  override fun visitBinaryExpr(expr: Expr.Binary) {
+    visit(expr.left)
+    visit(expr.right)
 
     when (expr.op.type) {
       TokenType.Plus -> emit(OpCode.OpSum, expr.line) // TODO: compile OpCode.Concat when have typechecking
@@ -46,15 +46,15 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     }
   }
 
-  override fun visitLogicalExpr(expr: Expr.Logical, environment: MutableEnvironment) {
+  override fun visitLogicalExpr(expr: Expr.Logical) {
     TODO("Not yet implemented")
   }
 
-  override fun visitGroupingExpr(expr: Expr.Grouping, environment: MutableEnvironment) {
-    visit(expr.expr, environment)
+  override fun visitGroupingExpr(expr: Expr.Grouping) {
+    visit(expr.expr)
   }
 
-  override fun visitLiteralExpr(expr: Expr.Literal, environment: MutableEnvironment) {
+  override fun visitLiteralExpr(expr: Expr.Literal) {
     when (val value = expr.value) {
       is Int -> emit(OpCode.OpConstant, makeConst(value), expr.line)
       is Number -> emit(OpCode.OpConstant, makeConst(value.toDouble()), expr.line)
@@ -63,8 +63,8 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     }
   }
 
-  override fun visitUnaryExpr(expr: Expr.Unary, environment: MutableEnvironment) {
-    visit(expr.right, environment)
+  override fun visitUnaryExpr(expr: Expr.Unary) {
+    visit(expr.right)
 
     when (expr.op.type) {
       TokenType.Minus -> emit(OpCode.OpNegate, expr.line)
@@ -74,74 +74,74 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     }
   }
 
-  override fun visitVarExpr(expr: Expr.Var, environment: MutableEnvironment) {
+  override fun visitVarExpr(expr: Expr.Var) {
     emit(OpCode.OpConstant, makeConst(expr.name.lexeme), expr.line)
     emit(OpCode.OpAccessGlobal, expr.line)
   }
 
-  override fun visitCallExpr(expr: Expr.Call, environment: MutableEnvironment) {
+  override fun visitCallExpr(expr: Expr.Call) {
     TODO("Not yet implemented")
   }
 
-  override fun visitGetExpr(expr: Expr.Get, environment: MutableEnvironment) {
+  override fun visitGetExpr(expr: Expr.Get) {
     TODO("Not yet implemented")
   }
 
-  override fun visitSetExpr(expr: Expr.Set, environment: MutableEnvironment) {
+  override fun visitSetExpr(expr: Expr.Set) {
     TODO("Not yet implemented")
   }
 
-  override fun visitFuncExpr(expr: Expr.Func, environment: MutableEnvironment) {
+  override fun visitFuncExpr(expr: Expr.Func) {
     TODO("Not yet implemented")
   }
 
-  override fun visitThisExpr(expr: Expr.ThisExpr, environment: MutableEnvironment) {
+  override fun visitThisExpr(expr: Expr.ThisExpr) {
     TODO("Not yet implemented")
   }
 
-  override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc, environment: MutableEnvironment) {
+  override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc) {
     TODO("Not yet implemented")
   }
 
-  override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc, environment: MutableEnvironment) {
+  override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc) {
     TODO("Not yet implemented")
   }
 
-  override fun visitNativeFuncExpr(expr: Expr.NativeFunc, environment: MutableEnvironment) {
+  override fun visitNativeFuncExpr(expr: Expr.NativeFunc) {
     TODO("Not yet implemented")
   }
 
-  override fun visitIfExpr(expr: Expr.IfExpr, environment: MutableEnvironment) {
+  override fun visitIfExpr(expr: Expr.IfExpr) {
     TODO("Not yet implemented")
   }
 
-  override fun visitExprStmt(stmt: Stmt.ExprStmt, environment: MutableEnvironment) {
-    visit(stmt.expr, environment)
+  override fun visitExprStmt(stmt: Stmt.ExprStmt) {
+    visit(stmt.expr)
   }
 
-  override fun visitBlockStmt(stmt: Stmt.Block, environment: MutableEnvironment) {
+  override fun visitBlockStmt(stmt: Stmt.Block) {
     TODO("Not yet implemented")
   }
 
-  override fun visitWhileStmt(stmt: Stmt.WhileStmt, environment: MutableEnvironment) {
+  override fun visitWhileStmt(stmt: Stmt.WhileStmt) {
     TODO("Not yet implemented")
   }
 
-  override fun visitReturnStmt(stmt: Stmt.ReturnStmt, environment: MutableEnvironment) {
+  override fun visitReturnStmt(stmt: Stmt.ReturnStmt) {
     TODO("Not yet implemented")
   }
 
-  override fun visitValDeclStmt(stmt: Stmt.ValDecl, environment: MutableEnvironment) {
+  override fun visitValDeclStmt(stmt: Stmt.ValDecl) {
     emit(OpCode.OpConstant, makeConst(stmt.name.lexeme), stmt.line)
-    visit(stmt.value, environment)
+    visit(stmt.value)
     emit(OpCode.OpStoreGlobal, stmt.line)
   }
 
-  override fun visitVarDeclStmt(stmt: Stmt.VarDecl, environment: MutableEnvironment) {
+  override fun visitVarDeclStmt(stmt: Stmt.VarDecl) {
     TODO("Not yet implemented")
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment) {
+  override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct) {
     TODO("Not yet implemented")
   }
 

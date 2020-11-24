@@ -12,7 +12,7 @@ abstract class KoflPrimitive<T : Any>(private val kClass: KClass<T>, arity: Int 
   override fun toString(): String = "<primitive ${kClass.simpleName}>"
 }
 
-class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fieldsDef.size) {
+class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fieldsDef.size), KoflType {
   private val fieldsDef = stmt.fieldsDef
   val functions = mutableMapOf<String, ExtensionFunc>()
   val name = stmt.name

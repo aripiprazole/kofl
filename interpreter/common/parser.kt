@@ -109,14 +109,14 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.ValDecl(name, initializer(), line())
+    return Stmt.ValDecl(name, typeNotation(), initializer(), line())
   }
 
   private fun varDeclaration(): Stmt {
     val name = consume(TokenType.Identifier)
       ?: throw error(expecting("declaration name"))
 
-    return Stmt.VarDecl(name, initializer(), line())
+    return Stmt.VarDecl(name, typeNotation(), initializer(), line())
   }
 
   private fun statement(scopeType: ScopeType = ScopeType.Global): Stmt {
@@ -433,6 +433,12 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     match(TokenType.Identifier) -> Expr.Var(previous(), line())
 
     else -> throw error()
+  }
+
+  private fun typeNotation(): Token? {
+    consume(TokenType.Colon) ?: return null
+
+    return consume(TokenType.Identifier)
   }
 
   // utils

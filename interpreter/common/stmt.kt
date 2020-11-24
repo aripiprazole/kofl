@@ -4,56 +4,50 @@ class Return(val value: KoflObject) : RuntimeException(null, null)
 
 sealed class Stmt {
   interface Visitor<T> {
-    fun visit(exprs: List<Stmt>, environment: MutableEnvironment) = exprs.map { visit(it, environment) }
-    fun visit(expr: Stmt, environment: MutableEnvironment): T = expr.accept(this, environment)
+    fun visit(exprs: List<Stmt>) = exprs.map { visit(it) }
+    fun visit(expr: Stmt): T = expr.accept(this)
 
-    fun visitExprStmt(stmt: ExprStmt, environment: MutableEnvironment): T
-    fun visitBlockStmt(stmt: Block, environment: MutableEnvironment): T
-    fun visitWhileStmt(stmt: WhileStmt, environment: MutableEnvironment): T
-    fun visitReturnStmt(stmt: ReturnStmt, environment: MutableEnvironment): T
-    fun visitValDeclStmt(stmt: ValDecl, environment: MutableEnvironment): T
-    fun visitVarDeclStmt(stmt: VarDecl, environment: MutableEnvironment): T
-    fun visitStructTypedefStmt(stmt: TypeDef.Struct, environment: MutableEnvironment): T
+    fun visitExprStmt(stmt: ExprStmt): T
+    fun visitBlockStmt(stmt: Block): T
+    fun visitWhileStmt(stmt: WhileStmt): T
+    fun visitReturnStmt(stmt: ReturnStmt): T
+    fun visitValDeclStmt(stmt: ValDecl): T
+    fun visitVarDeclStmt(stmt: VarDecl): T
+    fun visitStructTypedefStmt(stmt: TypeDef.Struct): T
   }
 
   abstract val line: Int
 
-  abstract fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T
+  abstract fun <T> accept(visitor: Visitor<T>): T
 
   data class ExprStmt(val expr: Expr, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitExprStmt(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExprStmt(this)
   }
 
   data class Block(val decls: List<Stmt>, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitBlockStmt(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBlockStmt(this)
   }
 
   data class WhileStmt(val condition: Expr, val body: List<Stmt>, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitWhileStmt(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitWhileStmt(this)
   }
 
   data class ReturnStmt(val expr: Expr, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitReturnStmt(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitReturnStmt(this)
   }
 
-  data class ValDecl(val name: Token, val value: Expr, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitValDeclStmt(this, environment)
+  data class ValDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) : Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDeclStmt(this)
   }
 
-  data class VarDecl(val name: Token, val value: Expr, override val line: Int) : Stmt() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitVarDeclStmt(this, environment)
+  data class VarDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) : Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDeclStmt(this)
   }
 
   sealed class TypeDef : Stmt() {
     data class Struct(val name: Token, val fieldsDef: List<Token>, override val line: Int) : TypeDef() {
-      override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-        visitor.visitStructTypedefStmt(this, environment)
+      override fun <T> accept(visitor: Visitor<T>): T =
+        visitor.visitStructTypedefStmt(this)
     }
   }
 }

@@ -15,15 +15,15 @@ val interpreter = Interpreter()
 fun main(): Unit = memScoped {
   val compiler = Compiler()
   val code = """
-    val x = "!";
-    val y = x;
+    val x: String = "!";
+    val y: String = x;
     "";
   """.trimIndent()
   val stmts = interpreter.parse(code, repl = false)
   println("AST: $stmts")
 
   println("COMPILED:")
-  val chunk = compiler.compile(stmts, globalEnvironment).first()
+  val chunk = compiler.compile(stmts).first()
 
   chunk.disassemble("CODE")
   println("==-==-==-==")

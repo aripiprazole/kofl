@@ -2,89 +2,77 @@ package com.lorenzoog.kofl.interpreter
 
 sealed class Expr {
   interface Visitor<T> {
-    fun visit(exprs: List<Expr>, environment: MutableEnvironment) = exprs.map { visit(it, environment) }
-    fun visit(expr: Expr, environment: MutableEnvironment): T = expr.accept(this, environment)
+    fun visit(exprs: List<Expr>) = exprs.map { visit(it) }
+    fun visit(expr: Expr): T = expr.accept(this)
 
-    fun visitAssignExpr(expr: Assign, environment: MutableEnvironment): T
-    fun visitBinaryExpr(expr: Binary, environment: MutableEnvironment): T
-    fun visitLogicalExpr(expr: Logical, environment: MutableEnvironment): T
-    fun visitGroupingExpr(expr: Grouping, environment: MutableEnvironment): T
-    fun visitLiteralExpr(expr: Literal, environment: MutableEnvironment): T
-    fun visitUnaryExpr(expr: Unary, environment: MutableEnvironment): T
-    fun visitVarExpr(expr: Var, environment: MutableEnvironment): T
-    fun visitCallExpr(expr: Call, environment: MutableEnvironment): T
-    fun visitGetExpr(expr: Get, environment: MutableEnvironment): T
-    fun visitSetExpr(expr: Set, environment: MutableEnvironment): T
-    fun visitFuncExpr(expr: Func, environment: MutableEnvironment): T
-    fun visitThisExpr(expr: ThisExpr, environment: MutableEnvironment): T
-    fun visitExtensionFuncExpr(expr: ExtensionFunc, environment: MutableEnvironment): T
-    fun visitAnonymousFuncExpr(expr: AnonymousFunc, environment: MutableEnvironment): T
-    fun visitNativeFuncExpr(expr: NativeFunc, environment: MutableEnvironment): T
-    fun visitIfExpr(expr: IfExpr, environment: MutableEnvironment): T
+    fun visitAssignExpr(expr: Assign): T
+    fun visitBinaryExpr(expr: Binary): T
+    fun visitLogicalExpr(expr: Logical): T
+    fun visitGroupingExpr(expr: Grouping): T
+    fun visitLiteralExpr(expr: Literal): T
+    fun visitUnaryExpr(expr: Unary): T
+    fun visitVarExpr(expr: Var): T
+    fun visitCallExpr(expr: Call): T
+    fun visitGetExpr(expr: Get): T
+    fun visitSetExpr(expr: Set): T
+    fun visitFuncExpr(expr: Func): T
+    fun visitThisExpr(expr: ThisExpr): T
+    fun visitExtensionFuncExpr(expr: ExtensionFunc): T
+    fun visitAnonymousFuncExpr(expr: AnonymousFunc): T
+    fun visitNativeFuncExpr(expr: NativeFunc): T
+    fun visitIfExpr(expr: IfExpr): T
   }
 
   abstract val line: Int
 
-  abstract fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T
+  abstract fun <T> accept(visitor: Visitor<T>): T
 
   data class Assign(val name: Token, val value: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitAssignExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAssignExpr(this)
   }
 
   data class Binary(val left: Expr, val op: Token, val right: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitBinaryExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryExpr(this)
   }
 
   data class Logical(val left: Expr, val op: Token, val right: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitLogicalExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLogicalExpr(this)
   }
 
   data class Grouping(val expr: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitGroupingExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGroupingExpr(this)
   }
 
   data class Literal(val value: Any, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitLiteralExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLiteralExpr(this)
   }
 
   data class Unary(val op: Token, val right: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitUnaryExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUnaryExpr(this)
   }
 
   data class Var(val name: Token, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitVarExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarExpr(this)
   }
 
   data class Call(val calle: Expr, val arguments: List<Expr>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitCallExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallExpr(this)
   }
 
   data class Get(val receiver: Expr, val name: Token, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitGetExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGetExpr(this)
   }
 
   data class Set(val receiver: Expr, val name: Token, val value: Expr, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitSetExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetExpr(this)
   }
 
   data class Func(val name: Token, val arguments: List<Token>, val body: List<Stmt>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitFuncExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitFuncExpr(this)
   }
 
   data class ThisExpr(val keyword: Token, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitThisExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitThisExpr(this)
   }
 
   data class ExtensionFunc(
@@ -92,18 +80,15 @@ sealed class Expr {
     val arguments: List<Token>, val body: List<Stmt>,
     override val line: Int
   ) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitExtensionFuncExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExtensionFuncExpr(this)
   }
 
   data class AnonymousFunc(val arguments: List<Token>, val body: List<Stmt>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitAnonymousFuncExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAnonymousFuncExpr(this)
   }
 
   data class NativeFunc(val name: Token, val arguments: List<Token>, override val line: Int) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitNativeFuncExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeFuncExpr(this)
   }
 
   data class IfExpr(
@@ -112,7 +97,6 @@ sealed class Expr {
     val elseBranch: List<Stmt>?,
     override val line: Int
   ) : Expr() {
-    override fun <T> accept(visitor: Visitor<T>, environment: MutableEnvironment): T =
-      visitor.visitIfExpr(this, environment)
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitIfExpr(this)
   }
 }
