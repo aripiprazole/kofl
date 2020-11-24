@@ -8,12 +8,12 @@ class NativeEnvironment : Environment {
     "Unit" -> KoflUnit
     "Boolean" -> KoflBoolean
 
-    "println" -> KoflCallable.Native(1) { (message), _ ->
-      throw Return(println(message).asKoflObject())
+    "println" -> KoflCallable.Native(1) { arguments, _ ->
+      throw Return(println(arguments.entries.first().value).asKoflObject())
     }
 
-    "print" -> KoflCallable.Native(1) { (message), _ ->
-      throw Return(print(message).asKoflObject())
+    "print" -> KoflCallable.Native(1) { arguments, _ ->
+      throw Return(print(arguments.entries.first().value).asKoflObject())
     }
 
     else -> throw UnresolvedVarError(name)

@@ -5,11 +5,13 @@ class InvalidDeclaredTypeException(current: String, expected: String) :
   RuntimeException("Excepted $expected but got $current")
 
 class InvalidTypeException(value: Any) : RuntimeException("invalid kofl type in $value")
+class MissingReturnException : RuntimeException("missing return function body")
 
 class TypeEvaluator(
   val types: MutableList<MutableMap<String, KoflType>> = ArrayList(),
   val decls: MutableList<MutableMap<Expr, KoflType>> = ArrayList()
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
+  var currentFunc: KoflCallable.Type? = null
   var currentDepth = 0
 
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
@@ -58,8 +60,25 @@ class TypeEvaluator(
     TODO("Not yet implemented")
   }
 
-  override fun visitFuncExpr(expr: Expr.Func): KoflType {
-    TODO("Not yet implemented")
+  override fun visitFuncExpr(expr: Expr.CommonFunc): KoflType {
+    println("FUNC EXPR")
+    val returnType = findTypeOrNull(expr.returnType?.lexeme) ?: KoflUnit
+
+    if (returnType != KoflUnit) {
+      val returnStmt = expr.body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
+        ?: throw MissingReturnException()
+      val gotType = visit(returnStmt)
+
+      if (gotType != returnType)
+        throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
+    }
+
+    return KoflCallable.Type(
+      parameters = expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
+        findType(value.lexeme)
+      },
+      returnType
+    ).also{ println(it)}
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): KoflType {
@@ -83,7 +102,8 @@ class TypeEvaluator(
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): KoflType {
-    TODO("Not yet implemented")
+    visit(stmt.expr)
+    return KoflUnit
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): KoflType {
@@ -95,7 +115,7 @@ class TypeEvaluator(
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): KoflType {
-    TODO("Not yet implemented")
+    return visit(stmt.expr)
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): KoflType {
@@ -110,10 +130,17 @@ class TypeEvaluator(
     val actualType = visit(value)
 
     return if (typeName == null) actualType
-    else (types[currentDepth][typeName] ?: throw TypeNotFoundException(typeName)).also {
-      if (actualType != it)
-        throw InvalidDeclaredTypeException(typeName, it.toString())
+    else findType(typeName).also {
+      if (actualType != it) throw InvalidDeclaredTypeException(typeName, it.toString())
     }
+  }
+
+  private fun findTypeOrNull(typeName: String?): KoflType? {
+    return types[currentDepth][typeName]
+  }
+
+  private fun findType(typeName: String?): KoflType {
+    return findTypeOrNull(typeName) ?: throw TypeNotFoundException(typeName.toString())
   }
 
   override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct): KoflType {

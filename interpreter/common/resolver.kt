@@ -40,7 +40,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     is Expr.Get -> resolve(expr)
     is Expr.Set -> resolve(expr)
     is Expr.Call -> resolve(expr)
-    is Expr.Func -> resolve(expr)
+    is Expr.CommonFunc -> resolve(expr)
     is Expr.AnonymousFunc -> resolve(expr)
     is Expr.ExtensionFunc -> resolve(expr)
     is Expr.ThisExpr -> resolve(expr)
@@ -152,16 +152,16 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
 
   private fun resolve(expr: Expr.Call) {
     resolve(expr.calle)
-    expr.arguments.forEach {
-      resolve(it)
+    expr.arguments.forEach { (_, v) ->
+      resolve(v)
     }
   }
 
   private fun resolve(expr: Expr.AnonymousFunc) {
     beginScope()
-    expr.arguments.forEach {
-      declare(it)
-      define(it)
+    expr.arguments.forEach { (_, v) ->
+      declare(v)
+      define(v)
     }
     resolve(expr.body)
     endScope()
@@ -176,9 +176,9 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     val scope = scopes.peek() ?: throw UndefinedScopeAccessError(expr.name.lexeme)
     scope["this"] = true
 
-    expr.arguments.forEach {
-      declare(it)
-      define(it)
+    expr.arguments.forEach { (_, v) ->
+      declare(v)
+      define(v)
     }
 
     resolve(expr.body)
@@ -186,14 +186,14 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     endScope()
   }
 
-  private fun resolve(expr: Expr.Func) {
+  private fun resolve(expr: Expr.CommonFunc) {
     declare(expr.name)
     define(expr.name)
 
     beginScope()
-    expr.arguments.forEach {
-      declare(it)
-      define(it)
+    expr.arguments.forEach { (_, v) ->
+      declare(v)
+      define(v)
     }
     resolve(expr.body)
     endScope()
