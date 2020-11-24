@@ -18,6 +18,11 @@ data class KoflString(val string: String) : KoflObject(), CharSequence by string
   operator fun plus(another: KoflObject) = copy(string = string + another)
 
   override fun toString() = string
+
+  companion object : KoflPrimitive<String>(String::class) {
+    override fun invoke(arguments: List<KoflObject>, environment: MutableEnvironment): KoflObject =
+      KoflString(arguments.first().toString())
+  }
 }
 
 sealed class KoflNumber<T : Number> : KoflObject() {
