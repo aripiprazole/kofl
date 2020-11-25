@@ -90,7 +90,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
 
   private fun resolve(stmt: Stmt.Block) {
     beginScope()
-    resolve(stmt.decls)
+    resolve(stmt.body)
     endScope()
   }
 

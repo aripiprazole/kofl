@@ -22,7 +22,7 @@ sealed class Stmt {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExprStmt(this)
   }
 
-  data class Block(val decls: List<Stmt>, override val line: Int) : Stmt() {
+  data class Block(val body: List<Stmt>, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBlockStmt(this)
   }
 
