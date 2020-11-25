@@ -10,11 +10,11 @@ class NativeEnvironment : Environment {
     "Unit" -> KoflUnit
     "Boolean" -> KoflBoolean
 
-    "println" -> KoflCallable.Native(listOf(KoflString)) { arguments, _ ->
+    "println" -> KoflCallable.Native(mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
       throw Return(println(arguments.entries.first().value).asKoflObject())
     }
 
-    "print" -> KoflCallable.Native(listOf(KoflString)) { arguments, _ ->
+    "print" -> KoflCallable.Native(mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
       throw Return(print(arguments.entries.first().value).asKoflObject())
     }
 

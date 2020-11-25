@@ -69,6 +69,10 @@ class TypeEnvironment(private val environment: TypeEnvironment? = null) {
     TODO()
   }
 
+  fun findTypeOrNull(name: String): KoflType? {
+    return types[name]
+  }
+
   fun findType(name: String): KoflType {
     return types[name] ?: throw UnresolvedVarError(name)
   }

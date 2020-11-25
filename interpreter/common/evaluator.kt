@@ -235,41 +235,45 @@ class CodeEvaluator(
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
-    val parameters = buildList {
-      expr.arguments.values.forEach { name ->
-        add(typeEnvironment.findType(name.lexeme))
+    val parameters = buildMap<String, KoflType> {
+      expr.arguments.forEach { (name, type) ->
+        set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }
+    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
 
     return environment
-      .define(expr.name, KoflCallable.Func(parameters, expr, this).asKoflValue())
+      .define(expr.name, KoflCallable.Func(parameters, returnType, expr, this).asKoflValue())
       .asKoflObject()
   }
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
     val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeError("struct type")
-    val parameters = buildList {
-      expr.arguments.values.forEach { name ->
-        add(typeEnvironment.findType(name.lexeme))
+    val parameters = buildMap<String, KoflType> {
+      expr.arguments.forEach { (name, type) ->
+        set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }
+    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
     val receiver = typeEnvironment.findType(expr.receiver.lexeme)
 
     struct.functions[expr.name.lexeme] = KoflCallable
-      .ExtensionFunc(parameters, receiver, expr, this)
+      .ExtensionFunc(parameters, returnType, receiver, expr, this)
 
     return KoflUnit
   }
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {
-    val parameters = buildList {
-      expr.arguments.values.forEach { name ->
-        add(typeEnvironment.findType(name.lexeme))
+    val parameters = buildMap<String, KoflType> {
+      expr.arguments.forEach { (name, type) ->
+        set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }
-    return KoflCallable.AnonymousFunc(parameters, expr, this)
+    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
+
+    return KoflCallable.AnonymousFunc(parameters, returnType, expr, this)
   }
 
   // utils

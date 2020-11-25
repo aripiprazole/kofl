@@ -38,12 +38,7 @@ class TypeChecker(
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
-    return when (expr.value) {
-      is String -> KoflString
-      is Double -> KoflDouble
-      is Int -> KoflInt
-      else -> throw InvalidTypeException(expr.value)
-    }
+    return expr.value.koflType
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): KoflType {

@@ -10,15 +10,16 @@ abstract class KoflSingleton<T : Any>(kClass: KClass<T>) : KoflType {
 
 abstract class KoflPrimitive<T : Any>(
   private val kClass: KClass<T>,
-  parameterType: KoflType
-) : KoflCallable(listOf(parameterType)), KoflType {
+  parameterType: KoflType,
+  returnType: KoflType,
+) : KoflCallable(mapOf("raw" to parameterType), returnType), KoflType {
   override fun toString(): String = "<primitive ${kClass.simpleName}>"
 }
 
 class KoflStruct(
   val name: String,
   private val fields: Map<String, KoflType>
-) : KoflCallable(fields.values.toList()), KoflType {
+) : KoflCallable(fields, KoflInstance), KoflType {
   val functions = mutableMapOf<String, ExtensionFunc>()
 
   override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
@@ -41,3 +42,31 @@ class KoflStruct(
   override fun toString(): String = "struct $name"
 }
 
+val Any.koflType: KoflType
+  get() = when (this) {
+    is String -> KoflString
+    is Double -> KoflDouble
+    is Int -> KoflInt
+    is Boolean -> KoflBoolean
+    else -> throw InvalidTypeException(this::class.toString())
+  }
+
+val KoflObject.type: KoflType
+  get() = when (this) {
+    is KoflString -> KoflString
+    is KoflBoolean -> KoflBoolean
+    is KoflInt -> KoflInt
+    is KoflDouble -> KoflDouble
+    is KoflCallable -> this
+    else -> throw InvalidTypeException(this::class.toString())
+  }
+
+inline fun <reified T> koflTypeOf(): KoflType {
+  return when (T::class) {
+    String::class -> KoflString
+    Int::class -> KoflInt
+    Unit::class -> KoflUnit
+    Double::class -> KoflDouble
+    else -> throw InvalidTypeException(T::class.toString())
+  }
+}

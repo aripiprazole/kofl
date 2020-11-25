@@ -21,7 +21,7 @@ data class KoflString(val string: String) : KoflObject(), CharSequence by string
 
   override fun toString() = string
 
-  companion object : KoflPrimitive<String>(String::class, KoflString) {
+  companion object : KoflPrimitive<String>(String::class, KoflString, KoflString) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflString(arguments.entries.first().value.toString())
   }
@@ -59,7 +59,7 @@ data class KoflDouble(override val number: Double) : KoflNumber<Double>() {
 
   override fun toString() = number.toString()
 
-  companion object : KoflPrimitive<Double>(Double::class, KoflString) {
+  companion object : KoflPrimitive<Double>(Double::class, KoflString, KoflDouble) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflDouble(arguments.entries.first().value.toString().toDouble())
   }
@@ -80,7 +80,7 @@ data class KoflInt(override val number: Int) : KoflNumber<Int>() {
 
   override fun toString() = number.toString()
 
-  companion object : KoflPrimitive<Int>(Int::class, KoflString) {
+  companion object : KoflPrimitive<Int>(Int::class, KoflString, KoflInt) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflInt(arguments.entries.first().value.toString().toInt())
   }
@@ -97,7 +97,7 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
     override fun toString(): String = "false"
   }
 
-  companion object : KoflPrimitive<Boolean>(Boolean::class, KoflBoolean) {
+  companion object : KoflPrimitive<Boolean>(Boolean::class, KoflString, KoflBoolean) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       if (arguments.entries.first().value.toString().toBoolean()) True else False
   }
@@ -123,6 +123,8 @@ data class KoflInstance(
       prefix = "${type.name}(",
       postfix = ")"
     )
+
+  companion object : KoflType
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -153,5 +155,6 @@ fun Any.asKoflObject(): KoflObject = when (this) {
   is KoflObject -> this
   is Double -> KoflDouble(this)
   is Int -> KoflInt(this)
+  is String -> KoflString(this)
   else -> KoflAny(this)
 }
