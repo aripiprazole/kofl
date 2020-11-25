@@ -408,13 +408,13 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun finishCall(callee: Expr): Expr {
-    val arguments = buildMap<Token, Expr> {
+    val arguments = buildMap<Token?, Expr> {
       if (!check(TokenType.RightParen)) {
         do {
           if (size >= MAX_ARGS) {
             error(MAX_ARGS_ERROR_MESSAGE).report()
           } else {
-            val name = (consume(TokenType.Identifier) ?: throw error(expecting("param name"))).also {
+            val name = consume(TokenType.Identifier)?.also {
               consume(TokenType.Colon) ?: throw error(expecting(TokenType.Colon))
             }
             val value = expression()

@@ -6,7 +6,7 @@ class TypeNotFoundException(name: String) : StaticTypeException("Type $name not 
 class InvalidDeclaredTypeException(current: String, expected: String) :
   StaticTypeException("Excepted $expected but got $current")
 
-class InvalidTypeException(value: Any) :StaticTypeException("invalid kofl type in $value")
+class InvalidTypeException(value: Any) : StaticTypeException("invalid kofl type in $value")
 class MissingReturnException : StaticTypeException("missing return function body")
 
 const val MAX_STACK = 512_000
@@ -33,7 +33,6 @@ class TypeEvaluator(
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
-    println("LITERAL: ${expr.value::class.simpleName}('${expr.value}')")
     return when (expr.value) {
       is String -> KoflString
       is Double -> KoflDouble
@@ -54,15 +53,13 @@ class TypeEvaluator(
     val callee = when (val callee = expr.calle) {
       is Expr.Var -> types.peek().findFunction(signature {
         name(callee.name.lexeme)
-        parameters(expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
-          visit(value)
-        })
+        parameters(expr.arguments.values.map { value -> visit(value) })
       })
       else -> visit(expr.calle)
     }
-    println("AFTER CALLEE")
-    if(callee !is KoflCallable.Type) throw StaticTypeException("expected $callee to be a function")
-println("U")
+
+    if (callee !is KoflCallable.Type) throw StaticTypeException("expected $callee to be a function")
+
     return callee.returnType
   }
 
