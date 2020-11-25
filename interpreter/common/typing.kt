@@ -1,5 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Stmt
 import kotlin.reflect.KClass
 
 interface KoflType

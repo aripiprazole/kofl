@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package com.lorenzoog.kofl.frontend
 
 val RESERVED_KEYWORDS = mapOf(
   "struct" to TokenType.Struct,

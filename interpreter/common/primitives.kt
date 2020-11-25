@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Token
+
 typealias KoflFunction = (Map<String?, KoflObject>, MutableEnvironment) -> KoflObject
 
 abstract class KoflObject internal constructor() {
@@ -111,10 +113,9 @@ data class KoflInstance(
 
   operator fun set(name: Token, newValue: KoflObject): Unit =
     when (val value = this[name] ?: throw UnresolvedFieldError(name.lexeme, type)) {
-      is KoflValue.Immutable, is KoflValue.Lazy.Immutable ->
+      is KoflValue.Immutable ->
         throw IllegalOperationError(name, "update an immutable field")
       is KoflValue.Mutable -> value.value = newValue
-      is KoflValue.Lazy.Mutable -> value.value = newValue
     }
 
   override fun toString(): String = fields.entries

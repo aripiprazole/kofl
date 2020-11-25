@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package com.lorenzoog.kofl.frontend
 
 enum class TokenType {
   // single-character tokens
