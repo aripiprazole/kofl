@@ -60,13 +60,3 @@ val KoflObject.type: KoflType
     is KoflCallable -> this
     else -> throw InvalidTypeException(this::class.toString())
   }
-
-inline fun <reified T> koflTypeOf(): KoflType {
-  return when (T::class) {
-    String::class -> KoflString
-    Int::class -> KoflInt
-    Unit::class -> KoflUnit
-    Double::class -> KoflDouble
-    else -> throw InvalidTypeException(T::class.toString())
-  }
-}
