@@ -1,18 +1,20 @@
 package com.lorenzoog.kofl.interpreter
 
-class TypeNotFoundException(name: String) : RuntimeException("Type $name not found!")
-class InvalidDeclaredTypeException(current: String, expected: String) :
-  RuntimeException("Excepted $expected but got $current")
+open class StaticTypeException(message: String) : RuntimeException("type exception: $message")
 
-class InvalidTypeException(value: Any) : RuntimeException("invalid kofl type in $value")
-class MissingReturnException : RuntimeException("missing return function body")
+class TypeNotFoundException(name: String) : StaticTypeException("Type $name not found!")
+class InvalidDeclaredTypeException(current: String, expected: String) :
+  StaticTypeException("Excepted $expected but got $current")
+
+class InvalidTypeException(value: Any) :StaticTypeException("invalid kofl type in $value")
+class MissingReturnException : StaticTypeException("missing return function body")
+
+const val MAX_STACK = 512_000
 
 class TypeEvaluator(
-  val types: MutableList<MutableMap<String, KoflType>> = ArrayList(),
-  val decls: MutableList<MutableMap<Expr, KoflType>> = ArrayList()
+  private val types: Stack<SignatureEnvironment> = Stack(MAX_STACK),
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
-  var currentFunc: KoflCallable.Type? = null
-  var currentDepth = 0
+  private var currentFunc: KoflCallable.Type? = null
 
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
     TODO("Not yet implemented")
@@ -45,11 +47,23 @@ class TypeEvaluator(
   }
 
   override fun visitVarExpr(expr: Expr.Var): KoflType {
-    TODO("Not yet implemented")
+    return types.peek().findName(expr.name.lexeme)
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
-    TODO("Not yet implemented")
+    val callee = when (val callee = expr.calle) {
+      is Expr.Var -> types.peek().findFunction(signature {
+        name(callee.name.lexeme)
+        parameters(expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
+          visit(value)
+        })
+      })
+      else -> visit(expr.calle)
+    }
+    println("AFTER CALLEE")
+    if(callee !is KoflCallable.Type) throw StaticTypeException("expected $callee to be a function")
+println("U")
+    return callee.returnType
   }
 
   override fun visitGetExpr(expr: Expr.Get): KoflType {
@@ -158,7 +172,7 @@ class TypeEvaluator(
   }
 
   private fun findTypeOrNull(typeName: String?): KoflType? {
-    return types[currentDepth][typeName]
+    return types.peek().findType(typeName.toString())
   }
 
   private fun findType(typeName: String?): KoflType {
@@ -166,8 +180,9 @@ class TypeEvaluator(
   }
 
   override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct): KoflType {
-    val type = KoflStruct(stmt)
-    types[currentDepth][stmt.name.lexeme] = type
-    return type
+//    val type = KoflStruct(stmt)
+//    types.peek()[stmt.name.lexeme] = type
+//    TODO
+    return KoflUnit
   }
 }

@@ -14,10 +14,12 @@ class UndefinedScopeAccessError(val name: String) :
   KoflRuntimeError("undefined scope when trying to use or define $name")
 
 class Resolver(private val locals: MutableMap<Expr, Int>) {
-  private val scopes = Stack<MutableMap<String, Boolean>>(512_000)
+  private val scopes = Stack<MutableMap<String, Boolean>>(190)
 
   fun resolve(stmts: List<Stmt>) {
+    beginScope()
     stmts.forEach { resolve(it) }
+    endScope()
   }
 
   private fun resolve(stmt: Stmt): Unit = when (stmt) {
@@ -200,6 +202,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
   }
 
   private fun declare(name: Token) {
+    println(scopes)
     if (scopes.isEmpty) return
 
     val scope = scopes.peek() ?: throw UndefinedScopeAccessError(name.lexeme)

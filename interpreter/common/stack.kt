@@ -2,6 +2,7 @@ package com.lorenzoog.kofl.interpreter
 
 class StackOverflowException : Error()
 class StackUnderflowException : Error()
+class StackOutOfBoundsException(stack: Stack<*>, index: Int) : Error("STACK OUT OF BOUNDS WHEN TRYING $index IN $stack")
 
 interface Stack<T> {
   val size: Int
@@ -13,7 +14,7 @@ interface Stack<T> {
 
   fun push(item: T)
   fun pop(): T
-  fun peek(): T?
+  fun peek(): T
 }
 
 @Suppress("FunctionName")
@@ -36,6 +37,7 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
   }
 
   override fun push(item: T) {
+    println("PUSH: ${top +1 } $item")
     if (isFull) throw StackOverflowException()
 
     items[top] = item
@@ -43,14 +45,15 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
   }
 
   override fun pop(): T {
+    println("POP: ${top -1}")
     if (isEmpty) throw StackUnderflowException()
 
     top--
     return items[top]!!
   }
 
-  override fun peek(): T? {
-    return items[top - 1]
+  override fun peek(): T {
+    return get(top - 1) ?: throw StackOutOfBoundsException(this, top -1)
   }
 
   override fun toString(): String = items.toList().toString()
