@@ -10,19 +10,47 @@ class TypeChecker(
   private var currentFunc: KoflCallable.Type? = null
 
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
-    TODO("Not yet implemented")
+    val expected = types.peek().findName(expr.name.lexeme)
+    val current = visit(expr.value)
+
+    if(expected != current)
+      throw InvalidDeclaredTypeException(current.toString(), expected.toString())
+
+    return expected
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary): KoflType {
-    TODO("Not yet implemented")
+    val left = visit(expr.left)
+    val right = visit(expr.right)
+
+    if (expr.op.type in listOf(
+        TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
+        TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual
+      )
+    ) {
+      if ((left == KoflInt || left == KoflDouble) && (right == KoflInt || right == KoflDouble))
+        return KoflBoolean
+
+      throw InvalidDeclaredTypeException(right.toString(), KoflInt.toString())
+    }
+
+    if(left == KoflBoolean && right == KoflBoolean) return KoflBoolean
+
+    throw InvalidDeclaredTypeException(left.toString(), KoflBoolean.toString())
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): KoflType {
-    TODO("Not yet implemented")
+    val expected = visit(expr.left)
+    val current = visit(expr.right)
+
+    if (expected != current)
+      throw InvalidDeclaredTypeException(current.toString(), expected.toString())
+
+    return KoflBoolean
   }
 
   override fun visitGroupingExpr(expr: Expr.Grouping): KoflType {
-    TODO("Not yet implemented")
+    return visit(expr.expr)
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
@@ -36,7 +64,15 @@ class TypeChecker(
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): KoflType {
-    TODO("Not yet implemented")
+    val rightType = visit(expr.right)
+
+    if (expr.op.type == TokenType.Bang) {
+      if (rightType != KoflBoolean)
+        throw InvalidDeclaredTypeException(rightType.toString(), KoflBoolean.toString())
+      else return KoflBoolean
+    }
+
+    return rightType
   }
 
   override fun visitVarExpr(expr: Expr.Var): KoflType {
@@ -70,7 +106,7 @@ class TypeChecker(
     val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
 
     val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
-    if(returnType != KoflUnit && returnStmt == null)  throw MissingReturnException()
+    if (returnType != KoflUnit && returnStmt == null) throw MissingReturnException()
 
     val gotType = returnStmt?.let { visit(it) } ?: KoflUnit
 
@@ -102,7 +138,14 @@ class TypeChecker(
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): KoflType {
-    TODO("Not yet implemented")
+    val returnType = findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
+
+    return KoflCallable.Type(
+      parameters = expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
+        findType(value.lexeme)
+      },
+      returnType
+    )
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
@@ -142,11 +185,23 @@ class TypeChecker(
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): KoflType {
-    TODO("Not yet implemented")
+    beginScope()
+    visit(stmt.body)
+    endScope()
+
+    return KoflUnit
   }
 
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): KoflType {
-    TODO("Not yet implemented")
+    val conditionType = visit(stmt.condition)
+    if (conditionType != KoflBoolean)
+      throw InvalidDeclaredTypeException(conditionType.toString(), KoflBoolean.toString())
+
+    beginScope()
+    visit(stmt.body)
+    endScope()
+
+    return KoflUnit
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): KoflType {

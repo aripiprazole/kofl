@@ -65,7 +65,7 @@ class CodeEvaluator(
   private fun eval(stmt: Stmt.Block, environment: MutableEnvironment): KoflObject {
     val localEnvironment = MutableEnvironment(environment)
 
-    stmt.decls.forEach { lStmt ->
+    stmt.body.forEach { lStmt ->
       eval(lStmt, localEnvironment)
     }
 
