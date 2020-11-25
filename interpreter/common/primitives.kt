@@ -21,8 +21,8 @@ data class KoflString(val string: String) : KoflObject(), CharSequence by string
 
   override fun toString() = string
 
-  companion object : KoflPrimitive<String>(String::class) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
+  companion object : KoflPrimitive<String>(String::class, KoflString) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflString(arguments.entries.first().value.toString())
   }
 }
@@ -59,8 +59,8 @@ data class KoflDouble(override val number: Double) : KoflNumber<Double>() {
 
   override fun toString() = number.toString()
 
-  companion object : KoflPrimitive<Double>(Double::class) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
+  companion object : KoflPrimitive<Double>(Double::class, KoflString) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflDouble(arguments.entries.first().value.toString().toDouble())
   }
 }
@@ -80,8 +80,8 @@ data class KoflInt(override val number: Int) : KoflNumber<Int>() {
 
   override fun toString() = number.toString()
 
-  companion object : KoflPrimitive<Int>(Int::class) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
+  companion object : KoflPrimitive<Int>(Int::class, KoflString) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
       KoflInt(arguments.entries.first().value.toString().toInt())
   }
 }
@@ -97,9 +97,9 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
     override fun toString(): String = "false"
   }
 
-  companion object : KoflPrimitive<Boolean>(Boolean::class) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
-      if (arguments.entries.first().value.isTruthy()) True else False
+  companion object : KoflPrimitive<Boolean>(Boolean::class, KoflBoolean) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject =
+      if (arguments.entries.first().value.toString().toBoolean()) True else False
   }
 }
 

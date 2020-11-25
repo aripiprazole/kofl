@@ -1,6 +1,5 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.Stmt
 import kotlin.reflect.KClass
 
 interface KoflType
@@ -9,20 +8,25 @@ abstract class KoflSingleton<T : Any>(kClass: KClass<T>) : KoflType {
   abstract override fun toString(): String
 }
 
-abstract class KoflPrimitive<T : Any>(private val kClass: KClass<T>, arity: Int = 1) : KoflCallable(arity), KoflType {
+abstract class KoflPrimitive<T : Any>(
+  private val kClass: KClass<T>,
+  parameterType: KoflType
+) : KoflCallable(listOf(parameterType)), KoflType {
   override fun toString(): String = "<primitive ${kClass.simpleName}>"
 }
 
-class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fieldsDef.size), KoflType {
-  private val fieldsDef = stmt.fieldsDef
+class KoflStruct(
+  val name: String,
+  private val fields: Map<String, KoflType>
+) : KoflCallable(fields.values.toList()), KoflType {
   val functions = mutableMapOf<String, ExtensionFunc>()
-  val name = stmt.name
 
-  override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+  override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+    val fieldsList = fields.entries.toList()
     val fields = mutableMapOf<String, KoflValue>()
 
     arguments.entries.forEachIndexed { i, argument ->
-      fields[fieldsDef[i].lexeme] = argument.value.asKoflValue()
+      fields[fieldsList[i].key] = argument.value.asKoflValue()
     }
 
     val instance = KoflInstance(this, fields)

@@ -2,26 +2,31 @@ package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.Expr
 
-abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() {
-  abstract operator fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject
+abstract class KoflCallable internal constructor(val parameters: List<KoflType>) : KoflObject() {
+  operator fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+    return call(arguments, environment)
+  }
+  abstract fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String
 
-  class Native(arity: Int, private val call: KoflFunction) : KoflCallable(arity) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
-      return call(arguments, environment)
+  class Native(parameters: List<KoflType>, private val nativeCall: KoflFunction) : KoflCallable(parameters) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+      return nativeCall(arguments, environment)
     }
 
     override fun toString(): String = "<native func>"
   }
 
-  class AnonymousFunc(private val decl: Expr.AnonymousFunc, private val evaluator: CodeEvaluator) :
-    KoflCallable(decl.arguments.size) {
-
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+  class AnonymousFunc(
+    parameters: List<KoflType>,
+    private val decl: Expr.AnonymousFunc,
+    private val evaluator: CodeEvaluator
+  ) : KoflCallable(parameters) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
       arguments.forEach { (name, value) ->
-        if(name == null) return@forEach
+        if (name == null) return@forEach
 
         localEnvironment.define(name, value.asKoflValue())
       }
@@ -42,13 +47,16 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     }
   }
 
-  class Func(private val decl: Expr.CommonFunc, private val evaluator: CodeEvaluator) :
-    KoflCallable(decl.arguments.size) {
-    override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+  class Func(
+    parameters: List<KoflType>,
+    private val decl: Expr.CommonFunc,
+    private val evaluator: CodeEvaluator
+  ) : KoflCallable(parameters) {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
       arguments.forEach { (name, value) ->
-        if(name == null) return@forEach
+        if (name == null) return@forEach
 
         localEnvironment.define(name, value.asKoflValue())
       }
@@ -68,22 +76,26 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     }
   }
 
-  class ExtensionFunc(private val decl: Expr.ExtensionFunc, private val evaluator: CodeEvaluator) :
-    KoflCallable(decl.arguments.size) {
+  class ExtensionFunc(
+    parameters: List<KoflType>,
+    val receiver: KoflType,
+    private val decl: Expr.ExtensionFunc,
+    private val evaluator: CodeEvaluator
+  ) : KoflCallable(parameters) {
     private var self: KoflInstance? = null
 
     fun bind(self: KoflInstance) {
       this.self = self
     }
 
-    override operator fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
+    override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
       // TODO: add a specific exception for that
       localEnvironment.define("this", self?.asKoflValue() ?: throw UnresolvedVarError("this"))
 
       arguments.forEach { (name, value) ->
-        if(name == null) return@forEach
+        if (name == null) return@forEach
 
         localEnvironment.define(name, value.asKoflValue())
       }
