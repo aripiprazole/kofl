@@ -18,9 +18,7 @@ class Interpreter {
   }
 
   fun eval(code: String, repl: Boolean = true): List<KoflObject> {
-    val resolver = Resolver(locals)
-    val evaluator = CodeEvaluator(locals)
-    val typeEvaluator = TypeChecker(globalEnvironment(512_000) {
+    val typeEnvironment = globalEnvironment(512_000) {
       defineType("Unit", KoflUnit)
       defineType("Boolean", KoflBoolean)
       defineType("String", KoflString)
@@ -32,7 +30,10 @@ class Interpreter {
           returnType = KoflUnit
         )
       )
-    })
+    }
+    val resolver = Resolver(locals)
+    val evaluator = CodeEvaluator(locals, typeEnvironment.peek())
+    val typeEvaluator = TypeChecker(typeEnvironment)
     val stmts = parse(code, repl)
 
     if (repl) println("AST: $stmts")

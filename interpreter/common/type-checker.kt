@@ -17,7 +17,7 @@ class MissingReturnException : StaticTypeException("missing return function body
 const val MAX_STACK = 512_000
 
 class TypeChecker(
-  private val types: Stack<SignatureEnvironment> = Stack(MAX_STACK)
+  private val types: Stack<TypeEnvironment> = Stack(MAX_STACK)
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
   private var currentFunc: KoflCallable.Type? = null
 

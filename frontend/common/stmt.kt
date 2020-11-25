@@ -43,7 +43,7 @@ sealed class Stmt {
   }
 
   sealed class TypeDef : Stmt() {
-    data class Struct(val name: Token, val fieldsDef: List<Token>, override val line: Int) : TypeDef() {
+    data class Struct(val name: Token, val fields: Map<Token, Token>, override val line: Int) : TypeDef() {
       override fun <T> accept(visitor: Visitor<T>): T = visitor.visitStructTypedefStmt(this)
     }
   }

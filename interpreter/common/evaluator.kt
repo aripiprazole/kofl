@@ -18,7 +18,10 @@ interface Evaluator<T> {
   fun eval(expr: Expr, environment: MutableEnvironment): T
 }
 
-class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> {
+class CodeEvaluator(
+  private val locals: Map<Expr, Int>,
+  private val typeEnvironment: TypeEnvironment,
+) : Evaluator<KoflObject> {
   //
   // STATEMENTS
   //
@@ -43,7 +46,12 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
   }
 
   private fun eval(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment): KoflObject {
-    environment.define(stmt.name, KoflStruct(stmt).asKoflValue())
+    val struct = KoflStruct(stmt.name.lexeme,
+      fields = stmt.fields.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
+        typeEnvironment.findType(value.lexeme)
+      }
+    )
+    environment.define(stmt.name, struct.asKoflValue())
 
     return KoflUnit
   }
@@ -175,24 +183,19 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
   }
 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
-    val arguments = expr.arguments
-      .mapKeys { (key) ->
+    return try {
+      val arguments = expr.arguments.mapKeys { (key) ->
         key?.lexeme
-      }
-      .mapValues { (_, value) ->
+      }.mapValues { (_, value) ->
         eval(value, environment)
       }
 
-    return when (val callee = eval(expr.calle, environment)) {
-      is KoflCallable -> when (callee.arity) {
-        arguments.size -> try {
-          callee(arguments, environment)
-        } catch (aReturn: Return) {
-          aReturn.value
-        }
-        else -> throw KoflRuntimeError("expecting ${callee.arity} args but got ${arguments.size} on call $callee")
+      when (val callee = eval(expr.calle, environment)) {
+        is KoflCallable -> callee(arguments, environment)
+        else -> throw TypeError("can't call a non-callable expr")
       }
-      else -> throw TypeError("can't call a non-callable expr")
+    } catch (aReturn: Return) {
+      aReturn.value
     }
   }
 
@@ -230,20 +233,43 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
     }
   }
 
+  @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
-    return environment.define(expr.name, KoflCallable.Func(expr, this).asKoflValue()).asKoflObject()
+    val parameters = buildList {
+      expr.arguments.values.forEach { name ->
+        add(typeEnvironment.findType(name.lexeme))
+      }
+    }
+
+    return environment
+      .define(expr.name, KoflCallable.Func(parameters, expr, this).asKoflValue())
+      .asKoflObject()
   }
 
+  @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
     val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeError("struct type")
+    val parameters = buildList {
+      expr.arguments.values.forEach { name ->
+        add(typeEnvironment.findType(name.lexeme))
+      }
+    }
+    val receiver = typeEnvironment.findType(expr.receiver.lexeme)
 
-    struct.functions[expr.name.lexeme] = KoflCallable.ExtensionFunc(expr, this)
+    struct.functions[expr.name.lexeme] = KoflCallable
+      .ExtensionFunc(parameters, receiver, expr, this)
 
     return KoflUnit
   }
 
+  @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {
-    return KoflCallable.AnonymousFunc(expr, this)
+    val parameters = buildList {
+      expr.arguments.values.forEach { name ->
+        add(typeEnvironment.findType(name.lexeme))
+      }
+    }
+    return KoflCallable.AnonymousFunc(parameters, expr, this)
   }
 
   // utils

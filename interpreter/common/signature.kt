@@ -52,7 +52,7 @@ class SignatureBuilder {
   )
 }
 
-class SignatureEnvironment(private val environment: SignatureEnvironment? = null) {
+class TypeEnvironment(private val environment: TypeEnvironment? = null) {
   private val types = mutableMapOf<String, KoflType>()
   private val variables = mutableMapOf<String, KoflType>()
   private val functions = mutableMapOf<String, KoflCallable.Type>()
@@ -69,8 +69,8 @@ class SignatureEnvironment(private val environment: SignatureEnvironment? = null
     TODO()
   }
 
-  fun findType(name: String): KoflType? {
-    return types[name]
+  fun findType(name: String): KoflType {
+    return types[name] ?: throw UnresolvedVarError(name)
   }
 
   fun defineType(name: String, type: KoflType) {
@@ -78,9 +78,9 @@ class SignatureEnvironment(private val environment: SignatureEnvironment? = null
   }
 }
 
-fun globalEnvironment(size: Int, builder: SignatureEnvironment.() -> Unit): Stack<SignatureEnvironment> {
-  return Stack<SignatureEnvironment>(size).apply {
-    push(SignatureEnvironment().apply(builder))
+fun globalEnvironment(size: Int, builder: TypeEnvironment.() -> Unit): Stack<TypeEnvironment> {
+  return Stack<TypeEnvironment>(size).apply {
+    push(TypeEnvironment().apply(builder))
   }
 }
 

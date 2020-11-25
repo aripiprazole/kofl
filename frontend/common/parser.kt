@@ -85,25 +85,13 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     consume(TokenType.Struct) ?: throw error(expecting(TokenType.Struct))
 
     val name = consume(TokenType.Identifier) ?: throw error(expecting("struct name"))
-
-    val fields: List<Token> = when {
-      match(TokenType.Semicolon) -> listOf()
-      match(TokenType.LeftParen) -> buildList {
-        if (!check(TokenType.RightParen))
-          do {
-            if (size >= MAX_ARGS) {
-              error(MAX_ARGS_ERROR_MESSAGE).report()
-            } else {
-              add(consume(TokenType.Identifier) ?: throw error(expecting("parameter's name")))
-            }
-          } while (match(TokenType.Comma))
-
-        consume(TokenType.RightParen) ?: throw error(expecting(end("fields")))
-      }
+    val parameters: Map<Token, Token> = when {
+      match(TokenType.Semicolon) -> mapOf()
+      match(TokenType.LeftParen) -> parameters()
       else -> throw error(expecting(TokenType.Semicolon))
     }
 
-    return Stmt.TypeDef.Struct(name, fields, line())
+    return Stmt.TypeDef.Struct(name, parameters, line())
   }
 
   private fun valDeclaration(): Stmt {
@@ -222,8 +210,6 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun funcExpr(type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
     fun Token?.orThrow() = this ?: throw error(expecting("function's name"))
 
-    println("FUNC EXPR PARSE")
-
     val name = consume(TokenType.Identifier)
 
     if (match(TokenType.Identifier)) {
@@ -240,8 +226,6 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
           requireSemicolon()
         }
     }
-
-    println("END FUNC PARSE $type")
 
     return when (type) {
       FuncType.Anonymous -> Expr.AnonymousFunc(parameters, body, returnType, line())
@@ -407,7 +391,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun finishCall(callee: Expr): Expr {
+  private fun arguments(): Map<Token?, Expr> {
     val arguments = buildMap<Token?, Expr> {
       if (!check(TokenType.RightParen)) {
         do {
@@ -427,7 +411,12 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
 
-    return Expr.Call(callee, arguments, line())
+    return arguments
+  }
+
+  @OptIn(ExperimentalStdlibApi::class)
+  private fun finishCall(callee: Expr): Expr {
+    return Expr.Call(callee, arguments(), line())
   }
 
   private fun primary(): Expr = when {
