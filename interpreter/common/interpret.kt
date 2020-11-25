@@ -17,13 +17,23 @@ class Interpreter {
     val resolver = Resolver(locals)
     val evaluator = CodeEvaluator(locals)
     val declEvaluator = DeclEvaluator(locals, evaluator)
-    val typeEvaluator = TypeEvaluator(
-      mutableListOf(
-        mutableMapOf(
-          "String" to KoflString
+    val typeEvaluator = TypeEvaluator(globalEnvironment(512_000) {
+      defineType("Unit", KoflUnit)
+      defineType("Boolean", KoflBoolean)
+      defineType("String", KoflString)
+      defineType("Int", KoflInt)
+      defineType("Double", KoflDouble)
+      defineFunction(
+        signature {
+          name("println")
+          parameters("message" to KoflString)
+        },
+        KoflCallable.Type(
+          parameters = mapOf("message" to KoflString),
+          returnType = KoflUnit
         )
       )
-    )
+    })
     val stmts = parse(code, repl)
 
     if (repl) println("AST: $stmts")
