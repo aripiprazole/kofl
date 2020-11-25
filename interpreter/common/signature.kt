@@ -35,6 +35,10 @@ class SignatureBuilder {
     this.parameters = Signature.Parameters(parameters.toList())
   }
 
+  fun parameters(parameters: List<KoflType>) {
+    parameters(*parameters.toTypedArray())
+  }
+
   fun parameters(parameters: Map<String, KoflType>) {
     parameters(*parameters.values.toTypedArray())
   }
@@ -59,7 +63,7 @@ class FunctionOverload(private val name: String) : KoflCallable(31209381), KoflT
 
   }
 
-  override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject {
+  override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
     TODO("Not yet implemented")
   }
 

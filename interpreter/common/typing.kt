@@ -17,11 +17,11 @@ class KoflStruct(stmt: Stmt.TypeDef.Struct) : KoflCallable(stmt.fieldsDef.size),
   val functions = mutableMapOf<String, ExtensionFunc>()
   val name = stmt.name
 
-  override fun invoke(arguments: Map<String, KoflObject>, environment: MutableEnvironment): KoflObject {
+  override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
     val fields = mutableMapOf<String, KoflValue>()
 
     arguments.entries.forEachIndexed { i, argument ->
-      fields[fieldsDef[i].lexeme] = argument.asKoflValue()
+      fields[fieldsDef[i].lexeme] = argument.value.asKoflValue()
     }
 
     val instance = KoflInstance(this, fields)

@@ -37,7 +37,6 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
   }
 
   override fun push(item: T) {
-    println("PUSH: ${top +1 } $item")
     if (isFull) throw StackOverflowException()
 
     items[top] = item
@@ -45,7 +44,6 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
   }
 
   override fun pop(): T {
-    println("POP: ${top -1}")
     if (isEmpty) throw StackUnderflowException()
 
     top--

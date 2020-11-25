@@ -172,7 +172,7 @@ class CodeEvaluator(private val locals: Map<Expr, Int>) : Evaluator<KoflObject> 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
     val arguments = expr.arguments
       .mapKeys { (key) ->
-        key.lexeme
+        key?.lexeme
       }
       .mapValues { (_, value) ->
         eval(value, environment)

@@ -55,7 +55,7 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarExpr(this)
   }
 
-  data class Call(val calle: Expr, val arguments: Map<Token, Expr>, override val line: Int) : Expr() {
+  data class Call(val calle: Expr, val arguments: Map<Token?, Expr>, override val line: Int) : Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallExpr(this)
   }
 
