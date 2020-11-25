@@ -1,18 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stack
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
-
-open class StaticTypeException(message: String) : RuntimeException("type exception: $message")
-
-class TypeNotFoundException(name: String) : StaticTypeException("Type $name not found!")
-class InvalidDeclaredTypeException(current: String, expected: String) :
-  StaticTypeException("Excepted $expected but got $current")
-
-class InvalidTypeException(value: Any) : StaticTypeException("invalid kofl type in $value")
-class MissingReturnException : StaticTypeException("missing return function body")
+import com.lorenzoog.kofl.frontend.*
 
 const val MAX_STACK = 512_000
 
@@ -38,7 +26,13 @@ class TypeChecker(
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
-    return expr.value.koflType
+    return when (expr.value) {
+      is String -> KoflString
+      is Double -> KoflDouble
+      is Int -> KoflInt
+      is Boolean -> KoflBoolean
+      else -> throw InvalidTypeException(expr.value::class.toString())
+    }
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): KoflType {
@@ -55,7 +49,7 @@ class TypeChecker(
       else -> visit(expr.calle)
     }
 
-    if (callee !is KoflCallable.Type) throw StaticTypeException("expected $callee to be a function")
+    if (callee !is KoflCallable.Type) throw CompileException("expected $callee to be a function")
 
     return callee.returnType
   }
@@ -75,13 +69,13 @@ class TypeChecker(
   private fun funcType(returnTypeStr: String?, arguments: Map<Token, Token>, body: List<Stmt>): KoflCallable.Type {
     val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
 
-    if (returnType != KoflUnit) {
-      val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull() ?: throw MissingReturnException()
-      val gotType = visit(returnStmt)
+    val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
+    if(returnType == KoflUnit && returnStmt == null)  throw MissingReturnException()
 
-      if (gotType != returnType)
-        throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
-    }
+    val gotType = returnStmt?.let { visit(it) }
+
+    if (gotType != returnType)
+      throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
 
     return KoflCallable.Type(
       parameters = arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
@@ -165,7 +159,7 @@ class TypeChecker(
   }
 
   private fun findTypeOrNull(typeName: String?): KoflType? {
-    return types.peek().findType(typeName.toString())
+    return types.peek().findTypeOrNull(typeName.toString())
   }
 
   private fun findType(typeName: String?): KoflType {
