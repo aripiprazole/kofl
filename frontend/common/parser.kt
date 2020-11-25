@@ -70,8 +70,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   private fun initializer(): Expr {
-    if (!match(TokenType.Equal))
-      throw error(expecting("initializer"))
+    if (!match(TokenType.Equal)) throw error(expecting("initializer"))
 
     val initializer = expression()
 
@@ -175,8 +174,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
       // we report the error but don't throw
       // to enter in panic mode and synchronize
-      error(INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE, token = equals)
-        .report()
+      error(INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE, token = equals).report()
     }
 
     return expr
@@ -379,8 +377,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     while (true) expr = when {
       match(TokenType.LeftParen) -> finishCall(expr)
       match(TokenType.Dot) -> {
-        val name = consume(TokenType.Identifier)
-          ?: throw error(expecting("identifier after ${TokenType.Dot}"))
+        val name = consume(TokenType.Identifier) ?: throw error(expecting("identifier after ${TokenType.Dot}"))
 
         Expr.Get(expr, name, line())
       }
@@ -394,20 +391,25 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun arguments(): Map<Token?, Expr> {
     val arguments = buildMap<Token?, Expr> {
       if (!check(TokenType.RightParen)) {
+        println("STARTING CATCH PARAMETERS")
         do {
           if (size >= MAX_ARGS) {
             error(MAX_ARGS_ERROR_MESSAGE).report()
           } else {
-            val name = consume(TokenType.Identifier)?.also {
-              consume(TokenType.Colon) ?: throw error(expecting(TokenType.Colon))
-            }
-            val value = expression()
+            val expr = expression()
+            val colon = consume(TokenType.Colon)
 
-            this[name] = value
+            if (colon != null) {
+              if (expr is Expr.Var) {
+                this[expr.name] = expression()
+              } else throw error(expecting("parameter's name"))
+            } else this[null] = expr
           }
         } while (match(TokenType.Comma))
       }
     }
+
+    println("OOOO")
 
     consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
 
