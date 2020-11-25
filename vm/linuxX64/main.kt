@@ -1,15 +1,9 @@
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.interpreter.Interpreter
-import com.lorenzoog.kofl.interpreter.MutableEnvironment
-import com.lorenzoog.kofl.interpreter.NativeEnvironment
+import com.lorenzoog.kofl.frontend.Parser
+import com.lorenzoog.kofl.frontend.Scanner
+import com.lorenzoog.kofl.frontend.dump
 import kotlinx.cinterop.memScoped
-
-@ThreadLocal
-private val globalEnvironment = MutableEnvironment(NativeEnvironment())
-
-@ThreadLocal
-val interpreter = Interpreter()
 
 // TODO: use a own heap
 fun main(): Unit = memScoped {
@@ -19,13 +13,16 @@ fun main(): Unit = memScoped {
     val y: String = x;
     "";
   """.trimIndent()
-  val stmts = interpreter.parse(code, repl = false)
-  println("AST: $stmts")
+  val scanner = Scanner(code)
+  val parser = Parser(scanner.scan(), repl = false)
+  val stmts = parser.parse().also {
+    dump(it)
+  }
 
   println("COMPILED:")
-  val chunk = compiler.compile(stmts).first()
-
-  chunk.disassemble("CODE")
+  val chunk = compiler.compile(stmts).first().apply {
+    disassemble("CODE")
+  }
   println("==-==-==-==")
 
   val vm = KVM(this)

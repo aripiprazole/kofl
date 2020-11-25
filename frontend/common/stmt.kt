@@ -1,6 +1,4 @@
-package com.lorenzoog.kofl.interpreter
-
-class Return(val value: KoflObject) : RuntimeException(null, null)
+package com.lorenzoog.kofl.frontend
 
 sealed class Stmt {
   interface Visitor<T> {
@@ -46,8 +44,7 @@ sealed class Stmt {
 
   sealed class TypeDef : Stmt() {
     data class Struct(val name: Token, val fieldsDef: List<Token>, override val line: Int) : TypeDef() {
-      override fun <T> accept(visitor: Visitor<T>): T =
-        visitor.visitStructTypedefStmt(this)
+      override fun <T> accept(visitor: Visitor<T>): T = visitor.visitStructTypedefStmt(this)
     }
   }
 }

@@ -27,6 +27,7 @@ kotlin {
       kotlin.srcDir("common")
 
       dependencies {
+        implementation(project(":frontend"))
         implementation(kotlin("stdlib-common"))
       }
     }
@@ -47,9 +48,10 @@ kotlin {
         implementation(kotlin("test-annotations-common"))
       }
     }
+
+    all {
+      languageSettings.useExperimentalAnnotation("com.lorenzoog.interpreter.KoflResolverInternals")
+    }
   }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
-  kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
-}

@@ -1,5 +1,10 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.TokenType
+
 interface Evaluator<T> {
   fun eval(exprs: List<Expr>, environment: MutableEnvironment): List<T> {
     return exprs.map { eval(it, environment) }

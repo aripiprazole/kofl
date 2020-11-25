@@ -1,5 +1,10 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stack
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.Token
+
 open class StaticTypeException(message: String) : RuntimeException("type exception: $message")
 
 class TypeNotFoundException(name: String) : StaticTypeException("Type $name not found!")
@@ -11,8 +16,8 @@ class MissingReturnException : StaticTypeException("missing return function body
 
 const val MAX_STACK = 512_000
 
-class TypeEvaluator(
-  private val types: Stack<SignatureEnvironment> = Stack(MAX_STACK),
+class TypeChecker(
+  private val types: Stack<SignatureEnvironment> = Stack(MAX_STACK)
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
   private var currentFunc: KoflCallable.Type? = null
 
@@ -51,10 +56,7 @@ class TypeEvaluator(
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
     val callee = when (val callee = expr.calle) {
-      is Expr.Var -> types.peek().findFunction(signature {
-        name(callee.name.lexeme)
-        parameters(expr.arguments.values.map { value -> visit(value) })
-      })
+      is Expr.Var -> types.peek().findFunction(callee.name.lexeme)
       else -> visit(expr.calle)
     }
 
@@ -79,8 +81,7 @@ class TypeEvaluator(
     val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
 
     if (returnType != KoflUnit) {
-      val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
-        ?: throw MissingReturnException()
+      val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull() ?: throw MissingReturnException()
       val gotType = visit(returnStmt)
 
       if (gotType != returnType)

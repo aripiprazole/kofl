@@ -10,26 +10,14 @@ repositories {
 }
 
 kotlin {
-  linuxX64("linuxX64") {
-    binaries {
-      executable {
-        entryPoint = "com.lorenzoog.kofl.vm.main"
-      }
-    }
-  }
+  linuxX64("linuxX64")
+  jvm("jvm")
+
   /* Targets configuration omitted.
   *  To find out how to configure the targets, please follow the link:
   *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
 
   sourceSets {
-    val linuxX64Main by getting {
-      kotlin.srcDir("linuxX64")
-
-      dependencies {
-        implementation(project(":frontend"))
-      }
-    }
-
     val commonMain by getting {
       kotlin.srcDir("common")
 
@@ -37,7 +25,6 @@ kotlin {
         implementation(kotlin("stdlib-common"))
       }
     }
-
     val commonTest by getting {
       kotlin.srcDir("test")
 
@@ -45,10 +32,6 @@ kotlin {
         implementation(kotlin("test-common"))
         implementation(kotlin("test-annotations-common"))
       }
-    }
-
-    all {
-      languageSettings.enableLanguageFeature("InlineClasses")
     }
   }
 }

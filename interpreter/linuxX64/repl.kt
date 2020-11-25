@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.ENTER_CHAR
+import com.lorenzoog.kofl.frontend.KoflError
 import kotlinx.cinterop.*
 import platform.posix.*
 

@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Token
+
 sealed class KoflValue {
   abstract val value: KoflObject
 
@@ -9,24 +11,6 @@ sealed class KoflValue {
 
   data class Mutable(override var value: KoflObject) : KoflValue() {
     override fun toString(): String = value.toString()
-  }
-
-  sealed class Lazy : KoflValue() {
-    class Mutable(private val lazy: () -> KoflObject) : Lazy() {
-      private var _value: KoflObject? = null
-
-      override var value: KoflObject
-        set(value) {
-          _value = value
-        }
-        get() = lazy().also {
-          _value = it
-        }
-    }
-
-    class Immutable(lazy: () -> KoflObject) : Lazy() {
-      override val value: KoflObject by lazy(lazy)
-    }
   }
 }
 
@@ -68,7 +52,7 @@ private class KoflEnvironment(override val enclosing: Environment? = null) : Mut
 
   override fun define(name: String, value: KoflValue) = if (values[name] == null) {
     values[name] = value
-  } else throw IllegalOperationError(name.asToken(), "define a variable that already exists")
+  } else throw IllegalOperationError(name, "define a variable that already exists")
 
   override fun define(name: Token, value: KoflValue) = define(name.lexeme, value)
 
@@ -81,9 +65,7 @@ private class KoflEnvironment(override val enclosing: Environment? = null) : Mut
   }
 
   override operator fun set(name: Token, newValue: KoflObject) = when (val value = this[name]) {
-    is KoflValue.Immutable, is KoflValue.Lazy.Immutable ->
-      throw IllegalOperationError(name, "update an immutable variable")
-    is KoflValue.Lazy.Mutable -> value.value = newValue
+    is KoflValue.Immutable -> throw IllegalOperationError(name, "update an immutable variable")
     is KoflValue.Mutable -> value.value = newValue
   }
 

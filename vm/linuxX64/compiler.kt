@@ -2,9 +2,9 @@
 
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.interpreter.Expr
-import com.lorenzoog.kofl.interpreter.Stmt
-import com.lorenzoog.kofl.interpreter.TokenType
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.TokenType
 import platform.posix.UINT8_MAX
 
 open class CompilationException(message: String) : RuntimeException(message)

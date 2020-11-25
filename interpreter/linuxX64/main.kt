@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.ParseError
+import com.lorenzoog.kofl.frontend.SyntaxError
 import platform.posix.exit
 import platform.posix.fopen
 

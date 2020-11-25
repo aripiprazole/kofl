@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Token
+
 class NativeEnvironment : Environment {
   @OptIn(KoflResolverInternals::class)
   override fun get(name: Token): KoflValue = when (name.lexeme) {

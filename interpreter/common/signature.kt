@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Stack
+
 /**
  * Signature is made for be possible call-by-pattern,
  * and function overload in the environment, and can be useful
@@ -12,24 +14,17 @@ package com.lorenzoog.kofl.interpreter
  * if match the signatures.
  */
 sealed class Signature {
-  data class Name internal constructor(val name: String) : Signature()
   data class Parameters internal constructor(val types: List<KoflType>) : Signature()
   data class Receiver internal constructor(val types: KoflType) : Signature()
   data class Combined internal constructor(
-    val name: Name,
     val parameters: Parameters,
     val receiver: Receiver? = null
   ) : Signature()
 }
 
 class SignatureBuilder {
-  private var name: Signature.Name? = null
   private var parameters: Signature.Parameters? = null
   private var receiver: Signature.Receiver? = null
-
-  fun name(name: String) {
-    this.name = Signature.Name(name)
-  }
 
   fun parameters(vararg parameters: KoflType) {
     this.parameters = Signature.Parameters(parameters.toList())
@@ -52,43 +47,22 @@ class SignatureBuilder {
   }
 
   fun build(): Signature = Signature.Combined(
-    name = name ?: error("MISSING NAME"),
     parameters = parameters ?: error("MISSING PARAMETERs"),
     receiver
   )
 }
 
-class FunctionOverload(private val name: String) : KoflCallable(31209381), KoflType {
-  fun callByPattern(arguments: Map<String, KoflType>) {
-
-  }
-
-  override fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
-    TODO("Not yet implemented")
-  }
-
-  override fun toString(): String = "<overload $name>"
-}
-
 class SignatureEnvironment(private val environment: SignatureEnvironment? = null) {
   private val types = mutableMapOf<String, KoflType>()
   private val variables = mutableMapOf<String, KoflType>()
-  private val functions = mutableMapOf<Signature, KoflCallable.Type>()
+  private val functions = mutableMapOf<String, KoflCallable.Type>()
 
-  fun at(distance: Int): SignatureEnvironment {
-    TODO()
+  fun defineFunction(name: String, type: KoflCallable.Type) {
+    functions[name] = type
   }
 
-  fun defineFunction(signature: Signature, type: KoflCallable.Type) {
-    signature as Signature.Combined
-
-    functions[signature.name] = type
-  }
-
-  fun findFunction(signature: Signature): KoflCallable.Type {
-    signature as Signature.Combined
-
-    return functions[signature.name]!!
+  fun findFunction(name: String): KoflCallable.Type {
+    return functions[name]!!
   }
 
   fun findName(name: String): KoflType {

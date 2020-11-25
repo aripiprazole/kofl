@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package com.lorenzoog.kofl.frontend
 
 sealed class Expr {
   interface Visitor<T> {

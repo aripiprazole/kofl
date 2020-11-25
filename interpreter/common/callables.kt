@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.Expr
+
 abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() {
   abstract operator fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String
@@ -105,6 +107,10 @@ abstract class KoflCallable internal constructor(val arity: Int) : KoflObject() 
     val parameters: Map<String, KoflType>,
     val returnType: KoflType,
   ) : KoflType {
+    val signature = signature {
+      parameters(parameters.values.toList())
+    }
+
     override fun toString(): String = "func ${
       parameters.entries.joinToString(
         prefix = "(", postfix = ")"
