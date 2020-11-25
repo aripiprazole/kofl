@@ -70,12 +70,16 @@ class TypeChecker(
     val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
 
     val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
-    if(returnType == KoflUnit && returnStmt == null)  throw MissingReturnException()
+    if(returnType != KoflUnit && returnStmt == null)  throw MissingReturnException()
 
-    val gotType = returnStmt?.let { visit(it) }
+    val gotType = returnStmt?.let { visit(it) } ?: KoflUnit
 
     if (gotType != returnType)
       throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
+
+    beginScope()
+    visit(body)
+    endScope()
 
     return KoflCallable.Type(
       parameters = arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
@@ -105,9 +109,17 @@ class TypeChecker(
     val condition = visit(expr.condition)
     if (condition != KoflBoolean) throw InvalidDeclaredTypeException(condition.toString(), KoflBoolean.toString())
 
-    val thenBranch = expr.thenBranch
+    val thenBranch = expr.thenBranch.also {
+      beginScope()
+      visit(it)
+      endScope()
+    }
     val thenLast = thenBranch.lastOrNull()
-    val elseBranch = expr.elseBranch
+    val elseBranch = expr.elseBranch?.also {
+      beginScope()
+      visit(it)
+      endScope()
+    }
     val elseLast = elseBranch?.lastOrNull()
 
     if (thenBranch.isNotEmpty() && thenLast != null && elseBranch != null && elseBranch.isNotEmpty()) {
@@ -154,7 +166,7 @@ class TypeChecker(
 
     return if (typeName == null) actualType
     else findType(typeName).also {
-      if (actualType != it) throw InvalidDeclaredTypeException(typeName, it.toString())
+      if (actualType != it) throw InvalidDeclaredTypeException(actualType.toString(), it.toString())
     }
   }
 
@@ -164,6 +176,14 @@ class TypeChecker(
 
   private fun findType(typeName: String?): KoflType {
     return findTypeOrNull(typeName) ?: throw TypeNotFoundException(typeName.toString())
+  }
+
+  private fun beginScope() {
+    types.push(TypeEnvironment(types.peek()))
+  }
+
+  private fun endScope() {
+    types.pop()
   }
 
   override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct): KoflType {
