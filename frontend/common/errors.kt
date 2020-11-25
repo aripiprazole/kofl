@@ -21,7 +21,7 @@ class LexError(
   message: String = "unexpected character"
 ) : SyntaxError("unexpected `$lexeme` in line $line: $message")
 
-open class CompileException(message: String) : KoflError("type", message)
+open class CompileException(message: String) : KoflError("compile", message)
 
 class TypeNotFoundException(name: String) : CompileException("type $name not found!")
 class InvalidDeclaredTypeException(current: String, expected: String) :

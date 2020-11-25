@@ -124,7 +124,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
   }
 
   private fun resolve(expr: Expr.Var) {
-    if (!scopes.isEmpty && scopes.peek()?.get(expr.name.lexeme) == false)
+    if (!scopes.isEmpty && scopes.peek()[expr.name.lexeme] == false)
       throw UninitializedVarError(expr.name)
 
     resolveLocal(expr, expr.name)
@@ -180,7 +180,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
 
     beginScope()
 
-    val scope = scopes.peek() ?: throw UndefinedScopeAccessError(expr.name.lexeme)
+    val scope = scopes.peek()
     scope["this"] = true
 
     expr.arguments.forEach { (_, v) ->
@@ -207,10 +207,9 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
   }
 
   private fun declare(name: Token) {
-    println(scopes)
     if (scopes.isEmpty) return
 
-    val scope = scopes.peek() ?: throw UndefinedScopeAccessError(name.lexeme)
+    val scope = scopes.peek()
     if (scope[name.lexeme] != null) throw AlreadyDeclaredVarError(name, resolver = true)
 
     scope[name.lexeme] = false
@@ -219,7 +218,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
   private fun define(name: Token) {
     if (scopes.isEmpty) return
 
-    val scope = scopes.peek() ?: throw UndefinedScopeAccessError(name.lexeme)
+    val scope = scopes.peek()
     if (scope[name.lexeme] == null) throw UnresolvedVarError(name)
 
     scope[name.lexeme] = true
