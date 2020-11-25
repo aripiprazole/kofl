@@ -4,7 +4,7 @@ import com.lorenzoog.kofl.frontend.KoflError
 import com.lorenzoog.kofl.frontend.Token
 
 open class KoflRuntimeError(message: String) : KoflError("runtime", message)
-class TypeError(expected: Any) : KoflRuntimeError("expected type: $expected")
+class TypeError(got: String, expected: Any? = null) : KoflRuntimeError("expected type: $expected but got $got")
 class IllegalOperationError(
   identifier: String,
   operation: String

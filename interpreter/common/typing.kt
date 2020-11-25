@@ -48,7 +48,7 @@ val Any.koflType: KoflType
     is Double -> KoflDouble
     is Int -> KoflInt
     is Boolean -> KoflBoolean
-    else -> throw InvalidTypeException(this::class.toString())
+    else -> throw TypeError(this::class.toString())
   }
 
 val KoflObject.type: KoflType
@@ -58,5 +58,5 @@ val KoflObject.type: KoflType
     is KoflInt -> KoflInt
     is KoflDouble -> KoflDouble
     is KoflCallable -> this
-    else -> throw InvalidTypeException(this::class.toString())
+    else -> throw TypeError(this::class.toString())
   }

@@ -128,7 +128,6 @@ abstract class KoflCallable internal constructor(
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
-      // TODO: add a specific exception for that
       localEnvironment.define("this", self?.asKoflValue() ?: throw UnresolvedVarError("this"))
 
       arguments.forEach { (name, value) ->
