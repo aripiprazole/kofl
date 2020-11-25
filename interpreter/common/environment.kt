@@ -2,16 +2,13 @@ package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.Token
 
-sealed class KoflValue {
+sealed class KoflValue(val type: KoflType) {
   abstract val value: KoflObject
 
-  data class Immutable(override val value: KoflObject) : KoflValue() {
-    override fun toString(): String = value.toString()
-  }
+  class Immutable(override val value: KoflObject, type: KoflType) : KoflValue(type)
+  class Mutable(override var value: KoflObject, type: KoflType) : KoflValue(type)
 
-  data class Mutable(override var value: KoflObject) : KoflValue() {
-    override fun toString(): String = value.toString()
-  }
+  override fun toString(): String = value.toString()
 }
 
 interface Environment {
@@ -97,18 +94,7 @@ private class KoflEnvironment(override val enclosing: Environment? = null) : Mut
   }
 }
 
-fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
-  return asKoflObject().asKoflValue(mutable)
-}
-
-fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
-  if (mutable) return KoflValue.Mutable(this)
-
-  return KoflValue.Immutable(this)
-}
-
 @Suppress("DEPRECATION")
-@Experimental(level = Experimental.Level.ERROR)
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 @Retention(AnnotationRetention.BINARY)
 @Target(
@@ -126,3 +112,15 @@ fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
 )
 @MustBeDocumented
 annotation class KoflResolverInternals
+
+operator fun KoflValue.component0(): KoflObject = value
+
+fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
+  return asKoflObject().asKoflValue(mutable)
+}
+
+fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
+  if (mutable) return KoflValue.Mutable(this, type)
+
+  return KoflValue.Immutable(this, type)
+}

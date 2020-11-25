@@ -2,26 +2,35 @@ package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.Expr
 
-abstract class KoflCallable internal constructor(val parameters: List<KoflType>) : KoflObject() {
+abstract class KoflCallable internal constructor(
+  val parameters: Map<String, KoflType>,
+  val returnType: KoflType
+) : KoflObject(), KoflType {
   operator fun invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
     return call(arguments, environment)
   }
+
   abstract fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String
 
-  class Native(parameters: List<KoflType>, private val nativeCall: KoflFunction) : KoflCallable(parameters) {
+  class Native(
+    parameters: Map<String, KoflType>,
+    returnType: KoflType,
+    private val nativeCall: KoflFunction
+  ) : KoflCallable(parameters, returnType) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       return nativeCall(arguments, environment)
     }
 
-    override fun toString(): String = "<native func>"
+    override fun toString(): String = "func <native func>(): $returnType"
   }
 
   class AnonymousFunc(
-    parameters: List<KoflType>,
+    parameters: Map<String, KoflType>,
+    returnType: KoflType,
     private val decl: Expr.AnonymousFunc,
     private val evaluator: CodeEvaluator
-  ) : KoflCallable(parameters) {
+  ) : KoflCallable(parameters, returnType) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
@@ -43,15 +52,16 @@ abstract class KoflCallable internal constructor(val parameters: List<KoflType>)
         }
       }
 
-      append(")")
+      append("): $returnType")
     }
   }
 
   class Func(
-    parameters: List<KoflType>,
+    parameters: Map<String, KoflType>,
+    returnType: KoflType,
     private val decl: Expr.CommonFunc,
     private val evaluator: CodeEvaluator
-  ) : KoflCallable(parameters) {
+  ) : KoflCallable(parameters, returnType) {
     override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
       val localEnvironment = MutableEnvironment(environment)
 
@@ -72,16 +82,17 @@ abstract class KoflCallable internal constructor(val parameters: List<KoflType>)
           append(", ").append(it)
         }
       }
-      append(")")
+      append("): $returnType")
     }
   }
 
   class ExtensionFunc(
-    parameters: List<KoflType>,
+    parameters: Map<String, KoflType>,
+    returnType: KoflType,
     val receiver: KoflType,
     private val decl: Expr.ExtensionFunc,
     private val evaluator: CodeEvaluator
-  ) : KoflCallable(parameters) {
+  ) : KoflCallable(parameters, returnType) {
     private var self: KoflInstance? = null
 
     fun bind(self: KoflInstance) {
@@ -104,31 +115,16 @@ abstract class KoflCallable internal constructor(val parameters: List<KoflType>)
     }
 
     override fun toString(): String = buildString {
-      append("func ${decl.receiver} ${decl.name}(")
+      append("func ${receiver} ${decl.name}(")
 
       if (decl.arguments.size > 1) {
         decl.arguments.forEach {
           append(", ").append(it)
         }
       }
-      append(")")
+      append("): $returnType")
     }
   }
 
-  data class Type(
-    val parameters: Map<String, KoflType>,
-    val returnType: KoflType,
-  ) : KoflType {
-    val signature = signature {
-      parameters(parameters.values.toList())
-    }
-
-    override fun toString(): String = "func ${
-      parameters.entries.joinToString(
-        prefix = "(", postfix = ")"
-      ) { (name, type) ->
-        "$name: $type"
-      }
-    } -> $returnType"
-  }
+  data class Type(val parameters: Map<String, KoflType>, val returnType: KoflType) : KoflType
 }
