@@ -1,9 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
-import com.lorenzoog.kofl.frontend.TokenType
+import com.lorenzoog.kofl.frontend.*
 
 interface Evaluator<T> {
   fun eval(exprs: List<Expr>, environment: MutableEnvironment): List<T> {
@@ -162,24 +159,16 @@ class CodeEvaluator(
       TokenType.Minus -> -eval(expr.right, environment).asKoflNumber()
       TokenType.Bang -> !eval(expr.right, environment).toString().toBoolean().asKoflBoolean()
 
-      else -> throw IllegalOperationError(expr.op, "unary")
+      else -> throw IllegalOperationException(expr.op, "unary")
     }
   }
 
   private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
-    return when (val receiver = eval(expr.receiver, environment)) {
-      is KoflInstance -> receiver[expr.name]?.value ?: throw UnresolvedFieldError(expr.name.lexeme, receiver)
-      else -> throw TypeError("can't get fields from non-instances: $receiver")
-    }
+    TODO()
   }
 
   private fun eval(expr: Expr.Set, environment: MutableEnvironment): KoflObject {
-    when (val receiver = eval(expr.receiver, environment)) {
-      is KoflInstance -> receiver[expr.name] = eval(expr.value, environment)
-      else -> throw TypeError("can't set fields from non-instances")
-    }
-
-    return KoflUnit
+    TODO()
   }
 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
@@ -192,7 +181,7 @@ class CodeEvaluator(
 
       when (val callee = eval(expr.calle, environment)) {
         is KoflCallable -> callee(arguments, environment)
-        else -> throw TypeError("can't call a non-callable expr")
+        else -> throw TypeException("can't call a non-callable expr")
       }
     } catch (aReturn: Return) {
       aReturn.value
@@ -216,7 +205,7 @@ class CodeEvaluator(
         TokenType.Greater -> (leftN > rightN).asKoflBoolean()
         TokenType.Less -> (leftN < rightN).asKoflBoolean()
         TokenType.LessEqual -> (leftN <= rightN).asKoflBoolean()
-        else -> throw IllegalOperationError(expr.op, "number binary op")
+        else -> throw IllegalOperationException(expr.op, "number binary op")
       }
     }
 
@@ -226,10 +215,10 @@ class CodeEvaluator(
 
       TokenType.Plus -> when (left) {
         is KoflString -> (left + right.asKoflObject()).asKoflObject()
-        else -> throw IllegalOperationError(expr.op, "add: $left and $right")
+        else -> throw IllegalOperationException(expr.op, "add: $left and $right")
       }
 
-      else -> throw IllegalOperationError(expr.op, "binary general op")
+      else -> throw IllegalOperationException(expr.op, "binary general op")
     }
   }
 
@@ -243,13 +232,13 @@ class CodeEvaluator(
     val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
 
     return environment
-      .define(expr.name, KoflCallable.Func(parameters, returnType, expr, this).asKoflValue())
+      .define(expr.name, Func(parameters, returnType, expr, this).asKoflValue())
       .asKoflObject()
   }
 
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
-    val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeError("struct type")
+    val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeException("struct type")
     val parameters = buildMap<String, KoflType> {
       expr.arguments.forEach { (name, type) ->
         set(name.lexeme, typeEnvironment.findType(type.lexeme))
@@ -258,8 +247,8 @@ class CodeEvaluator(
     val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
     val receiver = typeEnvironment.findType(expr.receiver.lexeme)
 
-    struct.functions[expr.name.lexeme] = KoflCallable
-      .ExtensionFunc(parameters, returnType, receiver, expr, this)
+//    struct.functions[expr.name.lexeme] = ExtensionFunc(parameters, returnType, receiver, expr, this)
+    TODO()
 
     return KoflUnit
   }
@@ -273,7 +262,7 @@ class CodeEvaluator(
     }
     val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
 
-    return KoflCallable.AnonymousFunc(parameters, returnType, expr, this)
+    return AnonymousFunc(parameters, returnType, expr, this)
   }
 
   // utils

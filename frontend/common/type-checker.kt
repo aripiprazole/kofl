@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package com.lorenzoog.kofl.frontend
 
 import com.lorenzoog.kofl.frontend.*
 

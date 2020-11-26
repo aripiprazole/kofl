@@ -49,10 +49,10 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
       else -> if (repl) statement() else throw error(expecting("declaration"))
     }
-  } catch (error: ParseError) {
+  } catch (exception: ParseException) {
     // panic mode
     synchronize()
-    error.report()
+    exception.report()
 
     null
   }
@@ -494,7 +494,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun requireSemicolon(): Token = consume(TokenType.Semicolon)
     ?: throw error(expecting(TokenType.Semicolon))
 
-  private fun error(message: String = "", token: Token = peek()) = ParseError(token, message)
+  private fun error(message: String = "", token: Token = peek()) = ParseException(token, message)
 
   private fun expecting(type: Any) = "expecting $type"
   private fun notExpecting(type: Any) = "not expecting $type"

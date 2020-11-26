@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.*
 
 class NativeEnvironment : Environment {
   @OptIn(KoflResolverInternals::class)
@@ -10,15 +10,15 @@ class NativeEnvironment : Environment {
     "Unit" -> KoflUnit
     "Boolean" -> KoflBoolean
 
-    "println" -> KoflCallable.Native("println", mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
+    "println" -> NativeFunc("println", mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
       throw Return(println(arguments.entries.first().value).asKoflObject())
     }
 
-    "print" -> KoflCallable.Native("print", mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
+    "print" -> NativeFunc("print", mapOf("message" to KoflString), KoflUnit) { arguments, _ ->
       throw Return(print(arguments.entries.first().value).asKoflObject())
     }
 
-    else -> throw UnresolvedVarError(name)
+    else -> throw UnresolvedVarException(name)
   }.asKoflValue()
 
   override fun toString(): String = "<native env>"
