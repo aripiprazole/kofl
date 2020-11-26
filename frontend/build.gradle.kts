@@ -35,3 +35,15 @@ kotlin {
     }
   }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
+  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon> {
+  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
