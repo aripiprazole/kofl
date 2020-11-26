@@ -1,8 +1,8 @@
 package com.lorenzoog.kofl.frontend
 
 val RESERVED_KEYWORDS = mapOf(
-  "struct" to TokenType.Struct,
-  "typedef" to TokenType.Typedef,
+  "class" to TokenType.Class,
+  "type" to TokenType.Type,
   "func" to TokenType.Func,
   "this" to TokenType.This,
   "if" to TokenType.If,

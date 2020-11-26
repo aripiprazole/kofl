@@ -13,6 +13,7 @@ class Interpreter(private val debug: Boolean = false) {
     defineType("String", KoflString)
     defineType("Int", KoflInt)
     defineType("Double", KoflDouble)
+    defineType("Any", KoflAny)
   }
 
   fun lex(code: String): List<Token> {

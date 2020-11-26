@@ -32,7 +32,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     is Stmt.ReturnStmt -> resolve(stmt)
     is Stmt.ValDecl -> resolve(stmt)
     is Stmt.VarDecl -> resolve(stmt)
-    is Stmt.TypeDef.Struct -> resolve(stmt)
+    is Stmt.Type.Class -> resolve(stmt)
   }
 
   private fun resolve(expr: Expr): Unit = when (expr) {
@@ -81,7 +81,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     define(stmt.name)
   }
 
-  private fun resolve(stmt: Stmt.TypeDef.Struct) {
+  private fun resolve(stmt: Stmt.Type.Class) {
     declare(stmt.name)
     define(stmt.name)
   }

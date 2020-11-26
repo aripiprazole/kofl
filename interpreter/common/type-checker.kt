@@ -24,18 +24,20 @@ class TypeChecker(
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
 
-    if (expr.op.type in listOf(
-        TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
-        TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual
-      )
-    ) {
-      if ((left == KoflInt || left == KoflDouble) && (right == KoflInt || right == KoflDouble))
+    val tokens = listOf(
+      TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
+      TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual
+    )
+
+    if (expr.op.type in tokens) {
+      if (left.isNumberType() && right.isNumberType())
         return KoflBoolean
 
       throw InvalidDeclaredTypeException(right.toString(), KoflInt.toString())
     }
 
-    if (left == KoflBoolean && right == KoflBoolean) return KoflBoolean
+    if (left.isAssignableBy(KoflBoolean) && right.isAssignableBy(KoflBoolean))
+      return KoflBoolean
 
     throw InvalidDeclaredTypeException(left.toString(), KoflBoolean.toString())
   }
@@ -55,8 +57,6 @@ class TypeChecker(
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
-    println("${expr.value::class.simpleName}('${expr.value}')")
-
     return when (val value = expr.value) {
       is String -> KoflString
       is Double -> KoflDouble
@@ -68,15 +68,15 @@ class TypeChecker(
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): KoflType {
-    val rightType = visitExpr(expr.right)
+    val right = visitExpr(expr.right)
 
     if (expr.op.type == TokenType.Bang) {
-      if (rightType != KoflBoolean)
-        throw InvalidDeclaredTypeException(rightType.toString(), KoflBoolean.toString())
+      if (right.isAssignableBy(KoflBoolean))
+        throw InvalidDeclaredTypeException(right.toString(), KoflBoolean.toString())
       else return KoflBoolean
     }
 
-    return rightType
+    return right
   }
 
   override fun visitVarExpr(expr: Expr.Var): KoflType {
@@ -239,7 +239,8 @@ class TypeChecker(
 
     return if (typeName == null) actualType
     else findType(typeName).also {
-      if (actualType != it) throw InvalidDeclaredTypeException(actualType.toString(), it.toString())
+      if (actualType.isAssignableBy(it))
+        throw InvalidDeclaredTypeException(actualType.toString(), it.toString())
     }
   }
 
@@ -288,7 +289,7 @@ class TypeChecker(
     types.pop()
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct): KoflType {
+  override fun visitStructTypedefStmt(stmt: Stmt.Type.Class): KoflType {
     val struct = KoflStruct(stmt.name.lexeme, stmt.fields.mapKeys { (name) -> name.lexeme }
       .mapValues { (_, value) ->
         findType(value.lexeme)

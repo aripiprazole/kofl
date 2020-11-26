@@ -23,7 +23,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     while (!isAtEnd) {
       when (peek().type) { // TODO: report useless char
-        TokenType.Struct, TokenType.Func,
+        TokenType.Class, TokenType.Func,
         TokenType.Val, TokenType.If, TokenType.Else,
         TokenType.Return, TokenType.Var,
         TokenType.Semicolon -> return
@@ -43,8 +43,9 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     when {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
-      match(TokenType.Typedef) -> typeDeclaration()
+      match(TokenType.Type) -> classDeclaration()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
+      match(TokenType.External) -> attributedStatement(mutableListOf(TokenType.External))
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
 
       else -> if (repl) statement() else throw error(expecting("declaration"))
@@ -80,8 +81,8 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun typeDeclaration(): Stmt {
-    consume(TokenType.Struct) ?: throw error(expecting(TokenType.Struct))
+  private fun classDeclaration(): Stmt {
+    consume(TokenType.Class) ?: throw error(expecting(TokenType.Class))
 
     val name = consume(TokenType.Identifier) ?: throw error(expecting("struct name"))
     val parameters: Map<Token, Token> = when {
@@ -90,7 +91,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       else -> throw error(expecting(TokenType.Semicolon))
     }
 
-    return Stmt.TypeDef.Struct(name, parameters, line())
+    return Stmt.Type.Class(name, parameters, line())
   }
 
   private fun valDeclaration(): Stmt {
@@ -115,16 +116,30 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       }
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
-      match(TokenType.Typedef) -> typeDeclaration()
+      match(TokenType.Type) -> classDeclaration()
       match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
       match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If), line())
-      match(TokenType.External) -> (consume(TokenType.Func) ?: throw error(expecting(TokenType.Func))).let {
-        Stmt.ExprStmt(funcExpr(FuncType.Func, listOf(TokenType.External)), it.line)
-      }
+      match(TokenType.External) -> attributedStatement(mutableListOf(TokenType.External))
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
 
       else -> exprStatement()
+    }
+  }
+
+  private fun attributedStatement(attributes: MutableList<TokenType>): Stmt {
+    while (!check(TokenType.Func) && !check(TokenType.Class) && !check(TokenType.Identifier)) {
+      attributes.add(advance().type)
+    }
+
+    println("ATTRIBUTES $attributes")
+
+    return when {
+      match(TokenType.Func) -> funcExpr(FuncType.Func, attributes).let {
+        Stmt.ExprStmt(it, it.line)
+      }
+      match(TokenType.Class, TokenType.Identifier) -> classDeclaration()
+      else -> throw error(expecting("declaration"))
     }
   }
 
@@ -479,26 +494,26 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     return previous()
   }
 
-  private fun line(): Int {
+  private inline fun line(): Int {
     return previous().line
   }
 
-  private fun peek(): Token {
+  private inline fun peek(): Token {
     return tokens[current]
   }
 
-  private fun previous(): Token {
+  private inline fun previous(): Token {
     return tokens[current - 1]
   }
 
-  private fun requireSemicolon(): Token = consume(TokenType.Semicolon)
+  private inline fun requireSemicolon(): Token = consume(TokenType.Semicolon)
     ?: throw error(expecting(TokenType.Semicolon))
 
-  private fun error(message: String = "", token: Token = peek()) = ParseException(token, message)
+  private inline fun error(message: String = "", token: Token = peek()) = ParseException(token, message)
 
-  private fun expecting(type: Any) = "expecting $type"
-  private fun notExpecting(type: Any) = "not expecting $type"
-  private fun start(type: Any) = "start of $type"
-  private fun end(type: Any) = "end of $type"
+  private inline fun expecting(type: Any) = "expecting $type"
+  private inline fun notExpecting(type: Any) = "not expecting $type"
+  private inline fun start(type: Any) = "start of $type"
+  private inline fun end(type: Any) = "end of $type"
 }
 
