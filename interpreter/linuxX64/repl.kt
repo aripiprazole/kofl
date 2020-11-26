@@ -2,7 +2,7 @@
 package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.ENTER_CHAR
-import com.lorenzoog.kofl.frontend.KoflError
+import com.lorenzoog.kofl.frontend.KoflException
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -61,8 +61,8 @@ internal fun repl(): Unit = memScoped {
       ":clear" -> clearScreen()
       else -> try {
         eval(line) // interpret and run the provided code in the line
-      } catch (error: KoflError) {
-        error.report() // just report error to dont crash program
+      } catch (exception: KoflException) {
+        exception.report() // just report error to dont crash program
       }
     }
 
