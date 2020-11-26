@@ -1,4 +1,6 @@
-package com.lorenzoog.kofl.frontend
+package com.lorenzoog.kofl.interpreter
+
+import com.lorenzoog.kofl.frontend.Stack
 
 /**
  * Signature is made for be possible call-by-pattern,
@@ -53,18 +55,18 @@ class SignatureBuilder {
 class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   private val types = mutableMapOf<String, KoflType>()
   private val variables = mutableMapOf<String, KoflType>()
-  private val functions = mutableMapOf<String, KoflCallable.Type>()
+  private val functions = mutableMapOf<String, KoflCallable>()
 
-  fun defineFunction(name: String, type: KoflCallable.Type) {
+  fun defineFunction(name: String, type: KoflCallable) {
     functions[name] = type
   }
 
-  fun findFunction(name: String): KoflCallable.Type {
+  fun findFunction(name: String): KoflCallable {
     return functions[name]!!
   }
 
   fun findName(name: String): KoflType {
-    TODO()
+    return variables[name]!!
   }
 
   fun findTypeOrNull(name: String): KoflType? {
@@ -78,6 +80,8 @@ class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   fun defineType(name: String, type: KoflType) {
     types[name] = type
   }
+
+  override fun toString(): String = (types + variables + functions).toString()
 }
 
 fun globalEnvironment(size: Int, builder: TypeEnvironment.() -> Unit): Stack<TypeEnvironment> {

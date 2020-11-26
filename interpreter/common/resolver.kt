@@ -163,7 +163,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
 
   private fun resolve(expr: Expr.AnonymousFunc) {
     beginScope()
-    expr.arguments.forEach { (_, v) ->
+    expr.parameters.forEach { (_, v) ->
       declare(v)
       define(v)
     }
@@ -180,7 +180,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     val scope = scopes.peek()
     scope["this"] = true
 
-    expr.arguments.forEach { (_, v) ->
+    expr.parameters.forEach { (_, v) ->
       declare(v)
       define(v)
     }
@@ -195,7 +195,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     define(expr.name)
 
     beginScope()
-    expr.arguments.forEach { (_, v) ->
+    expr.parameters.forEach { (_, v) ->
       declare(v)
       define(v)
     }

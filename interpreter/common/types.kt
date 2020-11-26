@@ -1,5 +1,8 @@
-package com.lorenzoog.kofl.frontend
+package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.InvalidDeclaredTypeException
+import com.lorenzoog.kofl.frontend.InvalidTypeException
+import com.lorenzoog.kofl.frontend.Token
 import kotlin.reflect.KClass
 
 @Suppress("DEPRECATION")
@@ -204,8 +207,6 @@ abstract class KoflCallable(
 ) : KoflObject(), KoflType {
   abstract fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject
   abstract override fun toString(): String
-
-  data class Type(val parameters: Map<String, KoflType>, val returnType: KoflType) : KoflType
 }
 
 @Suppress("UNCHECKED_CAST")

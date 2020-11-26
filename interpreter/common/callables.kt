@@ -65,8 +65,8 @@ class AnonymousFunc(
   override fun toString(): String = buildString {
     append("func <anonymous>(")
 
-    if (decl.arguments.size > 1) {
-      decl.arguments.forEach {
+    if (decl.parameters.size > 1) {
+      decl.parameters.forEach {
         append(", ").append(it)
       }
     }
@@ -96,8 +96,8 @@ class Func(
   override fun toString(): String = buildString {
     append("func ${decl.name}(")
 
-    if (decl.arguments.size > 1) {
-      decl.arguments.forEach {
+    if (decl.parameters.size > 1) {
+      decl.parameters.forEach {
         append(", ").append(it)
       }
     }
@@ -135,8 +135,8 @@ class ExtensionFunc(
   override fun toString(): String = buildString {
     append("func $receiver ${decl.name}(")
 
-    if (decl.arguments.size > 1) {
-      decl.arguments.forEach {
+    if (decl.parameters.size > 1) {
+      decl.parameters.forEach {
         append(", ").append(it)
       }
     }
