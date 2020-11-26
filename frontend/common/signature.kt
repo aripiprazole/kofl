@@ -1,6 +1,4 @@
-package com.lorenzoog.kofl.interpreter
-
-import com.lorenzoog.kofl.frontend.Stack
+package com.lorenzoog.kofl.frontend
 
 /**
  * Signature is made for be possible call-by-pattern,
@@ -74,7 +72,7 @@ class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   }
 
   fun findType(name: String): KoflType {
-    return types[name] ?: enclosing?.findType(name) ?: throw UnresolvedVarError(name)
+    return types[name] ?: enclosing?.findType(name) ?: throw UnresolvedVarException(name)
   }
 
   fun defineType(name: String, type: KoflType) {

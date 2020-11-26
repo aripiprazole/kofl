@@ -5,18 +5,15 @@ import com.lorenzoog.kofl.frontend.Stack
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 
-class UnresolvedVarError(val name: String) : KoflRuntimeError("unresolved variable $name"){
+class UnresolvedVarException(name: String) : KoflRuntimeException("unresolved variable $name") {
   constructor(name: Token) : this(name.lexeme)
 }
-class UnresolvedFieldError(val name: String, val type: KoflObject) :
-  KoflRuntimeError("unresolved field $name in $type")
 
-class UninitializedVarError(val name: Token) : KoflRuntimeError("trying to access $name when it isn't initialized")
-class AlreadyDeclaredVarError(val name: Token, resolver: Boolean = false) :
-  KoflRuntimeError("trying to re-declare $name a variable that already exists: resolver = $resolver")
+class UninitializedVarException(name: Token) :
+  KoflRuntimeException("trying to access $name when it isn't initialized")
 
-class UndefinedScopeAccessError(val name: String) :
-  KoflRuntimeError("undefined scope when trying to use or define $name")
+class AlreadyDeclaredVarException(name: Token, resolver: Boolean = false) :
+  KoflRuntimeException("trying to re-declare $name a variable that already exists: resolver = $resolver")
 
 class Resolver(private val locals: MutableMap<Expr, Int>) {
   private val scopes = Stack<MutableMap<String, Boolean>>(190)
@@ -125,7 +122,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
 
   private fun resolve(expr: Expr.Var) {
     if (!scopes.isEmpty && scopes.peek()[expr.name.lexeme] == false)
-      throw UninitializedVarError(expr.name)
+      throw UninitializedVarException(expr.name)
 
     resolveLocal(expr, expr.name)
   }
@@ -210,7 +207,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     if (scopes.isEmpty) return
 
     val scope = scopes.peek()
-    if (scope[name.lexeme] != null) throw AlreadyDeclaredVarError(name, resolver = true)
+    if (scope[name.lexeme] != null) throw AlreadyDeclaredVarException(name, resolver = true)
 
     scope[name.lexeme] = false
   }
@@ -219,7 +216,7 @@ class Resolver(private val locals: MutableMap<Expr, Int>) {
     if (scopes.isEmpty) return
 
     val scope = scopes.peek()
-    if (scope[name.lexeme] == null) throw UnresolvedVarError(name)
+    if (scope[name.lexeme] == null) throw UnresolvedVarException(name)
 
     scope[name.lexeme] = true
   }

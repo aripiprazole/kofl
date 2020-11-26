@@ -1,19 +1,22 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.frontend.KoflError
+import com.lorenzoog.kofl.frontend.ParseException
+import com.lorenzoog.kofl.frontend.SyntaxException
 import kotlin.system.exitProcess
 
 fun main() = try {
   repl()
-} catch (error: ParseError) {
-  error.report()
+} catch (exception: ParseException) {
+  exception.report()
 
   exitProcess(65)
-} catch (error: SyntaxError) {
-  error.report()
+} catch (exception: SyntaxException) {
+  exception.report()
 
   exitProcess(65)
-} catch (error: KoflRuntimeError) {
-  error.report()
+} catch (exception: KoflRuntimeException) {
+  exception.report()
 
   exitProcess(70)
 }

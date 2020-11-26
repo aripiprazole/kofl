@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.ParseError
-import com.lorenzoog.kofl.frontend.SyntaxError
+import com.lorenzoog.kofl.frontend.ParseException
+import com.lorenzoog.kofl.frontend.SyntaxException
 import platform.posix.exit
 import platform.posix.fopen
 
@@ -14,16 +14,16 @@ fun main(args: Array<String>) = try {
     args.size == 1 -> file(args[0])
     else -> repl()
   }
-} catch (error: ParseError) {
-  error.report()
+} catch (exception: ParseException) {
+  exception.report()
 
   exit(65)
-} catch (error: SyntaxError) {
-  error.report()
+} catch (exception: SyntaxException) {
+  exception.report()
 
   exit(65)
-} catch (error: KoflRuntimeError) {
-  error.report()
+} catch (exception: KoflRuntimeException) {
+  exception.report()
 
   exit(70)
 }

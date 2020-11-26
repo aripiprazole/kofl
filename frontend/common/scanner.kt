@@ -72,11 +72,11 @@ class Scanner(private val source: String) {
       // TODO: add bitwise tokens
       '&' -> addToken(
         if (match('&')) TokenType.And else
-          throw LexError(line, "&", "Unfinished ${TokenType.And} expression")
+          throw LexException(line, "&", "Unfinished ${TokenType.And} expression")
       )
       '|' -> addToken(
         if (match('|')) TokenType.And else
-          throw LexError(line, "|", "Unfinished ${TokenType.Or} expression")
+          throw LexException(line, "|", "Unfinished ${TokenType.Or} expression")
       )
 
       // useless characters
@@ -91,7 +91,7 @@ class Scanner(private val source: String) {
         if (isDigit(char)) return scanNumber()
         if (isAlpha(char)) return scanIdentifier()
 
-        throw LexError(line, char.toString())
+        throw LexException(line, char.toString())
       }
     }
   }
@@ -111,7 +111,7 @@ class Scanner(private val source: String) {
       advance()
     }
 
-    if (isAtEnd) throw LexError(line, "Unfinished multiline comment")
+    if (isAtEnd) throw LexException(line, "Unfinished multiline comment")
 
     // close comment: */ here
     advance()
@@ -138,7 +138,7 @@ class Scanner(private val source: String) {
       advance()
     }
 
-    if (isAtEnd) throw LexError(line, "Unfinished string")
+    if (isAtEnd) throw LexException(line, "Unfinished string")
 
     // close string here
     advance()

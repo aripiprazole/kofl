@@ -7,20 +7,21 @@ abstract class KoflError(private val type: String, message: String) : RuntimeExc
 }
 
 // parse errors
-open class ParseError(
+open class ParseException(
   token: Token,
   message: String = "invalid token: `$token`"
 ) : KoflError("parse", "invalid `$token` at ${token.location}: $message")
 
 // syntax errors
-open class SyntaxError(message: String) : KoflError("syntax", message)
+open class SyntaxException(message: String) : KoflError("syntax", message)
 
-class LexError(
+class LexException(
   line: Int,
   lexeme: String,
   message: String = "unexpected character"
-) : SyntaxError("unexpected `$lexeme` in line $line: $message")
+) : SyntaxException("unexpected `$lexeme` in line $line: $message")
 
+// compile exceptions
 open class CompileException(message: String) : KoflError("compile", message)
 
 class TypeNotFoundException(name: String) : CompileException("type $name not found!")
@@ -29,3 +30,4 @@ class InvalidDeclaredTypeException(current: String, expected: String) :
 
 class InvalidTypeException(value: Any) : CompileException("invalid kofl type in $value")
 class MissingReturnException : CompileException("missing return function body")
+class UnresolvedVarException(name: String) : CompileException("unresolved $name")
