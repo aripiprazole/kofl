@@ -1,7 +1,5 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.InvalidDeclaredTypeException
-import com.lorenzoog.kofl.frontend.InvalidTypeException
 import com.lorenzoog.kofl.frontend.Token
 import kotlin.reflect.KClass
 
@@ -193,8 +191,10 @@ sealed class KoflBoolean(private val primitive: Boolean) : KoflObject() {
 }
 
 data class KoflInstance(val type: KoflStruct, val fields: Map<String, KoflValue>) : KoflObject() {
-  override fun toString(): String = fields.entries
-    .joinToString(prefix = "${type.name}(", postfix = ")")
+  override fun toString(): String = type.name + fields.entries.joinToString(
+    prefix = "(",
+    postfix = ")"
+  )
 
   companion object : KoflType {
     override fun toString(): String = "<instance>"
@@ -254,6 +254,7 @@ val KoflObject.type: KoflType
     is KoflInt -> KoflInt
     is KoflDouble -> KoflDouble
     is KoflCallable -> this
+    is KoflInstance -> type
     else -> throw InvalidTypeException(this::class.toString())
   }
 
