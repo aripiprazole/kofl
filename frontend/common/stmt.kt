@@ -11,7 +11,7 @@ sealed class Stmt {
     fun visitReturnStmt(stmt: ReturnStmt): T
     fun visitValDeclStmt(stmt: ValDecl): T
     fun visitVarDeclStmt(stmt: VarDecl): T
-    fun visitStructTypedefStmt(stmt: TypeDef.Struct): T
+    fun visitStructTypedefStmt(stmt: Type.Class): T
   }
 
   abstract val line: Int
@@ -42,8 +42,8 @@ sealed class Stmt {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDeclStmt(this)
   }
 
-  sealed class TypeDef : Stmt() {
-    data class Struct(val name: Token, val fields: Map<Token, Token>, override val line: Int) : TypeDef() {
+  sealed class Type : Stmt() {
+    data class Class(val name: Token, val fields: Map<Token, Token>, override val line: Int) : Type() {
       override fun <T> accept(visitor: Visitor<T>): T = visitor.visitStructTypedefStmt(this)
     }
   }

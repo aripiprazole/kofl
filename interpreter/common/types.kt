@@ -95,7 +95,9 @@ abstract class KoflObject internal constructor() {
 data class KoflAny(val any: Any) : KoflObject() {
   override fun toString() = any.toString()
 
-  companion object : KoflType
+  companion object : KoflType {
+    override fun toString(): String = "<primitive Any>"
+  }
 }
 
 object KoflUnit : KoflSingleton() {
@@ -209,15 +211,24 @@ abstract class KoflCallable(
   abstract override fun toString(): String
 }
 
-@Suppress("UNCHECKED_CAST")
-fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
-  is KoflAny -> when (any) {
-    is Double -> KoflDouble(any) as KoflNumber<Number>
-    is Int -> KoflInt(any) as KoflNumber<Number>
-    else -> throw InvalidTypeException("int or double")
-  }
-  is KoflNumber<*> -> this as KoflNumber<Number>
-  else -> throw InvalidDeclaredTypeException(type.toString(), "int or double")
+inline fun KoflType.isAssignableBy(another: KoflType): Boolean {
+  return this == KoflAny || this == another
+}
+
+inline fun KoflType.isNumberType(): Boolean {
+  return this is KoflNumber<*>
+}
+
+operator fun KoflValue.component0(): KoflObject = value
+
+fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
+  if (mutable) return KoflValue.Mutable(this, type)
+
+  return KoflValue.Immutable(this, type)
+}
+
+fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
+  return asKoflObject().asKoflValue(mutable)
 }
 
 fun Boolean.asKoflBoolean(): KoflBoolean = when (this) {
@@ -241,10 +252,15 @@ fun Any.asKoflObject(): KoflObject = when (this) {
   else -> KoflAny(this)
 }
 
-operator fun KoflValue.component0(): KoflObject = value
-
-fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
-  return asKoflObject().asKoflValue(mutable)
+@Suppress("UNCHECKED_CAST")
+fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
+  is KoflAny -> when (any) {
+    is Double -> KoflDouble(any) as KoflNumber<Number>
+    is Int -> KoflInt(any) as KoflNumber<Number>
+    else -> throw InvalidTypeException("int or double")
+  }
+  is KoflNumber<*> -> this as KoflNumber<Number>
+  else -> throw InvalidDeclaredTypeException(type.toString(), "int or double")
 }
 
 val KoflObject.type: KoflType
@@ -258,8 +274,3 @@ val KoflObject.type: KoflType
     else -> throw InvalidTypeException(this::class.toString())
   }
 
-fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
-  if (mutable) return KoflValue.Mutable(this, type)
-
-  return KoflValue.Immutable(this, type)
-}

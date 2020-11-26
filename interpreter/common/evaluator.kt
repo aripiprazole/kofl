@@ -32,7 +32,7 @@ class CodeEvaluator(
     is Stmt.ValDecl -> eval(stmt, environment)
     is Stmt.ExprStmt -> eval(stmt, environment)
     is Stmt.ReturnStmt -> eval(stmt, environment)
-    is Stmt.TypeDef.Struct -> eval(stmt, environment)
+    is Stmt.Type.Class -> eval(stmt, environment)
   }
 
   private fun eval(stmt: Stmt.ExprStmt, environment: MutableEnvironment): KoflObject {
@@ -45,7 +45,7 @@ class CodeEvaluator(
     return KoflUnit
   }
 
-  private fun eval(stmt: Stmt.TypeDef.Struct, environment: MutableEnvironment): KoflObject {
+  private fun eval(stmt: Stmt.Type.Class, environment: MutableEnvironment): KoflObject {
     val struct = KoflStruct(stmt.name.lexeme,
       fields = stmt.fields.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
         typeEnvironment.findType(value.lexeme)
