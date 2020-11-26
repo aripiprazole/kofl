@@ -391,7 +391,6 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun arguments(): Map<Token?, Expr> {
     val arguments = buildMap<Token?, Expr> {
       if (!check(TokenType.RightParen)) {
-        println("STARTING CATCH PARAMETERS")
         do {
           if (size >= MAX_ARGS) {
             error(MAX_ARGS_ERROR_MESSAGE).report()
@@ -408,8 +407,6 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
         } while (match(TokenType.Comma))
       }
     }
-
-    println("OOOO")
 
     consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
 

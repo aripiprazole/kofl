@@ -40,7 +40,7 @@ fun file(name: String) {
 }
 
 @ThreadLocal
-private val interpreter = Interpreter()
+private val interpreter = Interpreter(debug = true)
 
 // TODO: typechecking
 fun eval(code: String): Any? {
