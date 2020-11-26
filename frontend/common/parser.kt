@@ -119,6 +119,9 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
       match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If), line())
+      match(TokenType.External) -> (consume(TokenType.Func) ?: throw error(expecting(TokenType.Func))).let {
+        Stmt.ExprStmt(funcExpr(FuncType.Func, listOf(TokenType.External)), it.line)
+      }
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
 
       else -> exprStatement()
