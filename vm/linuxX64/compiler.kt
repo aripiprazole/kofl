@@ -15,14 +15,14 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private var chunks = arrayOf(Chunk())
 
   fun compile(stmts: List<Stmt>): Array<Chunk> {
-    visit(stmts)
+    visitStmts(stmts)
     endCompiler()
 
     return chunks
   }
 
   fun compile(exprs: List<Expr>): Array<Chunk> {
-    visit(exprs)
+    visitExprs(exprs)
     endCompiler()
 
     return chunks
@@ -33,8 +33,8 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary) {
-    visit(expr.left)
-    visit(expr.right)
+    visitExpr(expr.left)
+    visitExpr(expr.right)
 
     when (expr.op.type) {
       TokenType.Plus -> emit(OpCode.OpSum, expr.line) // TODO: compile OpCode.Concat when have typechecking
@@ -50,7 +50,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitGroupingExpr(expr: Expr.Grouping) {
-    visit(expr.expr)
+    visitExpr(expr.expr)
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal) {
@@ -63,7 +63,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary) {
-    visit(expr.right)
+    visitExpr(expr.right)
 
     when (expr.op.type) {
       TokenType.Minus -> emit(OpCode.OpNegate, expr.line)
@@ -115,7 +115,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt) {
-    visit(stmt.expr)
+    visitExpr(stmt.expr)
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block) {
@@ -132,7 +132,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl) {
     emit(OpCode.OpConstant, makeConst(stmt.name.lexeme), stmt.line)
-    visit(stmt.value)
+    visitExpr(stmt.value)
     emit(OpCode.OpStoreGlobal, stmt.line)
   }
 

@@ -1,7 +1,5 @@
 package com.lorenzoog.kofl.frontend
 
-import com.lorenzoog.kofl.frontend.*
-
 const val MAX_STACK = 512_000
 
 class TypeChecker(
@@ -11,7 +9,7 @@ class TypeChecker(
 
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
     val expected = types.peek().findName(expr.name.lexeme)
-    val current = visit(expr.value)
+    val current = visitExpr(expr.value)
 
     if(expected != current)
       throw InvalidDeclaredTypeException(current.toString(), expected.toString())
@@ -20,8 +18,8 @@ class TypeChecker(
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary): KoflType {
-    val left = visit(expr.left)
-    val right = visit(expr.right)
+    val left = visitExpr(expr.left)
+    val right = visitExpr(expr.right)
 
     if (expr.op.type in listOf(
         TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
@@ -40,8 +38,8 @@ class TypeChecker(
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): KoflType {
-    val expected = visit(expr.left)
-    val current = visit(expr.right)
+    val expected = visitExpr(expr.left)
+    val current = visitExpr(expr.right)
 
     if (expected != current)
       throw InvalidDeclaredTypeException(current.toString(), expected.toString())
@@ -50,7 +48,7 @@ class TypeChecker(
   }
 
   override fun visitGroupingExpr(expr: Expr.Grouping): KoflType {
-    return visit(expr.expr)
+    return visitExpr(expr.expr)
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): KoflType {
@@ -64,7 +62,7 @@ class TypeChecker(
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): KoflType {
-    val rightType = visit(expr.right)
+    val rightType = visitExpr(expr.right)
 
     if (expr.op.type == TokenType.Bang) {
       if (rightType != KoflBoolean)
@@ -82,7 +80,7 @@ class TypeChecker(
   override fun visitCallExpr(expr: Expr.Call): KoflType {
     val callee = when (val callee = expr.calle) {
       is Expr.Var -> types.peek().findFunction(callee.name.lexeme)
-      else -> visit(expr.calle)
+      else -> visitExpr(expr.calle)
     }
 
     if (callee !is KoflCallable.Type) throw CompileException("expected $callee to be a function")
@@ -108,13 +106,13 @@ class TypeChecker(
     val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
     if (returnType != KoflUnit && returnStmt == null) throw MissingReturnException()
 
-    val gotType = returnStmt?.let { visit(it) } ?: KoflUnit
+    val gotType = returnStmt?.let { visitStmt(it) } ?: KoflUnit
 
     if (gotType != returnType)
       throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
 
     beginScope()
-    visit(body)
+    visitStmts(body)
     endScope()
 
     return KoflCallable.Type(
@@ -149,25 +147,25 @@ class TypeChecker(
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
-    val condition = visit(expr.condition)
+    val condition = visitExpr(expr.condition)
     if (condition != KoflBoolean) throw InvalidDeclaredTypeException(condition.toString(), KoflBoolean.toString())
 
     val thenBranch = expr.thenBranch.also {
       beginScope()
-      visit(it)
+      visitStmts(it)
       endScope()
     }
     val thenLast = thenBranch.lastOrNull()
     val elseBranch = expr.elseBranch?.also {
       beginScope()
-      visit(it)
+      visitStmts(it)
       endScope()
     }
     val elseLast = elseBranch?.lastOrNull()
 
     if (thenBranch.isNotEmpty() && thenLast != null && elseBranch != null && elseBranch.isNotEmpty()) {
-      val thenType = visit((thenLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
-      val elseType = visit((elseLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
+      val thenType = visitExpr((thenLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
+      val elseType = visitExpr((elseLast as? Stmt.ExprStmt)?.expr ?: return KoflUnit)
 
       if (thenType != elseType) {
         throw InvalidDeclaredTypeException(elseType.toString(), thenType.toString())
@@ -180,32 +178,32 @@ class TypeChecker(
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): KoflType {
-    visit(stmt.expr)
+    visitExpr(stmt.expr)
     return KoflUnit
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): KoflType {
     beginScope()
-    visit(stmt.body)
+    visitStmts(stmt.body)
     endScope()
 
     return KoflUnit
   }
 
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): KoflType {
-    val conditionType = visit(stmt.condition)
+    val conditionType = visitExpr(stmt.condition)
     if (conditionType != KoflBoolean)
       throw InvalidDeclaredTypeException(conditionType.toString(), KoflBoolean.toString())
 
     beginScope()
-    visit(stmt.body)
+    visitStmts(stmt.body)
     endScope()
 
     return KoflUnit
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): KoflType {
-    return visit(stmt.expr)
+    return visitExpr(stmt.expr)
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): KoflType {
@@ -217,7 +215,7 @@ class TypeChecker(
   }
 
   private fun varType(typeName: String?, value: Expr): KoflType {
-    val actualType = visit(value)
+    val actualType = visitExpr(value)
 
     return if (typeName == null) actualType
     else findType(typeName).also {

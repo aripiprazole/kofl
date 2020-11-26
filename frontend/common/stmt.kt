@@ -2,8 +2,8 @@ package com.lorenzoog.kofl.frontend
 
 sealed class Stmt {
   interface Visitor<T> {
-    fun visit(exprs: List<Stmt>) = exprs.map { visit(it) }
-    fun visit(expr: Stmt): T = expr.accept(this)
+    fun visitStmts(exprs: List<Stmt>) = exprs.map { visitStmt(it) }
+    fun visitStmt(expr: Stmt): T = expr.accept(this)
 
     fun visitExprStmt(stmt: ExprStmt): T
     fun visitBlockStmt(stmt: Block): T
