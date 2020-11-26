@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.KoflError
+import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.frontend.Token
 
-open class KoflRuntimeException(message: String) : KoflError("runtime", message)
+open class KoflRuntimeException(message: String) : KoflException("runtime", message)
 class TypeException(got: String, expected: Any? = null) : KoflRuntimeException("expected type: $expected but got $got")
 class IllegalOperationException(
   identifier: String,

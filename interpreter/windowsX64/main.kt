@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.KoflError
+import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.frontend.ParseException
 import com.lorenzoog.kofl.frontend.SyntaxException
 import kotlin.system.exitProcess
@@ -32,8 +32,8 @@ fun repl() {
       ":quit" -> exitProcess(0)
       else -> try {
         eval(line) // interpret and run the provided code in the line
-      } catch (error: KoflError) {
-        error.report() // just report error to dont crash program
+      } catch (exception: KoflException) {
+        exception.report() // just report error to dont crash program
       }
     }
 
