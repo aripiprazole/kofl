@@ -4,7 +4,7 @@ import com.lorenzoog.kofl.frontend.*
 
 class Return(val value: KoflObject) : RuntimeException(null, null)
 
-class Interpreter {
+class Interpreter(private val debug: Boolean = false) {
   private val globalEnvironment = MutableEnvironment(NativeEnvironment())
   private val locals = mutableMapOf<Expr, Int>()
 
@@ -36,7 +36,7 @@ class Interpreter {
     val typeEvaluator = TypeChecker(typeEnvironment)
     val stmts = parse(code, repl)
 
-    if (repl) println("AST: $stmts")
+    if (repl && debug) println("AST: $stmts")
 
     typeEvaluator.visit(stmts)
     resolver.resolve(stmts)
