@@ -38,7 +38,7 @@ class Interpreter(private val debug: Boolean = false) {
 
     if (repl && debug) println("AST: $stmts")
 
-    typeEvaluator.visit(stmts)
+    typeEvaluator.visitStmts(stmts)
     resolver.resolve(stmts)
     return evaluator.eval(stmts, globalEnvironment)
   }

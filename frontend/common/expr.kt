@@ -2,8 +2,8 @@ package com.lorenzoog.kofl.frontend
 
 sealed class Expr {
   interface Visitor<T> {
-    fun visit(exprs: List<Expr>) = exprs.map { visit(it) }
-    fun visit(expr: Expr): T = expr.accept(this)
+    fun visitExprs(exprs: List<Expr>) = exprs.map { visitExpr(it) }
+    fun visitExpr(expr: Expr): T = expr.accept(this)
 
     fun visitAssignExpr(expr: Assign): T
     fun visitBinaryExpr(expr: Binary): T
