@@ -34,6 +34,8 @@ class Interpreter(private val debug: Boolean = false) {
 
     typeEvaluator.visitStmts(stmts)
     resolver.resolve(stmts)
-    return evaluator.eval(stmts, globalEnvironment)
+    return evaluator.eval(stmts, globalEnvironment).also {
+      if(repl && debug) println("DUMP: $it")
+    }
   }
 }

@@ -20,14 +20,3 @@ class LexException(
   lexeme: String,
   message: String = "unexpected character"
 ) : SyntaxException("unexpected `$lexeme` in line $line: $message")
-
-// compile exceptions
-open class CompileException(message: String) : KoflException("compile", message)
-
-class TypeNotFoundException(name: String) : CompileException("type $name not found!")
-class InvalidDeclaredTypeException(current: String, expected: String) :
-  CompileException("excepted $expected but got $current")
-
-class InvalidTypeException(value: Any) : CompileException("invalid kofl type in $value")
-class MissingReturnException : CompileException("missing return function body")
-class UnresolvedVarException(name: String) : CompileException("unresolved $name")

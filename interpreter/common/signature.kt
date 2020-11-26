@@ -2,71 +2,30 @@ package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.Stack
 
-/**
- * Signature is made for be possible call-by-pattern,
- * and function overload in the environment, and can be useful
- * to isolate functions and variables.
- *
- * You can create a signature using the helper function [signature],
- * and use in [Environment.findFunction] to find functions that match
- * to signature provided, you can use the builder also to create native
- * functions with some type safety, the [KoflCallable.Native] will check
- * if match the signatures.
- */
-sealed class Signature {
-  data class Parameters internal constructor(val types: List<KoflType>) : Signature()
-  data class Receiver internal constructor(val types: KoflType) : Signature()
-  data class Combined internal constructor(
-    val parameters: Parameters,
-    val receiver: Receiver? = null
-  ) : Signature()
-}
-
-class SignatureBuilder {
-  private var parameters: Signature.Parameters? = null
-  private var receiver: Signature.Receiver? = null
-
-  fun parameters(vararg parameters: KoflType) {
-    this.parameters = Signature.Parameters(parameters.toList())
-  }
-
-  fun parameters(parameters: List<KoflType>) {
-    parameters(*parameters.toTypedArray())
-  }
-
-  fun parameters(parameters: Map<String, KoflType>) {
-    parameters(*parameters.values.toTypedArray())
-  }
-
-  fun parameters(vararg parameters: Pair<String, KoflType>) {
-    parameters(mapOf(*parameters))
-  }
-
-  fun receiver(receiver: KoflType) {
-    this.receiver = Signature.Receiver(receiver)
-  }
-
-  fun build(): Signature = Signature.Combined(
-    parameters = parameters ?: error("MISSING PARAMETERs"),
-    receiver
-  )
-}
 
 class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   private val types = mutableMapOf<String, KoflType>()
   private val variables = mutableMapOf<String, KoflType>()
-  private val functions = mutableMapOf<String, KoflCallable>()
+  private val functions = mutableMapOf<String, List<KoflCallable>>()
 
-  fun defineFunction(name: String, type: KoflCallable) {
-    functions[name] = type
+  fun defineName(name: String, type: KoflType) {
+    variables[name] = type
   }
 
-  fun findFunction(name: String): KoflCallable {
-    return functions[name]!!
+  fun defineFunction(name: String, type: KoflCallable) {
+    val alreadySigned = functions[name] ?: emptyList()
+
+    functions[name] = alreadySigned + type
+  }
+
+  fun findFunction(name: String): List<KoflCallable> {
+    return functions[name] ?: emptyList()
   }
 
   fun findName(name: String): KoflType {
-    return variables[name]!!
+    return variables[name]
+      ?: enclosing?.findName(name)
+      ?: throw UnresolvedVarException(name)
   }
 
   fun findTypeOrNull(name: String): KoflType? {
@@ -78,6 +37,8 @@ class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   }
 
   fun defineType(name: String, type: KoflType) {
+    if (type is KoflCallable)
+      defineFunction(name, type)
     types[name] = type
   }
 
@@ -90,6 +51,14 @@ fun globalEnvironment(size: Int, builder: TypeEnvironment.() -> Unit): Stack<Typ
   }
 }
 
-fun signature(builder: SignatureBuilder.() -> Unit): Signature {
-  return SignatureBuilder().apply(builder).build()
+inline fun Collection<KoflCallable>.match(vararg parameters: KoflType, receiver: KoflType? = null): KoflCallable? {
+  return match(parameters.toList(), receiver)
+}
+
+inline fun Collection<KoflCallable>.match(parameters: Collection<KoflType>, receiver: KoflType? = null): KoflCallable? {
+  return firstOrNull { type ->
+    type.parameters.values.containsAll(parameters) && if (type is ExtensionFunc) {
+      type.receiver == receiver
+    } else true
+  }
 }

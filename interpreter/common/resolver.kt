@@ -5,15 +5,16 @@ import com.lorenzoog.kofl.frontend.Stack
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 
-class UnresolvedVarException(name: String) : KoflRuntimeException("unresolved variable $name") {
+class UnresolvedVarException(name: String) :
+  CompileException("unresolved variable $name") {
   constructor(name: Token) : this(name.lexeme)
 }
 
 class UninitializedVarException(name: Token) :
-  KoflRuntimeException("trying to access $name when it isn't initialized")
+  CompileException("trying to access $name when it isn't initialized")
 
 class AlreadyDeclaredVarException(name: Token, resolver: Boolean = false) :
-  KoflRuntimeException("trying to re-declare $name a variable that already exists: resolver = $resolver")
+  CompileException("trying to re-declare $name a variable that already exists: resolver = $resolver")
 
 class Resolver(private val locals: MutableMap<Expr, Int>) {
   private val scopes = Stack<MutableMap<String, Boolean>>(190)

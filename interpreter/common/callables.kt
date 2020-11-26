@@ -12,20 +12,30 @@ class InvalidCallArityException(gotArity: Int, func: KoflCallable) :
   KoflRuntimeException("trying to call a $func with arity: ${func.parameters.size} and got $gotArity")
 
 operator fun KoflCallable.invoke(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
-  if(arguments.size != parameters.size) throw InvalidCallArityException(arguments.size, this)
+  if (arguments.size != parameters.size) throw InvalidCallArityException(arguments.size, this)
 
   arguments.entries.forEachIndexed { index, (name, value) ->
     if (name != null) {
       if (name !in parameters.keys) throw InvalidParameterNameException(name, this)
 
       val paramType = parameters[name]
-      if (value.evaluatedType != paramType) throw InvalidParameterTypeException(name, value.evaluatedType, paramType, this)
+      if (value.evaluatedType != paramType) throw InvalidParameterTypeException(
+        name,
+        value.evaluatedType,
+        paramType,
+        this
+      )
 
       return@forEachIndexed
     }
 
     val (paramName, paramType) = parameters.entries.toList()[index]
-    if (value.evaluatedType != paramType) throw InvalidParameterTypeException(paramName, value.evaluatedType, paramType, this)
+    if (value.evaluatedType != paramType) throw InvalidParameterTypeException(
+      paramName,
+      value.evaluatedType,
+      paramType,
+      this
+    )
   }
 
   return call(arguments, environment)
@@ -41,7 +51,12 @@ class NativeFunc(
     return nativeCall(arguments, environment)
   }
 
-  override fun toString(): String = "func $name(): $returnType"
+  override fun toString(): String =
+    "func $name${
+      parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+        "$name: $type"
+      }
+    }: $returnType"
 }
 
 class AnonymousFunc(
@@ -113,10 +128,6 @@ class ExtensionFunc(
   private val evaluator: CodeEvaluator
 ) : KoflCallable(parameters, returnType) {
   private var self: KoflInstance? = null
-
-  fun bind(self: KoflInstance) {
-    this.self = self
-  }
 
   override fun call(arguments: Map<String?, KoflObject>, environment: MutableEnvironment): KoflObject {
     val localEnvironment = MutableEnvironment(environment)
