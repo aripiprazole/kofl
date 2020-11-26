@@ -1,17 +1,20 @@
-package com.lorenzoog.kofl.frontend
+package com.lorenzoog.kofl.interpreter
+
+import com.lorenzoog.kofl.frontend.*
 
 const val MAX_STACK = 512_000
 
 class TypeChecker(
+  private val evaluator: CodeEvaluator,
   private val types: Stack<TypeEnvironment> = Stack(MAX_STACK)
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
-  private var currentFunc: KoflCallable.Type? = null
+  private var currentFunc: KoflCallable? = null
 
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
     val expected = types.peek().findName(expr.name.lexeme)
     val current = visitExpr(expr.value)
 
-    if(expected != current)
+    if (expected != current)
       throw InvalidDeclaredTypeException(current.toString(), expected.toString())
 
     return expected
@@ -32,7 +35,7 @@ class TypeChecker(
       throw InvalidDeclaredTypeException(right.toString(), KoflInt.toString())
     }
 
-    if(left == KoflBoolean && right == KoflBoolean) return KoflBoolean
+    if (left == KoflBoolean && right == KoflBoolean) return KoflBoolean
 
     throw InvalidDeclaredTypeException(left.toString(), KoflBoolean.toString())
   }
@@ -78,12 +81,14 @@ class TypeChecker(
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
+    println(types)
+
     val callee = when (val callee = expr.calle) {
       is Expr.Var -> types.peek().findFunction(callee.name.lexeme)
       else -> visitExpr(expr.calle)
     }
 
-    if (callee !is KoflCallable.Type) throw CompileException("expected $callee to be a function")
+    if (callee !is KoflCallable) throw CompileException("expected $callee to be a function")
 
     return callee.returnType
   }
@@ -96,54 +101,82 @@ class TypeChecker(
     TODO("Not yet implemented")
   }
 
-  override fun visitFuncExpr(expr: Expr.CommonFunc): KoflType {
-    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
+  private fun funcParameters(parameters: Map<Token, Token>): Map<String, KoflType> {
+    return parameters.mapKeys { (name) -> name.lexeme }
+      .mapValues { (_, typeName) ->
+        findType(typeName.lexeme)
+      }
   }
 
-  private fun funcType(returnTypeStr: String?, arguments: Map<Token, Token>, body: List<Stmt>): KoflCallable.Type {
-    val returnType = findTypeOrNull(returnTypeStr) ?: KoflUnit
+  private fun funcBody(body: List<Stmt>): List<KoflType> {
+    beginScope()
+    val stmts = visitStmts(body)
+    endScope()
+
+    return stmts
+  }
+
+  private fun funcType(returnTypeStr: Token?, body: List<Stmt>): KoflType {
+    val returnType = findTypeOrNull(returnTypeStr?.lexeme) ?: KoflUnit
 
     val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
     if (returnType != KoflUnit && returnStmt == null) throw MissingReturnException()
 
     val gotType = returnStmt?.let { visitStmt(it) } ?: KoflUnit
 
-    if (gotType != returnType)
-      throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
+    if (gotType != returnType) throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
 
-    beginScope()
-    visitStmts(body)
-    endScope()
-
-    return KoflCallable.Type(
-      parameters = arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
-        findType(value.lexeme)
-      },
-      returnType
-    )
+    return returnType
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): KoflType {
     TODO("Not yet implemented")
   }
 
+  override fun visitFuncExpr(expr: Expr.CommonFunc): KoflType {
+    return Func(
+      funcParameters(expr.parameters),
+      funcType(expr.returnType, expr.body),
+      expr, evaluator
+    ).also { func ->
+      funcBody(expr.body)
+
+      types.peek().defineFunction(expr.name.lexeme, func)
+    }
+  }
+
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): KoflType {
-    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
+    return ExtensionFunc(
+      funcParameters(expr.parameters),
+      funcType(expr.returnType, expr.body),
+      findType(expr.receiver.lexeme),
+      expr, evaluator
+    ).also { func ->
+      funcBody(expr.body)
+
+      types.peek().defineFunction(expr.name.lexeme, func)
+    }
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): KoflType {
-    return funcType(expr.returnType?.lexeme, expr.arguments, expr.body)
+    funcBody(expr.body)
+
+    return AnonymousFunc(
+      funcParameters(expr.parameters),
+      funcType(expr.returnType, expr.body),
+      expr, evaluator
+    ).also {
+      funcBody(expr.body)
+    }
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): KoflType {
-    val returnType = findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
-
-    return KoflCallable.Type(
-      parameters = expr.arguments.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
-        findType(value.lexeme)
-      },
-      returnType
-    )
+    return NativeFunc(
+      expr.name.lexeme, funcParameters(expr.parameters),
+      returnType = findTypeOrNull(expr.returnType?.lexeme) ?: KoflUnit
+    ) { _, _ -> KoflUnit }.also { func ->
+      types.peek().defineFunction(expr.name.lexeme, func)
+    }
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
@@ -236,7 +269,7 @@ class TypeChecker(
   }
 
   private fun endScope() {
-    types.pop()
+    println("${types.peek()}")
   }
 
   override fun visitStructTypedefStmt(stmt: Stmt.TypeDef.Struct): KoflType {

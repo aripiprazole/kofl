@@ -225,7 +225,7 @@ class CodeEvaluator(
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
     val parameters = buildMap<String, KoflType> {
-      expr.arguments.forEach { (name, type) ->
+      expr.parameters.forEach { (name, type) ->
         set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }
@@ -240,7 +240,7 @@ class CodeEvaluator(
   private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
     val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeException("struct type")
     val parameters = buildMap<String, KoflType> {
-      expr.arguments.forEach { (name, type) ->
+      expr.parameters.forEach { (name, type) ->
         set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }
@@ -256,7 +256,7 @@ class CodeEvaluator(
   @OptIn(ExperimentalStdlibApi::class)
   private fun eval(expr: Expr.AnonymousFunc): KoflObject {
     val parameters = buildMap<String, KoflType> {
-      expr.arguments.forEach { (name, type) ->
+      expr.parameters.forEach { (name, type) ->
         set(name.lexeme, typeEnvironment.findType(type.lexeme))
       }
     }

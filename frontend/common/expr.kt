@@ -82,7 +82,7 @@ sealed class Expr {
 
   data class CommonFunc(
     val name: Token,
-    val arguments: Map<Token, Token>,
+    val parameters: Map<Token, Token>,
     val body: List<Stmt>,
     val returnType: Token?,
     override val line: Int
@@ -93,7 +93,7 @@ sealed class Expr {
   data class ExtensionFunc(
     val receiver: Token,
     val name: Token,
-    val arguments: Map<Token, Token>,
+    val parameters: Map<Token, Token>,
     val body: List<Stmt>,
     val returnType: Token?,
     override val line: Int
@@ -102,7 +102,7 @@ sealed class Expr {
   }
 
   data class AnonymousFunc(
-    val arguments: Map<Token, Token>,
+    val parameters: Map<Token, Token>,
     val body: List<Stmt>,
     val returnType: Token?,
     override val line: Int
@@ -112,7 +112,7 @@ sealed class Expr {
 
   data class NativeFunc(
     val name: Token,
-    val arguments: Map<Token, Token>,
+    val parameters: Map<Token, Token>,
     val returnType: Token?,
     override val line: Int
   ) : Expr() {

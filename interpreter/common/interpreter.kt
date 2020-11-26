@@ -7,6 +7,13 @@ class Return(val value: KoflObject) : RuntimeException(null, null)
 class Interpreter(private val debug: Boolean = false) {
   private val globalEnvironment = MutableEnvironment(NativeEnvironment())
   private val locals = mutableMapOf<Expr, Int>()
+  private val typeEnvironment = globalEnvironment(24) {
+    defineType("Unit", KoflUnit)
+    defineType("Boolean", KoflBoolean)
+    defineType("String", KoflString)
+    defineType("Int", KoflInt)
+    defineType("Double", KoflDouble)
+  }
 
   fun lex(code: String): List<Token> {
     val scanner = Scanner(code)
@@ -18,22 +25,9 @@ class Interpreter(private val debug: Boolean = false) {
   }
 
   fun eval(code: String, repl: Boolean = true): List<KoflObject> {
-    val typeEnvironment = globalEnvironment(512_000) {
-      defineType("Unit", KoflUnit)
-      defineType("Boolean", KoflBoolean)
-      defineType("String", KoflString)
-      defineType("Int", KoflInt)
-      defineType("Double", KoflDouble)
-      defineFunction(
-        name = "println", KoflCallable.Type(
-          parameters = mapOf("message" to KoflString),
-          returnType = KoflUnit
-        )
-      )
-    }
     val resolver = Resolver(locals)
     val evaluator = CodeEvaluator(locals, typeEnvironment.peek())
-    val typeEvaluator = TypeChecker(typeEnvironment)
+    val typeEvaluator = TypeChecker(evaluator, typeEnvironment)
     val stmts = parse(code, repl)
 
     if (repl && debug) println("AST: $stmts")
