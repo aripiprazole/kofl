@@ -97,14 +97,17 @@ class TypeChecker(
     if (callee !is KoflCallable)
       throw CompileTypeException("expected $callee to be a function")
 
-    if(callee is KoflStruct)
+    if (callee is KoflStruct)
       return callee
 
     return callee.returnType
   }
 
   override fun visitGetExpr(expr: Expr.Get): KoflType {
-    TODO("Not yet implemented")
+    val stmt = visitExpr(expr.receiver)
+    if (stmt !is KoflStruct) throw UnresolvedVarException("$stmt.${expr.name.lexeme}")
+
+    return stmt.fields[expr.name.lexeme] ?: throw UnresolvedVarException("$stmt.${expr.name.lexeme}")
   }
 
   override fun visitSetExpr(expr: Expr.Set): KoflType {

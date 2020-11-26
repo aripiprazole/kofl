@@ -1,6 +1,9 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.*
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.TokenType
 
 interface Evaluator<T> {
   fun eval(exprs: List<Expr>, environment: MutableEnvironment): List<T> {
@@ -164,12 +167,27 @@ class CodeEvaluator(
   }
 
   private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
-    TODO()
+    return when (val receiver = eval(expr.receiver, environment)) {
+      is KoflInstance -> receiver.fields[expr.name.lexeme]?.value
+        ?: throw UnresolvedVarException("$receiver.${expr.name.lexeme}")
+      else -> throw TypeException("can't get fields from non-instances: $receiver")
+    }
   }
 
   private fun eval(expr: Expr.Set, environment: MutableEnvironment): KoflObject {
-    TODO()
+    when (val receiver = eval(expr.receiver, environment)) {
+      is KoflInstance -> receiver.fields[expr.name.lexeme]?.also {
+        if (it !is KoflValue.Mutable)
+          throw IllegalOperationException(expr.name.lexeme, "update an immutable variable")
+
+        it.value = eval(expr.value, environment)
+      }
+      else -> throw TypeException("can't set fields from non-instances")
+    }
+
+    return KoflUnit
   }
+
 
   private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
     return try {
