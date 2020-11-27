@@ -5,6 +5,8 @@ import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.TokenType
 
+class Return(val value: KoflObject) : RuntimeException(null, null)
+
 interface Evaluator<T> {
   fun eval(exprs: List<Expr>, environment: MutableEnvironment): List<T> {
     return exprs.map { eval(it, environment) }
@@ -26,29 +28,29 @@ class CodeEvaluator(
   // STATEMENTS
   //
   override fun eval(stmt: Stmt, environment: MutableEnvironment): KoflObject = when (stmt) {
-    is Stmt.WhileStmt -> eval(stmt, environment)
-    is Stmt.Block -> eval(stmt, environment)
-    is Stmt.VarDecl -> eval(stmt, environment)
-    is Stmt.ValDecl -> eval(stmt, environment)
-    is Stmt.ExprStmt -> eval(stmt, environment)
-    is Stmt.ReturnStmt -> eval(stmt, environment)
-    is Stmt.Type.Class -> eval(stmt, environment)
+    is Stmt.WhileStmt -> evalWhileStmt(stmt, environment)
+    is Stmt.Block -> evalBlockStmt(stmt, environment)
+    is Stmt.VarDecl -> evalVarDeclStmt(stmt, environment)
+    is Stmt.ValDecl -> evalValDeclStmt(stmt, environment)
+    is Stmt.ExprStmt -> evalExprStmt(stmt, environment)
+    is Stmt.ReturnStmt -> evalReturnStmt(stmt, environment)
+    is Stmt.Type.Class -> evalTypeClassStmt(stmt, environment)
   }
 
-  private fun eval(stmt: Stmt.ExprStmt, environment: MutableEnvironment): KoflObject {
+  private fun evalExprStmt(stmt: Stmt.ExprStmt, environment: MutableEnvironment): KoflObject {
     return eval(stmt.expr, environment)
   }
 
-  private fun eval(stmt: Stmt.ValDecl, environment: MutableEnvironment): KoflObject {
+  private fun evalValDeclStmt(stmt: Stmt.ValDecl, environment: MutableEnvironment): KoflObject {
     environment.define(stmt.name, eval(stmt.value, environment).asKoflValue())
 
     return KoflUnit
   }
 
-  private fun eval(stmt: Stmt.Type.Class, environment: MutableEnvironment): KoflObject {
+  private fun evalTypeClassStmt(stmt: Stmt.Type.Class, environment: MutableEnvironment): KoflObject {
     val struct = KoflStruct(stmt.name.lexeme,
       fields = stmt.fields.mapKeys { (name) -> name.lexeme }.mapValues { (_, value) ->
-        typeEnvironment.findType(value.lexeme)
+        typeEnvironment.lookupType(value.lexeme)
       }
     )
     environment.define(stmt.name, struct.asKoflValue())
@@ -56,13 +58,13 @@ class CodeEvaluator(
     return KoflUnit
   }
 
-  private fun eval(stmt: Stmt.VarDecl, environment: MutableEnvironment): KoflObject {
+  private fun evalVarDeclStmt(stmt: Stmt.VarDecl, environment: MutableEnvironment): KoflObject {
     environment.define(stmt.name, eval(stmt.value, environment).asKoflValue(mutable = true))
 
     return KoflUnit
   }
 
-  private fun eval(stmt: Stmt.Block, environment: MutableEnvironment): KoflObject {
+  private fun evalBlockStmt(stmt: Stmt.Block, environment: MutableEnvironment): KoflObject {
     val localEnvironment = MutableEnvironment(environment)
 
     stmt.body.forEach { lStmt ->
@@ -73,7 +75,7 @@ class CodeEvaluator(
   }
 
   // TODO: add break and continue
-  private fun eval(stmt: Stmt.WhileStmt, environment: MutableEnvironment): KoflObject {
+  private fun evalWhileStmt(stmt: Stmt.WhileStmt, environment: MutableEnvironment): KoflObject {
     val localEnvironment = MutableEnvironment(environment)
 
     while (eval(stmt.condition, localEnvironment).isTruthy()) {
@@ -83,7 +85,7 @@ class CodeEvaluator(
     return KoflUnit
   }
 
-  private fun eval(stmt: Stmt.ReturnStmt, environment: MutableEnvironment): KoflObject {
+  private fun evalReturnStmt(stmt: Stmt.ReturnStmt, environment: MutableEnvironment): KoflObject {
     throw Return(eval(stmt.expr, environment))
   }
 
@@ -91,47 +93,47 @@ class CodeEvaluator(
   // EXPRESSIONS
   //
   override fun eval(expr: Expr, environment: MutableEnvironment): KoflObject = when (expr) {
-    is Expr.Binary -> eval(expr, environment)
-    is Expr.IfExpr -> eval(expr, environment)
-    is Expr.Unary -> eval(expr, environment)
-    is Expr.Grouping -> eval(expr, environment)
-    is Expr.Assign -> eval(expr, environment)
-    is Expr.Literal -> eval(expr)
-    is Expr.Var -> eval(expr, environment)
-    is Expr.Logical -> eval(expr, environment)
-    is Expr.Get -> eval(expr, environment)
-    is Expr.ThisExpr -> eval(expr, environment)
-    is Expr.Set -> eval(expr, environment)
-    is Expr.Call -> eval(expr, environment)
-    is Expr.CommonFunc -> eval(expr, environment)
-    is Expr.ExtensionFunc -> eval(expr, environment)
-    is Expr.AnonymousFunc -> eval(expr)
+    is Expr.Binary -> evalBinaryExpr(expr, environment)
+    is Expr.IfExpr -> evalIfExpr(expr, environment)
+    is Expr.Unary -> evalUnaryExpr(expr, environment)
+    is Expr.Grouping -> evalGroupingExpr(expr, environment)
+    is Expr.Assign -> evalAssignExpr(expr, environment)
+    is Expr.Literal -> evalLiteralExpr(expr)
+    is Expr.Var -> evalVarExpr(expr, environment)
+    is Expr.Logical -> evalLogicalExpr(expr, environment)
+    is Expr.Get -> evalGetExpr(expr, environment)
+    is Expr.ThisExpr -> evalThisExpr(expr, environment)
+    is Expr.Set -> evalSetExpr(expr, environment)
+    is Expr.Call -> evalCallExpr(expr, environment)
+    is Expr.CommonFunc -> evalCommonFuncExpr(expr, environment)
+    is Expr.ExtensionFunc -> evalExtensionFuncExpr(expr, environment)
+    is Expr.AnonymousFunc -> evalAnonymousFuncExpr(expr)
     // do nothing 'cause the env already have the native func, that was made
     // just for tooling be easier
     is Expr.NativeFunc -> KoflUnit
   }
 
-  private fun eval(grouping: Expr.Grouping, environment: MutableEnvironment): KoflObject {
-    return eval(grouping.expr, environment)
+  private fun evalGroupingExpr(expr: Expr.Grouping, environment: MutableEnvironment): KoflObject {
+    return eval(expr.expr, environment)
   }
 
-  private fun eval(expr: Expr.Literal): KoflObject {
+  private fun evalLiteralExpr(expr: Expr.Literal): KoflObject {
     return expr.value.asKoflObject()
   }
 
-  private fun eval(expr: Expr.Var, environment: MutableEnvironment): KoflObject {
+  private fun evalVarExpr(expr: Expr.Var, environment: MutableEnvironment): KoflObject {
     return lookup(expr.name, expr, environment).value
   }
 
-  private fun eval(expr: Expr.ThisExpr, environment: MutableEnvironment): KoflObject {
+  private fun evalThisExpr(expr: Expr.ThisExpr, environment: MutableEnvironment): KoflObject {
     return lookup(expr.keyword, expr, environment).value
   }
 
-  private fun eval(expr: Expr.Assign, environment: MutableEnvironment): KoflObject {
+  private fun evalAssignExpr(expr: Expr.Assign, environment: MutableEnvironment): KoflObject {
     return assign(expr.name, expr.value, environment).asKoflObject()
   }
 
-  private fun eval(expr: Expr.Logical, environment: MutableEnvironment): KoflObject {
+  private fun evalLogicalExpr(expr: Expr.Logical, environment: MutableEnvironment): KoflObject {
     val left = eval(expr.left, environment)
     val right = eval(expr.right, environment)
 
@@ -142,7 +144,7 @@ class CodeEvaluator(
     }
   }
 
-  private fun eval(expr: Expr.IfExpr, environment: MutableEnvironment): KoflObject {
+  private fun evalIfExpr(expr: Expr.IfExpr, environment: MutableEnvironment): KoflObject {
     val localEnvironment = MutableEnvironment(environment)
 
     if (eval(expr.condition, environment) == KoflBoolean.True) {
@@ -156,7 +158,7 @@ class CodeEvaluator(
     return KoflUnit
   }
 
-  private fun eval(expr: Expr.Unary, environment: MutableEnvironment): KoflObject {
+  private fun evalUnaryExpr(expr: Expr.Unary, environment: MutableEnvironment): KoflObject {
     return when (expr.op.type) {
       TokenType.Plus -> +eval(expr.right, environment).asKoflNumber()
       TokenType.Minus -> -eval(expr.right, environment).asKoflNumber()
@@ -166,7 +168,7 @@ class CodeEvaluator(
     }
   }
 
-  private fun eval(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
+  private fun evalGetExpr(expr: Expr.Get, environment: MutableEnvironment): KoflObject {
     return when (val receiver = eval(expr.receiver, environment)) {
       is KoflInstance -> receiver.fields[expr.name.lexeme]?.value
         ?: throw UnresolvedVarException("$receiver.${expr.name.lexeme}")
@@ -174,7 +176,7 @@ class CodeEvaluator(
     }
   }
 
-  private fun eval(expr: Expr.Set, environment: MutableEnvironment): KoflObject {
+  private fun evalSetExpr(expr: Expr.Set, environment: MutableEnvironment): KoflObject {
     when (val receiver = eval(expr.receiver, environment)) {
       is KoflInstance -> receiver.fields[expr.name.lexeme]?.also {
         if (it !is KoflValue.Mutable)
@@ -189,7 +191,7 @@ class CodeEvaluator(
   }
 
 
-  private fun eval(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
+  private fun evalCallExpr(expr: Expr.Call, environment: MutableEnvironment): KoflObject {
     return try {
       val arguments = expr.arguments.mapKeys { (key) ->
         key?.lexeme
@@ -206,7 +208,7 @@ class CodeEvaluator(
     }
   }
 
-  private fun eval(expr: Expr.Binary, environment: MutableEnvironment): KoflObject {
+  private fun evalBinaryExpr(expr: Expr.Binary, environment: MutableEnvironment): KoflObject {
     val left = eval(expr.left, environment)
     val right = eval(expr.right, environment)
 
@@ -241,13 +243,13 @@ class CodeEvaluator(
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun eval(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
+  private fun evalCommonFuncExpr(expr: Expr.CommonFunc, environment: MutableEnvironment): KoflObject {
     val parameters = buildMap<String, KoflType> {
       expr.parameters.forEach { (name, type) ->
-        set(name.lexeme, typeEnvironment.findType(type.lexeme))
+        set(name.lexeme, typeEnvironment.lookupType(type.lexeme))
       }
     }
-    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
+    val returnType = typeEnvironment.lookupTypeOrNull(expr.returnType.toString()) ?: KoflUnit
 
     return environment
       .define(expr.name, Func(parameters, returnType, expr, this).asKoflValue())
@@ -255,27 +257,27 @@ class CodeEvaluator(
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun eval(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
+  private fun evalExtensionFuncExpr(expr: Expr.ExtensionFunc, environment: MutableEnvironment): KoflObject {
 //    val struct = lookup(expr.receiver, expr, environment).value as? KoflStruct ?: throw TypeException("struct type")
     val parameters = buildMap<String, KoflType> {
       expr.parameters.forEach { (name, type) ->
-        set(name.lexeme, typeEnvironment.findType(type.lexeme))
+        set(name.lexeme, typeEnvironment.lookupType(type.lexeme))
       }
     }
-    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
-    val receiver = typeEnvironment.findType(expr.receiver.lexeme)
+    val returnType = typeEnvironment.lookupTypeOrNull(expr.returnType.toString()) ?: KoflUnit
+    val receiver = typeEnvironment.lookupType(expr.receiver.lexeme)
 
     return ExtensionFunc(parameters, returnType, receiver, expr, this)
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun eval(expr: Expr.AnonymousFunc): KoflObject {
+  private fun evalAnonymousFuncExpr(expr: Expr.AnonymousFunc): KoflObject {
     val parameters = buildMap<String, KoflType> {
       expr.parameters.forEach { (name, type) ->
-        set(name.lexeme, typeEnvironment.findType(type.lexeme))
+        set(name.lexeme, typeEnvironment.lookupType(type.lexeme))
       }
     }
-    val returnType = typeEnvironment.findTypeOrNull(expr.returnType.toString()) ?: KoflUnit
+    val returnType = typeEnvironment.lookupTypeOrNull(expr.returnType.toString()) ?: KoflUnit
 
     return AnonymousFunc(parameters, returnType, expr, this)
   }

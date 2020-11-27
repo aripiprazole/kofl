@@ -8,47 +8,42 @@ class TypeEnvironment(private val enclosing: TypeEnvironment? = null) {
   private val variables = mutableMapOf<String, KoflType>()
   private val functions = mutableMapOf<String, List<KoflCallable>>()
 
-  fun defineName(name: String, type: KoflType) {
-    variables[name] = type
+  fun defineType(name: String, type: KoflType) {
+    if (type is KoflCallable)
+      defineFunc(name, type)
+
+    types[name] = type
   }
 
-  fun defineFunction(name: String, type: KoflCallable) {
+  fun defineFunc(name: String, type: KoflCallable) {
     val alreadySigned = functions[name] ?: emptyList()
 
     functions[name] = alreadySigned + type
   }
 
-  fun findFunction(name: String): List<KoflCallable> {
-    return functions[name] ?: emptyList()
+  fun define(name: String, type: KoflType) {
+    variables[name] = type
   }
 
-  fun findName(name: String): KoflType {
+  fun lookup(name: String): KoflType {
     return variables[name]
-      ?: enclosing?.findName(name)
+      ?: enclosing?.lookup(name)
       ?: throw UnresolvedVarException(name)
   }
 
-  fun findTypeOrNull(name: String): KoflType? {
-    return types[name] ?: enclosing?.findTypeOrNull(name)
+  fun lookupFuncOverload(name: String): List<KoflCallable> {
+    return functions[name] ?: emptyList()
   }
 
-  fun findType(name: String): KoflType {
-    return types[name] ?: enclosing?.findType(name) ?: throw UnresolvedVarException(name)
+  fun lookupTypeOrNull(name: String): KoflType? {
+    return types[name] ?: enclosing?.lookupTypeOrNull(name)
   }
 
-  fun defineType(name: String, type: KoflType) {
-    if (type is KoflCallable)
-      defineFunction(name, type)
-    types[name] = type
+  inline fun lookupType(name: String): KoflType {
+    return lookupTypeOrNull(name) ?: throw UnresolvedVarException(name)
   }
 
   override fun toString(): String = (types + variables + functions).toString()
-}
-
-fun globalEnvironment(size: Int, builder: TypeEnvironment.() -> Unit): Stack<TypeEnvironment> {
-  return Stack<TypeEnvironment>(size).apply {
-    push(TypeEnvironment().apply(builder))
-  }
 }
 
 inline fun Collection<KoflCallable>.match(vararg parameters: KoflType, receiver: KoflType? = null): KoflCallable? {

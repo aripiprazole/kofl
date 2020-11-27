@@ -41,7 +41,5 @@ data class Token(
   }
 }
 
-fun String.asToken(): Token = Token(TokenType.Identifier, this, null, -1)
-
 val Token.location: String
   get() = if (type == TokenType.Eof) "EOF" else "line $line"

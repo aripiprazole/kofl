@@ -112,8 +112,3 @@ internal fun repl(debug: Boolean, path: String): Unit = memScoped {
     println()
   }
 }
-
-fun die(msg: String) {
-  printerr(msg + ENTER_CHAR)
-  exit(1)
-}

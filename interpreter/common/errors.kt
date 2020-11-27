@@ -24,7 +24,7 @@ class NameNotFoundException(name: String) :
 class TypeNotFoundException(name: String) :
   CompileTypeException("type $name not found!")
 
-class InvalidDeclaredTypeException(current: String, expected: String) :
+class InvalidDeclaredTypeException(current: Any, expected: Any) :
   CompileTypeException("excepted $expected but got $current")
 
 class InvalidTypeException(value: Any) :

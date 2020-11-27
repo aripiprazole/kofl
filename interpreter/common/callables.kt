@@ -155,15 +155,6 @@ class ExtensionFunc(
   }
 }
 
-val Any.koflType: KoflType
-  get() = when (this) {
-    is String -> KoflString
-    is Double -> KoflDouble
-    is Int -> KoflInt
-    is Boolean -> KoflBoolean
-    else -> throw TypeException(this::class.toString())
-  }
-
 val KoflObject.evaluatedType: KoflType
   get() = when (this) {
     is KoflString -> KoflString

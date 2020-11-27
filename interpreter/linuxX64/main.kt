@@ -31,14 +31,3 @@ internal fun stdlibPath(): String {
 
   return "$homePath/kofl/stdlib/lib.kofl"
 }
-
-fun file(name: String) {
-  val file = fopen(name, "r")
-
-  if (file == null) {
-    printerr("File do not exists")
-    return exit(66)
-  }
-
-  TODO("Handle file not implemented")
-}
