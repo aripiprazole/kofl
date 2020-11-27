@@ -46,9 +46,33 @@ internal fun clearScreen() {
 
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
-internal fun repl(): Unit = memScoped {
+internal fun repl(debug: Boolean): Unit = memScoped {
+  val interpreter = Interpreter(debug).apply {
+    val code = readStdlib()
+
+    eval(code)
+
+    if (debug) {
+      println()
+      println("STDLIB:")
+      println(code)
+      println("END STDLIB.")
+    }
+  }
+
+  fun eval(code: String): Any? {
+    if (code.isEmpty()) return null
+
+    return interpreter.eval(code)
+  }
+
   clearScreen()
 //  enterCBreakMode()
+
+  if(debug) {
+    println()
+    println()
+  }
 
   println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
   println()

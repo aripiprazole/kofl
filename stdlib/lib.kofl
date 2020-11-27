@@ -1,11 +1,11 @@
 // package kofl;
 
-external type class Double;
-external type class Unit;
-external type class Int;
-external type class String;
-external type class Any;
+type class Double;
+type class Unit;
+type class Int;
+type class String;
+type class Any;
 
-external func println(message: Any): Unit;
+external func println(message: String);
 
-external func print(message: Any): Unit;
+external func print(message: String);

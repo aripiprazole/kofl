@@ -6,14 +6,7 @@ import platform.posix.exit
 import platform.posix.fopen
 
 fun main(args: Array<String>) = try {
-  when {
-    args.size > 1 -> {
-      printerr("Usage: kofl [script]")
-      exit(64)
-    }
-    args.size == 1 -> file(args[0])
-    else -> repl()
-  }
+  repl(args.contains("-debug"))
 } catch (exception: ParseException) {
   exception.report()
 
@@ -37,14 +30,4 @@ fun file(name: String) {
   }
 
   TODO("Handle file not implemented")
-}
-
-@ThreadLocal
-private val interpreter = Interpreter(debug = true)
-
-// TODO: typechecking
-fun eval(code: String): Any? {
-  if (code.isEmpty()) return null
-
-  return interpreter.eval(code)
 }

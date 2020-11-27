@@ -18,7 +18,9 @@ class Interpreter(private val debug: Boolean = false) {
 
   fun lex(code: String): List<Token> {
     val scanner = Scanner(code)
-    return scanner.scan()
+    return scanner.scan().also { scanned ->
+      if (debug) println("TOKENS: $scanned")
+    }
   }
 
   fun parse(code: String, repl: Boolean = true): List<Stmt> {
@@ -31,12 +33,15 @@ class Interpreter(private val debug: Boolean = false) {
     val typeEvaluator = TypeChecker(evaluator, typeEnvironment)
     val stmts = parse(code, repl)
 
-    if (repl && debug) println("AST: $stmts")
+    if (repl && debug)
+      println("AST: $stmts")
 
     typeEvaluator.visitStmts(stmts)
     resolver.resolve(stmts)
-    return evaluator.eval(stmts, globalEnvironment).also {
-      if(repl && debug) println("DUMP: $it")
+
+    return evaluator.eval(stmts, globalEnvironment).also { objects ->
+      if (repl && debug)
+        println("DUMP: $objects")
     }
   }
 }

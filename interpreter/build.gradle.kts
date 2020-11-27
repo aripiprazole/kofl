@@ -7,6 +7,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
   mavenCentral()
+  maven("https://repo.binom.pw/releases")
 }
 
 kotlin {
@@ -27,6 +28,7 @@ kotlin {
       kotlin.srcDir("common")
 
       dependencies {
+        api("pw.binom.io:file:0.1.19")
         implementation(project(":frontend"))
         implementation(kotlin("stdlib-common"))
       }
