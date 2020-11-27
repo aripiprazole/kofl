@@ -8,14 +8,12 @@ class TypeChecker(
   private val evaluator: CodeEvaluator,
   private val types: Stack<TypeEnvironment> = Stack(MAX_STACK)
 ) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
-  private var currentFunc: KoflCallable? = null
-
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
-    val expected = types.peek().findName(expr.name.lexeme)
+    val expected = types.peek().lookup(expr.name.lexeme)
     val current = visitExpr(expr.value)
 
     if (expected != current)
-      throw InvalidDeclaredTypeException(current.toString(), expected.toString())
+      throw InvalidDeclaredTypeException(current, expected)
 
     return expected
   }
@@ -33,7 +31,7 @@ class TypeChecker(
       if (left.isNumberType() && right.isNumberType())
         return KoflBoolean
 
-      throw InvalidDeclaredTypeException(right.toString(), KoflInt.toString())
+      throw InvalidDeclaredTypeException(right, KoflInt)
     }
 
     if (left.isAssignableBy(KoflBoolean) && right.isAssignableBy(KoflBoolean))
@@ -63,7 +61,7 @@ class TypeChecker(
       is Int -> KoflInt
       is Boolean -> KoflBoolean
       is KoflInstance -> value.type
-      else -> throw InvalidTypeException(expr.value::class.toString())
+      else -> throw InvalidTypeException(expr.value::class)
     }
   }
 
@@ -72,7 +70,7 @@ class TypeChecker(
 
     if (expr.op.type == TokenType.Bang) {
       if (right.isAssignableBy(KoflBoolean))
-        throw InvalidDeclaredTypeException(right.toString(), KoflBoolean.toString())
+        throw InvalidDeclaredTypeException(right, KoflBoolean)
       else return KoflBoolean
     }
 
@@ -80,14 +78,14 @@ class TypeChecker(
   }
 
   override fun visitVarExpr(expr: Expr.Var): KoflType {
-    return types.peek().findName(expr.name.lexeme)
+    return types.peek().lookup(expr.name.lexeme)
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
     val callee = when (val callee = expr.calle) {
       is Expr.Get -> visitExpr(callee.receiver)
       is Expr.Var -> types.peek()
-        .findFunction(callee.name.lexeme)
+        .lookupFuncOverload(callee.name.lexeme)
         .match(expr.arguments.values.map {
           visitExpr(it)
         }) ?: throw NameNotFoundException(callee.name.lexeme)
@@ -126,7 +124,7 @@ class TypeChecker(
     ).also { func ->
       funcBody(expr.body)
 
-      types.peek().defineFunction(expr.name.lexeme, func)
+      types.peek().defineFunc(expr.name.lexeme, func)
     }
   }
 
@@ -139,7 +137,7 @@ class TypeChecker(
     ).also { func ->
       funcBody(expr.body)
 
-      types.peek().defineFunction(expr.name.lexeme, func)
+      types.peek().defineFunc(expr.name.lexeme, func)
     }
   }
 
@@ -158,9 +156,10 @@ class TypeChecker(
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): KoflType {
     return NativeFunc(
       expr.name.lexeme, funcParameters(expr.parameters),
-      returnType = findTypeOrNull(expr.returnType?.lexeme) ?: KoflUnit
-    ) { _, _ -> KoflUnit }.also { func ->
-      types.peek().defineFunction(expr.name.lexeme, func)
+      returnType = findTypeOrNull(expr.returnType?.lexeme) ?: KoflUnit,
+      nativeCall = { _, _ -> KoflUnit }
+    ).also { func ->
+      types.peek().defineFunc(expr.name.lexeme, func)
     }
   }
 
@@ -168,16 +167,16 @@ class TypeChecker(
     val condition = visitExpr(expr.condition)
     if (condition != KoflBoolean) throw InvalidDeclaredTypeException(condition.toString(), KoflBoolean.toString())
 
-    val thenBranch = expr.thenBranch.also {
-      beginScope()
-      visitStmts(it)
-      endScope()
+    val thenBranch = expr.thenBranch.also { thenStmts ->
+      scoped {
+        visitStmts(thenStmts)
+      }
     }
     val thenLast = thenBranch.lastOrNull()
-    val elseBranch = expr.elseBranch?.also {
-      beginScope()
-      visitStmts(it)
-      endScope()
+    val elseBranch = expr.elseBranch?.also { elseStmts ->
+      scoped {
+        visitStmts(elseStmts)
+      }
     }
     val elseLast = elseBranch?.lastOrNull()
 
@@ -197,13 +196,14 @@ class TypeChecker(
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): KoflType {
     visitExpr(stmt.expr)
+
     return KoflUnit
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): KoflType {
-    beginScope()
-    visitStmts(stmt.body)
-    endScope()
+    scoped {
+      visitStmts(stmt.body)
+    }
 
     return KoflUnit
   }
@@ -211,11 +211,11 @@ class TypeChecker(
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): KoflType {
     val conditionType = visitExpr(stmt.condition)
     if (conditionType != KoflBoolean)
-      throw InvalidDeclaredTypeException(conditionType.toString(), KoflBoolean.toString())
+      throw InvalidDeclaredTypeException(conditionType, KoflBoolean)
 
-    beginScope()
-    visitStmts(stmt.body)
-    endScope()
+    scoped {
+      visitStmts(stmt.body)
+    }
 
     return KoflUnit
   }
@@ -225,39 +225,36 @@ class TypeChecker(
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): KoflType {
-    return varType(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
+    return findVarType(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
   }
 
   override fun visitVarDeclStmt(stmt: Stmt.VarDecl): KoflType {
-    return varType(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
+    return findVarType(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
   }
 
-  private fun varType(name: String, typeName: String?, value: Expr): KoflType {
+  private inline fun findVarType(name: String, typeName: String?, value: Expr): KoflType {
     val actualType = visitExpr(value).also {
-      types.peek().defineName(name, it)
+      types.peek().define(name, it)
     }
 
     return if (typeName == null) actualType
-    else findType(typeName).also {
-      if (!actualType.isAssignableBy(it))
-        throw InvalidDeclaredTypeException(actualType.toString(), it.toString())
+    else findType(typeName).also { foundType ->
+      if (!actualType.isAssignableBy(foundType))
+        throw InvalidDeclaredTypeException(actualType, foundType)
     }
   }
 
 
   private fun funcParameters(parameters: Map<Token, Token>): Map<String, KoflType> {
-    return parameters.mapKeys { (name) -> name.lexeme }
-      .mapValues { (_, typeName) ->
-        findType(typeName.lexeme)
-      }
+    return parameters.mapKeys { (name) -> name.lexeme }.mapValues { (_, typeName) ->
+      findType(typeName.lexeme)
+    }
   }
 
   private fun funcBody(body: List<Stmt>): List<KoflType> {
-    beginScope()
-    val stmts = visitStmts(body)
-    endScope()
-
-    return stmts
+    return scoped {
+      visitStmts(body)
+    }
   }
 
   private fun funcType(returnTypeStr: Token?, body: List<Stmt>): KoflType {
@@ -266,27 +263,12 @@ class TypeChecker(
     val returnStmt = body.filterIsInstance<Stmt.ReturnStmt>().firstOrNull()
     if (returnType != KoflUnit && returnStmt == null) throw MissingReturnException()
 
-    val gotType = returnStmt?.let { visitStmt(it) } ?: KoflUnit
+    val actualType = returnStmt?.let { visitStmt(it) } ?: KoflUnit
 
-    if (gotType != returnType) throw InvalidDeclaredTypeException(gotType.toString(), returnType.toString())
+    if (actualType != returnType)
+      throw InvalidDeclaredTypeException(actualType, returnType)
 
     return returnType
-  }
-
-  private fun findTypeOrNull(typeName: String?): KoflType? {
-    return types.peek().findTypeOrNull(typeName.toString())
-  }
-
-  private fun findType(typeName: String?): KoflType {
-    return findTypeOrNull(typeName) ?: throw TypeNotFoundException(typeName.toString())
-  }
-
-  private fun beginScope() {
-    types.push(TypeEnvironment(types.peek()))
-  }
-
-  private fun endScope() {
-    types.pop()
   }
 
   override fun visitStructTypedefStmt(stmt: Stmt.Type.Class): KoflType {
@@ -295,10 +277,32 @@ class TypeChecker(
         findType(value.lexeme)
       })
 
-    types.peek().run {
-      defineType(stmt.name.lexeme, struct)
-    }
+    types.peek().defineType(stmt.name.lexeme, struct)
 
     return struct
+  }
+
+  private inline fun findTypeOrNull(typeName: String?): KoflType? {
+    return types.peek().lookupTypeOrNull(typeName.toString())
+  }
+
+  private inline fun findType(typeName: String?): KoflType {
+    return findTypeOrNull(typeName) ?: throw TypeNotFoundException(typeName.toString())
+  }
+
+  private inline fun <R> scoped(body: () -> R): R {
+    beginScope()
+    val value = body()
+    endScope()
+
+    return value
+  }
+
+  private inline fun beginScope() {
+    types.push(TypeEnvironment(types.peek()))
+  }
+
+  private inline fun endScope() {
+    types.pop()
   }
 }

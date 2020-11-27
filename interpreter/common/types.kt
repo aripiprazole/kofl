@@ -3,24 +3,16 @@ package com.lorenzoog.kofl.interpreter
 import com.lorenzoog.kofl.frontend.Token
 import kotlin.reflect.KClass
 
-@Suppress("DEPRECATION")
-@RequiresOptIn(level = RequiresOptIn.Level.ERROR)
-@Retention(AnnotationRetention.BINARY)
-@Target(
-  AnnotationTarget.CLASS,
-  AnnotationTarget.ANNOTATION_CLASS,
-  AnnotationTarget.PROPERTY,
-  AnnotationTarget.FIELD,
-  AnnotationTarget.LOCAL_VARIABLE,
-  AnnotationTarget.VALUE_PARAMETER,
-  AnnotationTarget.CONSTRUCTOR,
-  AnnotationTarget.FUNCTION,
-  AnnotationTarget.PROPERTY_GETTER,
-  AnnotationTarget.PROPERTY_SETTER,
-  AnnotationTarget.TYPEALIAS
-)
-@MustBeDocumented
-annotation class KoflResolverInternals
+typealias KoflFunction = (Map<String?, KoflObject>, MutableEnvironment) -> KoflObject
+
+sealed class KoflValue(val type: KoflType) {
+  abstract val value: KoflObject
+
+  class Immutable(override val value: KoflObject, type: KoflType) : KoflValue(type)
+  class Mutable(override var value: KoflObject, type: KoflType) : KoflValue(type)
+
+  override fun toString(): String = value.toString()
+}
 
 interface KoflType
 
@@ -47,13 +39,16 @@ interface MutableEnvironment : Environment {
   operator fun set(name: Token, newValue: KoflObject)
 }
 
-sealed class KoflValue(val type: KoflType) {
-  abstract val value: KoflObject
+abstract class KoflSingleton : KoflObject(), KoflType {
+  abstract override fun toString(): String
+}
 
-  class Immutable(override val value: KoflObject, type: KoflType) : KoflValue(type)
-  class Mutable(override var value: KoflObject, type: KoflType) : KoflValue(type)
-
-  override fun toString(): String = value.toString()
+abstract class KoflPrimitive<T : Any>(
+  private val kClass: KClass<T>,
+  parameterType: KoflType,
+  returnType: KoflType,
+) : KoflCallable(mapOf("raw" to parameterType), returnType), KoflType {
+  override fun toString(): String = "<primitive ${kClass.simpleName}>"
 }
 
 data class KoflStruct(
@@ -73,20 +68,6 @@ data class KoflStruct(
 
   override fun toString(): String = "struct $name"
 }
-
-abstract class KoflSingleton : KoflObject(), KoflType {
-  abstract override fun toString(): String
-}
-
-abstract class KoflPrimitive<T : Any>(
-  private val kClass: KClass<T>,
-  parameterType: KoflType,
-  returnType: KoflType,
-) : KoflCallable(mapOf("raw" to parameterType), returnType), KoflType {
-  override fun toString(): String = "<primitive ${kClass.simpleName}>"
-}
-
-typealias KoflFunction = (Map<String?, KoflObject>, MutableEnvironment) -> KoflObject
 
 abstract class KoflObject internal constructor() {
   abstract override fun toString(): String
@@ -211,6 +192,20 @@ abstract class KoflCallable(
   abstract override fun toString(): String
 }
 
+@Suppress("DEPRECATION")
+@RequiresOptIn(level = RequiresOptIn.Level.ERROR)
+@Retention(AnnotationRetention.BINARY)
+@Target(
+  AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS,
+  AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.LOCAL_VARIABLE,
+  AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.CONSTRUCTOR,
+  AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER,
+  AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.TYPEALIAS
+)
+@MustBeDocumented
+internal annotation class KoflResolverInternals
+
+// UTILS
 inline fun KoflType.isAssignableBy(another: KoflType): Boolean {
   return this == KoflAny || this == another
 }
@@ -219,29 +214,29 @@ inline fun KoflType.isNumberType(): Boolean {
   return this is KoflNumber<*>
 }
 
-operator fun KoflValue.component0(): KoflObject = value
+inline operator fun KoflValue.component0(): KoflObject = value
 
-fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
+inline fun KoflObject.asKoflValue(mutable: Boolean): KoflValue {
   if (mutable) return KoflValue.Mutable(this, type)
 
   return KoflValue.Immutable(this, type)
 }
 
-fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
+inline fun Any.asKoflValue(mutable: Boolean = false): KoflValue {
   return asKoflObject().asKoflValue(mutable)
 }
 
-fun Boolean.asKoflBoolean(): KoflBoolean = when (this) {
+inline fun Boolean.asKoflBoolean(): KoflBoolean = when (this) {
   true -> KoflBoolean.True
   false -> KoflBoolean.False
 }
 
-fun KoflObject.isTruthy(): Boolean = when (this) {
+inline fun KoflObject.isTruthy(): Boolean = when (this) {
   is KoflBoolean.True -> true
   else -> false
 }
 
-fun Any.asKoflObject(): KoflObject = when (this) {
+inline fun Any.asKoflObject(): KoflObject = when (this) {
   Unit -> KoflUnit
   true -> KoflBoolean.True
   false -> KoflBoolean.False
@@ -253,7 +248,7 @@ fun Any.asKoflObject(): KoflObject = when (this) {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
+inline fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
   is KoflAny -> when (any) {
     is Double -> KoflDouble(any) as KoflNumber<Number>
     is Int -> KoflInt(any) as KoflNumber<Number>
@@ -263,7 +258,7 @@ fun KoflObject.asKoflNumber(): KoflNumber<Number> = when (this) {
   else -> throw InvalidDeclaredTypeException(type.toString(), "int or double")
 }
 
-val KoflObject.type: KoflType
+inline val KoflObject.type: KoflType
   get() = when (this) {
     is KoflString -> KoflString
     is KoflBoolean -> KoflBoolean
