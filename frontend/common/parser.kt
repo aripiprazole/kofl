@@ -86,10 +86,11 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     val name = consume(TokenType.Identifier) ?: throw error(expecting("struct name"))
     val parameters: Map<Token, Token> = when {
-      match(TokenType.Semicolon) -> mapOf()
       match(TokenType.LeftParen) -> parameters()
-      else -> throw error(expecting(TokenType.Semicolon))
+      else -> mapOf()
     }
+
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
     return Stmt.Type.Class(name, parameters, line())
   }
@@ -131,8 +132,6 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     while (!check(TokenType.Func) && !check(TokenType.Class) && !check(TokenType.Identifier)) {
       attributes.add(advance().type)
     }
-
-    println("ATTRIBUTES $attributes")
 
     return when {
       match(TokenType.Func) -> funcExpr(FuncType.Func, attributes).let {
