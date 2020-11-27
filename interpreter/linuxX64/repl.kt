@@ -5,6 +5,12 @@ import com.lorenzoog.kofl.frontend.ENTER_CHAR
 import com.lorenzoog.kofl.frontend.KoflException
 import kotlinx.cinterop.*
 import platform.posix.*
+import pw.binom.ByteBufferPool
+import pw.binom.copyTo
+import pw.binom.io.ByteArrayOutput
+import pw.binom.io.file.File
+import pw.binom.io.file.read
+import pw.binom.io.use
 
 // save copy of original termios to apply again to terminal
 // when the user quit the program
@@ -44,17 +50,31 @@ internal fun clearScreen() {
   }
 }
 
+internal fun readStdlib(path: String): String {
+  return ByteBufferPool(10).use { buffer ->
+    val file = File(path)
+
+    val out = ByteArrayOutput()
+
+    file.read().use { channel ->
+      channel.copyTo(out, buffer)
+    }
+
+    out.toByteArray().decodeToString()
+  }
+}
+
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
-internal fun repl(debug: Boolean): Unit = memScoped {
+internal fun repl(debug: Boolean, path: String): Unit = memScoped {
   val interpreter = Interpreter(debug).apply {
-    val code = readStdlib()
+    val code = readStdlib(path)
 
     eval(code)
 
     if (debug) {
       println()
-      println("STDLIB:")
+      println("STDLIB")
       println(code)
       println("END STDLIB.")
     }
@@ -67,7 +87,6 @@ internal fun repl(debug: Boolean): Unit = memScoped {
   }
 
   clearScreen()
-//  enterCBreakMode()
 
   if(debug) {
     println()
