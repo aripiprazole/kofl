@@ -239,7 +239,7 @@ class TypeChecker(
 
     return if (typeName == null) actualType
     else findType(typeName).also {
-      if (actualType.isAssignableBy(it))
+      if (!actualType.isAssignableBy(it))
         throw InvalidDeclaredTypeException(actualType.toString(), it.toString())
     }
   }
