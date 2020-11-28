@@ -1,16 +1,10 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
+
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.ENTER_CHAR
 import com.lorenzoog.kofl.frontend.KoflException
 import kotlinx.cinterop.*
 import platform.posix.*
-import pw.binom.ByteBufferPool
-import pw.binom.copyTo
-import pw.binom.io.ByteArrayOutput
-import pw.binom.io.file.File
-import pw.binom.io.file.read
-import pw.binom.io.use
 
 // save copy of original termios to apply again to terminal
 // when the user quit the program
@@ -50,26 +44,24 @@ internal fun clearScreen() {
   }
 }
 
-internal fun readStdlib(path: String): String {
-  return ByteBufferPool(10).use { buffer ->
-    val file = File(path)
-
-    val out = ByteArrayOutput()
-
-    file.read().use { channel ->
-      channel.copyTo(out, buffer)
-    }
-
-    out.toByteArray().decodeToString()
-  }
-}
-
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
-internal fun repl(debug: Boolean, path: String): Unit = memScoped {
-  val interpreter = Interpreter(debug).apply {
-    val code = readStdlib(path)
+internal fun startRepl(debug: Boolean, path: String): Unit = memScoped {
+  val interpreter = Interpreter(debug)
 
+  fun eval(code: String): Any? {
+    if (code.isEmpty()) return null
+
+    return interpreter.run {
+      val tokens = lex(code)
+      val stmts = parse(tokens)
+      val descriptors = compile(stmts)
+
+      evaluate(descriptors)
+    }
+  }
+
+  readStdlib(path).also { code ->
     eval(code)
 
     if (debug) {
@@ -80,15 +72,9 @@ internal fun repl(debug: Boolean, path: String): Unit = memScoped {
     }
   }
 
-  fun eval(code: String): Any? {
-    if (code.isEmpty()) return null
-
-    return interpreter.eval(code)
-  }
-
   clearScreen()
 
-  if(debug) {
+  if (debug) {
     println()
     println()
   }

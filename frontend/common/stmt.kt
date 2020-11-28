@@ -2,7 +2,7 @@ package com.lorenzoog.kofl.frontend
 
 sealed class Stmt {
   interface Visitor<T> {
-    fun visitStmts(exprs: List<Stmt>) = exprs.map { visitStmt(it) }
+    fun visitStmts(stmts: List<Stmt>) = stmts.map { visitStmt(it) }
     fun visitStmt(expr: Stmt): T = expr.accept(this)
 
     fun visitExprStmt(stmt: ExprStmt): T
@@ -43,7 +43,7 @@ sealed class Stmt {
   }
 
   sealed class Type : Stmt() {
-    data class Class(val name: Token, val fields: Map<Token, Token>, override val line: Int) : Type() {
+    data class Class(val name: Token, val parameters: Map<Token, Token>, override val line: Int) : Type() {
       override fun <T> accept(visitor: Visitor<T>): T = visitor.visitStructTypedefStmt(this)
     }
   }
