@@ -9,15 +9,17 @@ data class TypeContainer(private val enclosing: TypeContainer? = null) {
 
   fun defineType(name: String, type: KoflType) {
     if (type is KoflType.Function)
-      defineFunc(name, type)
+      defineFunction(name, type)
 
     types[name] = type
   }
 
-  fun defineFunc(name: String, type: KoflType.Function) {
+  fun defineFunction(name: String, type: KoflType.Function): Int {
     val alreadySigned = functions[name] ?: emptyList()
 
     functions[name] = alreadySigned + type
+
+    return alreadySigned.indexOf(type)
   }
 
   fun define(name: String, type: KoflType) {
@@ -30,7 +32,7 @@ data class TypeContainer(private val enclosing: TypeContainer? = null) {
       ?: throw KoflCompileTimeException.UnresolvedVar(name)
   }
 
-  fun lookupFuncOverload(name: String): List<KoflType.Function> {
+  fun lookupFunctionOverload(name: String): List<KoflType.Function> {
     return functions[name] ?: emptyList()
   }
 

@@ -43,11 +43,20 @@ class ThisDescriptor : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitThisDescriptor(this)
 }
 
-class SetDescriptor(val receiver: Descriptor, val name: String, val value: Descriptor) : Descriptor() {
+class SetDescriptor(
+  val receiver: Descriptor,
+  val name: String,
+  val value: Descriptor,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetDescriptor(this)
 }
 
-class GetDescriptor(val receiver: Descriptor, val name: String) : Descriptor() {
+class GetDescriptor(
+  val receiver: Descriptor,
+  val name: String,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGetDescriptor(this)
 }
 
@@ -63,19 +72,35 @@ class GlobalVarDescriptor(val name: String) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGlobalVarDescriptor(this)
 }
 
-class UnaryDescriptor(val op: TokenType, val right: Descriptor, val type: KoflType) : Descriptor() {
+class UnaryDescriptor(
+  val op: TokenType,
+  val right: Descriptor,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUnaryDescriptor(this)
 }
 
-class ValDescriptor(val name: String, val value: Descriptor, val type: KoflType) : Descriptor() {
+class ValDescriptor(
+  val name: String,
+  val value: Descriptor,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDescriptor(this)
 }
 
-class VarDescriptor(val name: String, val value: Descriptor, val type: KoflType) : Descriptor() {
+class VarDescriptor(
+  val name: String,
+  val value: Descriptor,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDescriptor(this)
 }
 
-class AssignDescriptor(val name: String, val value: Descriptor, val type: KoflType) : Descriptor() {
+class AssignDescriptor(
+  val name: String,
+  val value: Descriptor,
+  val type: KoflType
+) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAssignDescriptor(this)
 }
 
