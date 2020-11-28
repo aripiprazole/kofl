@@ -1,6 +1,7 @@
 package com.lorenzoog.kofl.interpreter.typing
 
 import com.lorenzoog.kofl.frontend.*
+import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
 
 open class TypeException(message: String) : KoflException("static type", message)
 
@@ -91,31 +92,55 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
+    val callee = findCallCallee(expr)
+
+    return callee.returnType
+  }
+
+  fun findCallOverload(expr: Expr.Call): Collection<KoflType.Callable> {
+    return when (val callee = expr.calle) {
+      is Expr.Get -> visitExpr(callee.receiver).functions[callee.name.lexeme].orEmpty()
+      is Expr.Var -> container.peek().lookupFunctionOverload(callee.name.lexeme)
+      else -> emptyList()
+    }
+  }
+
+  fun findCallCallee(expr: Expr.Call): KoflType.Callable {
     val callee = when (val callee = expr.calle) {
-      is Expr.Get -> visitExpr(callee.receiver)
+      is Expr.Get -> visitExpr(callee.receiver).functions[callee.name.lexeme].orEmpty()
+        .match(expr.arguments.values.map {
+          visitExpr(it)
+        }) ?: throw NameNotFoundException(callee.name.lexeme)
       is Expr.Var -> container.peek()
-        .lookupFuncOverload(callee.name.lexeme)
+        .lookupFunctionOverload(callee.name.lexeme)
         .match(expr.arguments.values.map {
           visitExpr(it)
         }) ?: throw NameNotFoundException(callee.name.lexeme)
       else -> visitExpr(expr.calle)
     }
 
-    if (callee !is KoflType.Function)
-      throw TypeException("expected $callee to be a function")
+    if (callee !is KoflType.Callable)
+      throw TypeException("expected $callee to be callable")
 
-//    if (callee is KoflStruct)
-//      return callee
-
-    return callee.returnType
+    return callee
   }
 
   override fun visitGetExpr(expr: Expr.Get): KoflType {
-    TODO()
+    val receiver = visitExpr(expr.receiver)
+    val name = expr.name.lexeme
+
+    return receiver[name] ?: throw KoflCompileTimeException.UnresolvedVar("$receiver.$name")
   }
 
   override fun visitSetExpr(expr: Expr.Set): KoflType {
-    TODO("Not yet implemented")
+    val receiver = visitExpr(expr.receiver)
+    val value = visitExpr(expr.value)
+    val name = expr.name.lexeme
+    val type = receiver[name] ?: throw KoflCompileTimeException.UnresolvedVar("$receiver.$name")
+
+    if (!type.isAssignableBy(value)) throw InvalidDeclaredTypeException(value, type)
+
+    return type
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): KoflType {
@@ -130,7 +155,7 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
     scoped { visitStmts(expr.body) }
 
     return KoflType.Function(parameters, returnType).also { function ->
-      container.peek().defineFunc(name, function)
+      container.peek().defineFunction(name, function)
     }
   }
 
@@ -143,7 +168,7 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
     scoped { visitStmts(expr.body) }
 
     return KoflType.Function(parameters, returnType, receiver).also { function ->
-      container.peek().defineFunc(name, function)
+      container.peek().defineFunction(name, function)
     }
   }
 
@@ -193,9 +218,7 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): KoflType {
-    scoped {
-      visitStmts(stmt.body)
-    }
+    scoped { visitStmts(stmt.body) }
 
     return KoflType.Primitive.Unit
   }
@@ -205,9 +228,7 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
     if (KoflType.Primitive.Boolean.isAssignableBy(condition))
       throw InvalidDeclaredTypeException(condition, KoflType.Primitive.Boolean)
 
-    scoped {
-      visitStmts(stmt.body)
-    }
+    scoped { visitStmts(stmt.body) }
 
     return KoflType.Primitive.Unit
   }
@@ -224,8 +245,15 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
     return typedVarDeclaration(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.Type.Class): KoflType {
-    TODO()
+  override fun visitClassTypeStmt(stmt: Stmt.Type.Class): KoflType {
+    val name = stmt.name.lexeme
+    val parameters = typedParameters(stmt.parameters)
+    val functions = mutableMapOf<String, List<KoflType.Function>>()
+    val klass = KoflType.Class(parameters, functions)
+
+    container.peek().defineType(name, klass)
+
+    return klass
   }
 
   private fun typedReturn(name: Token?, body: List<Stmt>): KoflType {

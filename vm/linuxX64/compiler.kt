@@ -140,7 +140,7 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     TODO("Not yet implemented")
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.Type.Class) {
+  override fun visitClassTypeStmt(stmt: Stmt.Type.Class) {
     TODO("Not yet implemented")
   }
 

@@ -66,30 +66,43 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
   }
 
   override fun visitCallExpr(expr: Expr.Call): Descriptor {
-    val type = validator.visitCallExpr(expr)
-    val callee = visitExpr(expr.calle)
-    val arguments =
-      expr.arguments.mapKeys { (name) -> name?.lexeme.toString() } // todo find the called method and get parameters' names
-        .mapValues { (_, value) ->
-          visitExpr(value)
-        }
+    val overload = validator.findCallOverload(expr)
+    val type = validator.findCallCallee(expr)
+    val returnType = validator.visitCallExpr(expr)
 
-    return emitter.emit(CallDescriptor(callee, arguments, type))
+    val index = overload.indexOf(type)
+
+    val callee = visitExpr(expr.calle.indexed(index))
+    val arguments = expr.arguments.mapKeys { (name) -> name?.lexeme.toString() }.mapValues { (_, value) ->
+      visitExpr(value)
+    }
+
+    return emitter.emit(CallDescriptor(callee, arguments, returnType))
+  }
+
+  private inline fun Expr.indexed(index: Int): Expr {
+    return when (val callee = this) {
+      is Expr.Get -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
+      is Expr.Var -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
+      else -> callee
+    }
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {
+    val type = validator.visitGetExpr(expr)
     val receiver = visitExpr(expr.receiver)
     val name = expr.name.lexeme
 
-    return emitter.emit(GetDescriptor(receiver, name))
+    return emitter.emit(GetDescriptor(receiver, name, type))
   }
 
   override fun visitSetExpr(expr: Expr.Set): Descriptor {
+    val type = validator.visitSetExpr(expr)
     val receiver = visitExpr(expr.receiver)
     val value = visitExpr(expr.value)
     val name = expr.name.lexeme
 
-    return emitter.emit(SetDescriptor(receiver, name, value))
+    return emitter.emit(SetDescriptor(receiver, name, value, type))
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): Descriptor {
@@ -183,7 +196,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     return VarDescriptor(name, value, type)
   }
 
-  override fun visitStructTypedefStmt(stmt: Stmt.Type.Class): Descriptor {
+  override fun visitClassTypeStmt(stmt: Stmt.Type.Class): Descriptor {
     val name = stmt.name.lexeme
     val inherits = emptyList<KoflType>()
     val parameters = typedParameters(stmt.parameters)

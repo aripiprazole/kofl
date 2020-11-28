@@ -1,21 +1,37 @@
 package com.lorenzoog.kofl.interpreter.typing
 
 sealed class KoflType {
-  class Function(
-    val parameters: Map<String, KoflType>,
-    val returnType: KoflType,
-    val receiver: KoflType? = null
-  ) : KoflType()
+  open val fields: Map<String, KoflType> = mapOf()
+  open val functions: MutableMap<String, List<Function>> = mutableMapOf()
 
-  class Primitive private constructor() : KoflType() {
-    companion object {
-      val Any = Primitive()
-      val String = Primitive()
-      val Unit = Primitive()
-      val Double = Primitive()
-      val Int = Primitive()
-      val Boolean = Primitive()
-    }
+  operator fun get(name: String): KoflType? = fields[name]
+
+  abstract class Callable internal constructor() : KoflType() {
+    abstract val parameters: Map<String, KoflType>
+    abstract val returnType: KoflType
+  }
+
+  class Function(
+    override val parameters: Map<String, KoflType>,
+    override val returnType: KoflType,
+    val receiver: KoflType? = null
+  ) : Callable()
+
+  class Class(
+    override val fields: Map<String, KoflType>,
+    override val functions: MutableMap<String, List<Function>>
+  ) : Callable() {
+    override val parameters: Map<String, KoflType> get() = fields
+    override val returnType: KoflType = this
+  }
+
+  object Primitive {
+    val Any = createClass("Any")
+    val String = createClass("String")
+    val Unit = createClass("Unit")
+    val Double = createClass("Double")
+    val Int = createClass("Int")
+    val Boolean = createClass("Boolean")
   }
 }
 
