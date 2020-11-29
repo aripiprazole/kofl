@@ -92,31 +92,31 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
-    val callee = findCallCallee(expr)
+    val callee = findCallCallee(expr.calle, expr.arguments)
 
     return callee.returnType
   }
 
-  fun findCallOverload(expr: Expr.Call): Collection<KoflType.Callable> {
-    return when (val callee = expr.calle) {
-      is Expr.Get -> visitExpr(callee.receiver).functions[callee.name.lexeme].orEmpty()
-      is Expr.Var -> container.peek().lookupFunctionOverload(callee.name.lexeme)
+  fun findCallOverload(expr: Expr): Collection<KoflType.Callable> {
+    return when (expr) {
+      is Expr.Get -> visitExpr(expr.receiver).functions[expr.name.lexeme].orEmpty()
+      is Expr.Var -> container.peek().lookupFunctionOverload(expr.name.lexeme)
       else -> emptyList()
     }
   }
 
-  fun findCallCallee(expr: Expr.Call): KoflType.Callable {
-    val callee = when (val callee = expr.calle) {
-      is Expr.Get -> visitExpr(callee.receiver).functions[callee.name.lexeme].orEmpty()
-        .match(expr.arguments.values.map {
+  fun findCallCallee(expr: Expr, arguments: Map<Token?, Expr>): KoflType.Callable {
+    val callee = when (expr) {
+      is Expr.Get -> visitExpr(expr.receiver).functions[expr.name.lexeme].orEmpty()
+        .match(arguments.values.map {
           visitExpr(it)
-        }) ?: throw NameNotFoundException(callee.name.lexeme)
+        }) ?: throw NameNotFoundException(expr.name.lexeme)
       is Expr.Var -> container.peek()
-        .lookupFunctionOverload(callee.name.lexeme)
-        .match(expr.arguments.values.map {
+        .lookupFunctionOverload(expr.name.lexeme)
+        .match(arguments.values.map {
           visitExpr(it)
-        }) ?: throw NameNotFoundException(callee.name.lexeme)
-      else -> visitExpr(expr.calle)
+        }) ?: throw NameNotFoundException(expr.name.lexeme)
+      else -> visitExpr(expr)
     }
 
     if (callee !is KoflType.Callable)
