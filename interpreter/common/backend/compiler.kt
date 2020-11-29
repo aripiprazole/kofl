@@ -8,13 +8,18 @@ import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 import com.lorenzoog.kofl.interpreter.typing.TypeValidator
+import com.lorenzoog.kofl.interpreter.typing.match
 
 class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descriptor>, Stmt.Visitor<Descriptor> {
   private val emitter = Emitter()
   private val validator = TypeValidator(container)
 
-  override fun visitStmts(stmts: List<Stmt>): List<Descriptor> {
-    return emitter.compiled()
+  fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
+    visitStmts(stmts.toList())
+
+    return emitter.compiled().map {
+      emitter.emit(it)
+    }
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Descriptor {
@@ -22,7 +27,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val name = expr.name.lexeme
     val value = visitExpr(expr.value)
 
-    return emitter.emit(AssignDescriptor(name, value, type))
+    return AssignDescriptor(name, value, type)
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary): Descriptor {
@@ -31,7 +36,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
 
-    return emitter.emit(BinaryDescriptor(left, op, right, type))
+    return BinaryDescriptor(left, op, right, type)
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): Descriptor {
@@ -40,7 +45,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
 
-    return emitter.emit(LogicalDescriptor(left, op, right, type))
+    return LogicalDescriptor(left, op, right, type)
   }
 
   override fun visitGroupingExpr(expr: Expr.Grouping): Descriptor {
@@ -50,7 +55,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
   override fun visitLiteralExpr(expr: Expr.Literal): Descriptor {
     val type = validator.visitLiteralExpr(expr)
 
-    return emitter.emit(ConstDescriptor(expr.value, type))
+    return ConstDescriptor(expr.value, type)
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): Descriptor {
@@ -58,16 +63,16 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val op = expr.op.type
     val right = visitExpr(expr.right)
 
-    return emitter.emit(UnaryDescriptor(op, right, type))
+    return UnaryDescriptor(op, right, type)
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
-    return emitter.emit(GlobalVarDescriptor(expr.name.lexeme))
+    return GlobalVarDescriptor(expr.name.lexeme)
   }
 
   override fun visitCallExpr(expr: Expr.Call): Descriptor {
-    val overload = validator.findCallOverload(expr)
-    val type = validator.findCallCallee(expr)
+    val overload = validator.findCallOverload(expr.calle)
+    val type = validator.findCallCallee(expr.calle, expr.arguments)
     val returnType = validator.visitCallExpr(expr)
 
     val index = overload.indexOf(type)
@@ -77,15 +82,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
       visitExpr(value)
     }
 
-    return emitter.emit(CallDescriptor(callee, arguments, returnType))
-  }
-
-  private inline fun Expr.indexed(index: Int): Expr {
-    return when (val callee = this) {
-      is Expr.Get -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
-      is Expr.Var -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
-      else -> callee
-    }
+    return CallDescriptor(callee, arguments, returnType)
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {
@@ -93,7 +90,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val receiver = visitExpr(expr.receiver)
     val name = expr.name.lexeme
 
-    return emitter.emit(GetDescriptor(receiver, name, type))
+    return GetDescriptor(receiver, name, type)
   }
 
   override fun visitSetExpr(expr: Expr.Set): Descriptor {
@@ -102,11 +99,11 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val value = visitExpr(expr.value)
     val name = expr.name.lexeme
 
-    return emitter.emit(SetDescriptor(receiver, name, value, type))
+    return SetDescriptor(receiver, name, value, type)
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): Descriptor {
-    return emitter.emit(ThisDescriptor())
+    return ThisDescriptor()
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): Descriptor {
@@ -122,8 +119,10 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val name = expr.name.lexeme
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
+    val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
+    val index = overload.indexOf(overload.match(parameters.values.toList()))
 
-    return FunctionDescriptor(name, parameters, returnType, scoped {
+    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
       visitStmts(expr.body)
     })
   }
@@ -132,8 +131,10 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val name = expr.name.lexeme
     val parameters = mapOf("this" to findType(expr.receiver.lexeme)) + typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
+    val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
+    val index = overload.indexOf(overload.match(parameters.values.toList()))
 
-    return FunctionDescriptor(name, parameters, returnType, scoped {
+    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
       visitStmts(expr.body)
     })
   }
@@ -177,7 +178,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val type = validator.visitReturnStmt(stmt)
     val value = visitExpr(stmt.expr)
 
-    return ReturnDescriptor(value, type)
+    return emitter.emit(ReturnDescriptor(value, type))
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): Descriptor {
@@ -202,6 +203,18 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val parameters = typedParameters(stmt.parameters)
 
     return ClassDescriptor(name, inherits, parameters)
+  }
+
+  private inline fun String.indexed(index: Int): String {
+    return "$this-$index"
+  }
+
+  private inline fun Expr.indexed(index: Int): Expr {
+    return when (val callee = this) {
+      is Expr.Get -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
+      is Expr.Var -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
+      else -> callee
+    }
   }
 
   private inline fun typedReturn(name: Token?): KoflType {

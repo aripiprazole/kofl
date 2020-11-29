@@ -23,7 +23,7 @@ interface Interpreter {
     override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
       return Compiler(Stack<TypeContainer>(MAX_STACK).also { container ->
         container.push(builtinTypeContainer.copy())
-      }).visitStmts(stmts.toList())
+      }).compile(stmts)
     }
 
     override fun evaluate(descriptors: Collection<Descriptor>): Collection<Unit> {
@@ -50,7 +50,7 @@ private class InterpreterImpl(override val repl: Boolean, override val debug: Bo
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return Compiler(container).visitStmts(stmts.toList())
+    return Compiler(container).compile(stmts)
   }
 
   override fun evaluate(descriptors: Collection<Descriptor>): Collection<Unit> {
