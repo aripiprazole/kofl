@@ -11,8 +11,8 @@ const val MAX_STACK = 16
 private val builtinTypeContainer = TypeContainer()
 
 interface Interpreter {
-  val repl: Boolean
   val debug: Boolean
+  val repl: Boolean
 
   fun lex(code: String): Collection<Token>
   fun parse(tokens: Collection<Token>): Collection<Stmt>
@@ -36,7 +36,7 @@ fun Interpreter(debug: Boolean = false, repl: Boolean = false): Interpreter {
   return InterpreterImpl(debug, repl)
 }
 
-private class InterpreterImpl(override val repl: Boolean, override val debug: Boolean) : Interpreter {
+private class InterpreterImpl(override val debug: Boolean, override val repl: Boolean) : Interpreter {
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
