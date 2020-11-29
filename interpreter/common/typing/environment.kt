@@ -2,11 +2,12 @@ package com.lorenzoog.kofl.interpreter.typing
 
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
 
-data class TypeContainer(private val enclosing: TypeContainer? = null) {
-  private val types = mutableMapOf<String, KoflType>()
-  private val variables = mutableMapOf<String, KoflType>()
-  private val functions = mutableMapOf<String, List<KoflType.Function>>()
-
+data class TypeContainer(
+  private val enclosing: TypeContainer? = null,
+  private val types: MutableMap<String, KoflType> = mutableMapOf(),
+  private val variables: MutableMap<String, KoflType> = mutableMapOf(),
+  private val functions: MutableMap<String, List<KoflType.Function>> = mutableMapOf()
+) {
   fun defineType(name: String, type: KoflType) {
     if (type is KoflType.Function)
       defineFunction(name, type)
@@ -33,7 +34,7 @@ data class TypeContainer(private val enclosing: TypeContainer? = null) {
   }
 
   fun lookupFunctionOverload(name: String): List<KoflType.Function> {
-    return functions[name] ?: emptyList()
+    return functions[name] ?: enclosing?.lookupFunctionOverload(name) ?: emptyList()
   }
 
   fun lookupType(name: String): KoflType? {

@@ -47,7 +47,7 @@ internal fun clearScreen() {
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
 internal fun startRepl(debug: Boolean, path: String): Unit = memScoped {
-  val interpreter = Interpreter(debug)
+  val interpreter = Interpreter(debug, repl = true)
 
   fun eval(code: String): Any? {
     if (code.isEmpty()) return null
@@ -65,10 +65,9 @@ internal fun startRepl(debug: Boolean, path: String): Unit = memScoped {
     eval(code)
 
     if (debug) {
-      println()
       println("STDLIB")
       println(code)
-      println("END STDLIB.")
+      println("END STDLIB")
     }
   }
 

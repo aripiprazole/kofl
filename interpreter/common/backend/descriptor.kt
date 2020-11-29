@@ -35,15 +35,17 @@ sealed class Descriptor {
   abstract fun <T> accept(visitor: Visitor<T>): T
 }
 
-class ConstDescriptor(val value: Any, val type: KoflType) : Descriptor() {
+data class ConstDescriptor(val value: Any, val type: KoflType) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitConstDescriptor(this)
 }
 
 class ThisDescriptor : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitThisDescriptor(this)
+
+  override fun toString(): String = "This()"
 }
 
-class SetDescriptor(
+data class SetDescriptor(
   val receiver: Descriptor,
   val name: String,
   val value: Descriptor,
@@ -52,7 +54,7 @@ class SetDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetDescriptor(this)
 }
 
-class GetDescriptor(
+data class GetDescriptor(
   val receiver: Descriptor,
   val name: String,
   val type: KoflType
@@ -60,7 +62,7 @@ class GetDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGetDescriptor(this)
 }
 
-class CallDescriptor(
+data class CallDescriptor(
   val callee: Descriptor,
   val arguments: Map<String, Descriptor>,
   val type: KoflType,
@@ -68,11 +70,11 @@ class CallDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallDescriptor(this)
 }
 
-class GlobalVarDescriptor(val name: String) : Descriptor() {
+data class GlobalVarDescriptor(val name: String) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGlobalVarDescriptor(this)
 }
 
-class UnaryDescriptor(
+data class UnaryDescriptor(
   val op: TokenType,
   val right: Descriptor,
   val type: KoflType
@@ -80,7 +82,7 @@ class UnaryDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUnaryDescriptor(this)
 }
 
-class ValDescriptor(
+data class ValDescriptor(
   val name: String,
   val value: Descriptor,
   val type: KoflType
@@ -88,7 +90,7 @@ class ValDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDescriptor(this)
 }
 
-class VarDescriptor(
+data class VarDescriptor(
   val name: String,
   val value: Descriptor,
   val type: KoflType
@@ -96,7 +98,7 @@ class VarDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDescriptor(this)
 }
 
-class AssignDescriptor(
+data class AssignDescriptor(
   val name: String,
   val value: Descriptor,
   val type: KoflType
@@ -104,19 +106,19 @@ class AssignDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAssignDescriptor(this)
 }
 
-class ReturnDescriptor(val value: Descriptor, val type: KoflType) : Descriptor() {
+data class ReturnDescriptor(val value: Descriptor, val type: KoflType) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitReturnDescriptor(this)
 }
 
-class BlockDescriptor(val body: Collection<Descriptor>) : Descriptor() {
+data class BlockDescriptor(val body: Collection<Descriptor>) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBlockDescriptor(this)
 }
 
-class WhileDescriptor(val condition: Descriptor, val body: Collection<Descriptor>) : Descriptor() {
+data class WhileDescriptor(val condition: Descriptor, val body: Collection<Descriptor>) : Descriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitWhileDescriptor(this)
 }
 
-class IfDescriptor(
+data class IfDescriptor(
   val condition: Descriptor,
   val then: Collection<Descriptor>,
   val orElse: Collection<Descriptor>,
@@ -125,7 +127,7 @@ class IfDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitIfDescriptor(this)
 }
 
-class LogicalDescriptor(
+data class LogicalDescriptor(
   val left: Descriptor,
   val op: TokenType,
   val right: Descriptor,
@@ -134,7 +136,7 @@ class LogicalDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLogicalDescriptor(this)
 }
 
-class BinaryDescriptor(
+data class BinaryDescriptor(
   val left: Descriptor,
   val op: TokenType,
   val right: Descriptor,
@@ -143,7 +145,7 @@ class BinaryDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryDescriptor(this)
 }
 
-class LocalFunctionDescriptor(
+data class LocalFunctionDescriptor(
   val parameters: Map<String, KoflType>,
   val returnType: KoflType,
   val body: Collection<Descriptor>
@@ -151,7 +153,7 @@ class LocalFunctionDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLocalFunctionDescriptor(this)
 }
 
-class NativeFunctionDescriptor(
+data class NativeFunctionDescriptor(
   val name: String,
   val parameters: Map<String, KoflType>,
   val returnType: KoflType,
@@ -160,7 +162,7 @@ class NativeFunctionDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeFunctionDescriptor(this)
 }
 
-class FunctionDescriptor(
+data class FunctionDescriptor(
   val name: String,
   val parameters: Map<String, KoflType>,
   val returnType: KoflType,
@@ -169,7 +171,7 @@ class FunctionDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitFunctionDescriptor(this)
 }
 
-class ClassDescriptor(
+data class ClassDescriptor(
   val name: String,
   val inherits: Collection<KoflType>,
   val fields: Map<String, KoflType>,

@@ -11,13 +11,13 @@ sealed class KoflType {
     abstract val returnType: KoflType
   }
 
-  class Function(
+  data class Function(
     override val parameters: Map<String, KoflType>,
     override val returnType: KoflType,
     val receiver: KoflType? = null
   ) : Callable()
 
-  class Class(
+  data class Class(
     override val fields: Map<String, KoflType>,
     override val functions: MutableMap<String, List<Function>>
   ) : Callable() {
