@@ -15,11 +15,11 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
   private val validator = TypeValidator(container)
 
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    visitStmts(stmts.toList())
-
-    return emitter.compiled().map {
+    visitStmts(stmts.toList()).map {
       emitter.emit(it)
     }
+
+    return emitter.compiled()
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Descriptor {
@@ -121,8 +121,11 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val returnType = typedReturn(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
+    val indexedName = name.indexed(index)
 
-    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
+    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
+
+    return FunctionDescriptor(indexedName, parameters, returnType, scoped {
       visitStmts(expr.body)
     })
   }
@@ -133,8 +136,11 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val returnType = typedReturn(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
+    val indexedName = name.indexed(index)
 
-    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
+    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
+
+    return FunctionDescriptor(indexedName, parameters, returnType, scoped {
       visitStmts(expr.body)
     })
   }
@@ -152,6 +158,11 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val name = expr.name.lexeme
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
+    val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
+    val index = overload.indexOf(overload.match(parameters.values.toList()))
+    val indexedName = name.indexed(index)
+
+    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
     return NativeFunctionDescriptor(name, parameters, returnType, name)
   }
@@ -178,7 +189,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val type = validator.visitReturnStmt(stmt)
     val value = visitExpr(stmt.expr)
 
-    return emitter.emit(ReturnDescriptor(value, type))
+    return ReturnDescriptor(value, type)
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): Descriptor {

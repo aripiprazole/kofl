@@ -5,11 +5,17 @@ import com.lorenzoog.kofl.interpreter.backend.Compiler
 import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.backend.Evaluator
 import com.lorenzoog.kofl.interpreter.backend.KoflObject
+import com.lorenzoog.kofl.interpreter.typing.KoflType
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 
 const val MAX_STACK = 16
 
-private val builtinTypeContainer = TypeContainer()
+private val builtinTypeContainer = TypeContainer().apply {
+  defineType("String", KoflType.Primitive.String)
+  defineType("Int", KoflType.Primitive.Int)
+  defineType("Double", KoflType.Primitive.Double)
+  defineType("Unit", KoflType.Primitive.Unit)
+}
 
 interface Interpreter {
   val debug: Boolean
@@ -22,12 +28,6 @@ interface Interpreter {
   fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject>
 
   companion object : Interpreter by Interpreter() {
-    override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-      return Compiler(Stack<TypeContainer>(MAX_STACK).also { container ->
-        container.push(builtinTypeContainer.copy())
-      }).compile(stmts)
-    }
-
     override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
       return Evaluator().evaluate(descriptors)
     }
@@ -43,18 +43,23 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
     container.push(builtinTypeContainer.copy())
   }
   private val evaluator = Evaluator()
-  private val compiler = Compiler(container)
 
   override fun lex(code: String): Collection<Token> {
-    return Scanner(code).scan()
+    return Scanner(code).scan().also {
+      if (debug) println("SCANNED: $it")
+    }
   }
 
   override fun parse(tokens: Collection<Token>): Collection<Stmt> {
-    return Parser(tokens.toList()).parse()
+    return Parser(tokens.toList(), repl).parse().also {
+      if (debug) println("PARSED: $it")
+    }
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return compiler.compile(stmts)
+    return Compiler(container).compile(stmts).also {
+      if (debug) println("COMPILED: $it")
+    }
   }
 
   override fun evaluate(descriptor: Descriptor): KoflObject {

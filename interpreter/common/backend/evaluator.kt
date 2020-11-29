@@ -63,7 +63,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()
   }
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {
-    val callee = evaluate(descriptor, environment)
+    val callee = evaluate(descriptor.callee, environment)
     val arguments = descriptor.arguments.mapValues { (_, value) ->
       evaluate(value, environment)
     }
