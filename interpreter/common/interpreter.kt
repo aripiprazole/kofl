@@ -4,6 +4,7 @@ import com.lorenzoog.kofl.frontend.*
 import com.lorenzoog.kofl.interpreter.backend.Compiler
 import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.backend.Evaluator
+import com.lorenzoog.kofl.interpreter.backend.KoflObject
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 
 const val MAX_STACK = 16
@@ -17,7 +18,8 @@ interface Interpreter {
   fun lex(code: String): Collection<Token>
   fun parse(tokens: Collection<Token>): Collection<Stmt>
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor>
-  fun evaluate(descriptors: Collection<Descriptor>): Collection<Unit>
+  fun evaluate(descriptor: Descriptor): KoflObject
+  fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject>
 
   companion object : Interpreter by Interpreter() {
     override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
@@ -26,8 +28,8 @@ interface Interpreter {
       }).compile(stmts)
     }
 
-    override fun evaluate(descriptors: Collection<Descriptor>): Collection<Unit> {
-      return Evaluator().visitDescriptors(descriptors)
+    override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
+      return Evaluator().evaluate(descriptors)
     }
   }
 }
@@ -40,6 +42,8 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
+  private val evaluator = Evaluator()
+  private val compiler = Compiler(container)
 
   override fun lex(code: String): Collection<Token> {
     return Scanner(code).scan()
@@ -50,10 +54,14 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return Compiler(container).compile(stmts)
+    return compiler.compile(stmts)
   }
 
-  override fun evaluate(descriptors: Collection<Descriptor>): Collection<Unit> {
-    return Evaluator().visitDescriptors(descriptors)
+  override fun evaluate(descriptor: Descriptor): KoflObject {
+    return evaluator.evaluate(descriptor)
+  }
+
+  override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
+    return evaluator.evaluate(descriptors)
   }
 }
