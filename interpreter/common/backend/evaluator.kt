@@ -2,7 +2,7 @@ package com.lorenzoog.kofl.interpreter.backend
 
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
-class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()) {
+class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   private val globalEnvironment = Environment()
 
   fun evaluate(
@@ -40,11 +40,11 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()
   }
 
   private fun evaluateThisDescriptor(descriptor: ThisDescriptor, environment: Environment): KoflObject {
-    return lookup(descriptor, environment)
+    return lookup(descriptor, environment, "this")
   }
 
   private fun evaluateGlobalVarDescriptor(descriptor: GlobalVarDescriptor, environment: Environment): KoflObject {
-    return lookup(descriptor, environment)
+    return lookup(descriptor, environment, descriptor.name)
   }
 
   private fun evaluateGetDescriptor(descriptor: GetDescriptor, environment: Environment): KoflObject {
@@ -63,7 +63,10 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()
   }
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {
-    val callee = evaluate(descriptor.callee, environment)
+    val callee = when(val callee = descriptor.callee) {
+      is GlobalVarDescriptor -> lookupFunction(callee, environment, callee.name)
+      else -> evaluate(callee, environment)
+    }
     val arguments = descriptor.arguments.mapValues { (_, value) ->
       evaluate(value, environment)
     }
@@ -123,7 +126,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()
   private fun evaluateBinaryDescriptor(descriptor: BinaryDescriptor, environment: Environment): KoflObject {
     val op = descriptor.op
     val left = evaluate(descriptor.left).unwrap()
-    val right = evaluate(descriptor.left).unwrap()
+    val right = evaluate(descriptor.right).unwrap()
 
     TODO("binary descriptor")
   }
@@ -152,10 +155,22 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int> = mutableMapOf()
   }
 
   private fun assign(descriptor: Descriptor, environment: Environment, name: String, value: KoflObject) {
-    TODO("assign")
+    val distance = locals[descriptor] ?: return Unit.also {
+      environment.assign(name, value)
+    }
+
+    environment.ancestor(distance).assign(name, value)
   }
 
-  private fun lookup(descriptor: Descriptor, environment: Environment): KoflObject {
-    TODO("lookup")
+  private fun lookup(descriptor: Descriptor, environment: Environment, name: String): KoflObject {
+    val distance = locals[descriptor] ?: return environment.lookup(name)
+
+    return environment.ancestor(distance).lookup(name)
+  }
+
+  private fun lookupFunction(descriptor: Descriptor, environment: Environment, name: String): KoflObject {
+    val distance = locals[descriptor] ?: return environment.lookupFunction(name)
+
+    return environment.ancestor(distance).lookupFunction(name)
   }
 }

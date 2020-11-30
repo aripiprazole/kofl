@@ -1,17 +1,18 @@
 package com.lorenzoog.kofl.interpreter.typing
 
 import com.lorenzoog.kofl.frontend.*
+import com.lorenzoog.kofl.interpreter.MAX_STACK
+import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
 
 open class TypeException(message: String) : KoflException("static type", message)
 
 class NameNotFoundException(name: String) : TypeException("name $name not found!")
-
 class TypeNotFoundException(name: String) : TypeException("type $name not found!")
-
 class InvalidTypeException(value: Any) : TypeException("invalid kofl type in $value")
-
 class MissingReturnException : TypeException("missing return function body")
+
+class AlreadyResolvedVar(name: String) : TypeException("already resolved var $name")
 
 class InvalidDeclaredTypeException(current: Any, expected: Any) :
   TypeException("excepted $expected but got $current")
@@ -21,7 +22,20 @@ private val BINARY_TOKENS = listOf(
   TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual
 )
 
-class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
+class TypeValidator(
+  private val locals: MutableMap<Descriptor, Int>,
+  private val container: Stack<TypeContainer>
+) : Expr.Visitor<KoflType>, Stmt.Visitor<KoflType> {
+  private val scopes = Stack<MutableMap<String, Boolean>>(MAX_STACK)
+
+  override fun visitStmts(stmts: Collection<Stmt>): List<KoflType> {
+    scopes.push(mutableMapOf())
+    val visitedStmts = super.visitStmts(stmts)
+    scopes.pop()
+
+    return visitedStmts
+  }
+
   override fun visitAssignExpr(expr: Expr.Assign): KoflType {
     val expected = container.peek().lookup(expr.name.lexeme)
     val current = visitExpr(expr.value)
@@ -254,6 +268,37 @@ class TypeValidator(private val container: Stack<TypeContainer>) : Expr.Visitor<
     container.peek().defineType(name, klass)
 
     return klass
+  }
+
+  private fun declare(name: String) {
+    if (container.isEmpty) return
+
+    val scope = scopes.peek()
+    if (scope[name] == null) throw NameNotFoundException(name)
+
+    scope[name] = false
+  }
+
+  private fun define(name: String) {
+    if (container.isEmpty) return
+
+    val scope = scopes.peek()
+    if (scope[name] != null) throw AlreadyResolvedVar(name)
+
+    scope[name] = true
+  }
+
+  /**
+   * Will pass to evaluator the current scope index,
+   * if it is the current, will be 0, if enclosing, 1,
+   * and so on
+   */
+  private fun resolveLocal(descriptor: Descriptor, name: String) {
+    for (index in (container.size - 1) downTo 0) {
+      if (container[index]?.containsName(name) == true) {
+        locals[descriptor] = index - 1 - container.size
+      }
+    }
   }
 
   private fun typedReturn(name: Token?, body: List<Stmt>): KoflType {

@@ -15,14 +15,6 @@ data class Environment(val enclosing: Environment? = null) {
 
   fun child(builder: Environment.() -> Unit): Environment = copy(enclosing = this).apply(builder)
 
-  fun lookupAt(distance: Int, name: String): KoflObject {
-    return ancestor(distance).lookup(name)
-  }
-
-  fun assignAt(distance: Int, name: String, data: KoflObject) {
-    return ancestor(distance).assign(name, data)
-  }
-
   fun declareFunction(name: String, value: KoflObject.Callable) {
     if (functions.containsKey(name))
       throw KoflRuntimeException.AlreadyDeclaredVar(name)
@@ -38,7 +30,11 @@ data class Environment(val enclosing: Environment? = null) {
   }
 
   fun lookup(name: String): KoflObject {
-    return variables[name]?.data ?: throw KoflRuntimeException.AlreadyDeclaredVar(name)
+    return variables[name]?.data ?: throw KoflRuntimeException.UndefinedVar(name)
+  }
+
+  fun lookupFunction(name: String): KoflObject.Callable {
+    return functions[name] ?: throw KoflRuntimeException.UndefinedFunction(name)
   }
 
   fun assign(name: String, reassigned: KoflObject): Unit = when (val value = variables[name]) {
@@ -47,7 +43,7 @@ data class Environment(val enclosing: Environment? = null) {
     is Value.Mutable -> value.data = reassigned
   }
 
-  private fun ancestor(distance: Int): Environment {
+  fun ancestor(distance: Int): Environment {
     var environment = this
 
     for (enclosing in 0..distance) {

@@ -29,7 +29,7 @@ interface Interpreter {
 
   companion object : Interpreter by Interpreter() {
     override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
-      return Evaluator().evaluate(descriptors)
+      return Evaluator(mutableMapOf()).evaluate(descriptors)
     }
   }
 }
@@ -42,7 +42,8 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
-  private val evaluator = Evaluator()
+  private val locals = mutableMapOf<Descriptor, Int>()
+  private val evaluator = Evaluator(locals)
 
   override fun lex(code: String): Collection<Token> {
     return Scanner(code).scan().also {
@@ -57,7 +58,7 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return Compiler(container).compile(stmts).also {
+    return Compiler(locals, container).compile(stmts).also {
       if (debug) println("COMPILED: $it")
     }
   }
