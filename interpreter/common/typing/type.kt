@@ -18,11 +18,14 @@ sealed class KoflType {
   ) : Callable()
 
   data class Class(
+    val name: String?,
     override val fields: Map<String, KoflType>,
     override val functions: MutableMap<String, List<Function>>
   ) : Callable() {
     override val parameters: Map<String, KoflType> get() = fields
     override val returnType: KoflType = this
+
+    override fun toString(): String = "$name(fields=$fields, functions=$functions)"
   }
 
   object Primitive {

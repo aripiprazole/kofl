@@ -9,6 +9,7 @@ fun KoflType.isNumber(): Boolean {
 }
 
 class ClassBuilder internal constructor(
+  private val name: String? = null,
   private val fields: MutableMap<String, KoflType> = mutableMapOf(),
   private val functions: MutableMap<String, List<KoflType.Function>> = mutableMapOf()
 ) {
@@ -22,9 +23,9 @@ class ClassBuilder internal constructor(
     functions[name] = definedFunctions + function
   }
 
-  fun build(): KoflType.Class = KoflType.Class(fields, functions)
+  fun build(): KoflType.Class = KoflType.Class(name, fields, functions)
 }
 
 fun createClass(name: String, builder: ClassBuilder.() -> Unit = {}): KoflType.Class {
-  return ClassBuilder().apply(builder).build()
+  return ClassBuilder(name).apply(builder).build()
 }
