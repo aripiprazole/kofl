@@ -81,11 +81,16 @@ class Compiler(
     val index = overload.indexOf(type)
 
     val callee = visitExpr(expr.calle.indexed(index))
-    val arguments = expr.arguments.mapKeys { (name) -> name?.lexeme.toString() }.mapValues { (_, value) ->
-      visitExpr(value)
-    }
 
-    return CallDescriptor(callee, arguments, returnType)
+    val arguments = expr.arguments.entries.mapIndexed { i, (_, expr) ->
+      val name = type.parameters.entries.toList().getOrNull(i)?.key
+        ?: throw KoflCompileTimeException.UnresolvedParameter(i)
+
+      val descriptor = visitExpr(expr)
+
+      name to descriptor
+    }
+    return CallDescriptor(callee, mapOf(*arguments.toTypedArray()), returnType)
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {
@@ -219,7 +224,7 @@ class Compiler(
   }
 
   private inline fun String.indexed(index: Int): String {
-    val realIndex = if(index < 0) 0 else index
+    val realIndex = if (index < 0) 0 else index
 
     return "$this-$realIndex"
   }
