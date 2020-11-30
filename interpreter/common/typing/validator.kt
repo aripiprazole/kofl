@@ -263,7 +263,7 @@ class TypeValidator(
     val name = stmt.name.lexeme
     val parameters = typedParameters(stmt.parameters)
     val functions = mutableMapOf<String, List<KoflType.Function>>()
-    val klass = KoflType.Class(parameters, functions)
+    val klass = KoflType.Class(name, parameters, functions)
 
     container.peek().defineType(name, klass)
 
