@@ -145,29 +145,34 @@ data class BinaryDescriptor(
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryDescriptor(this)
 }
 
+sealed class CallableDescriptor : Descriptor() {
+  abstract val parameters: Map<String, KoflType>
+  abstract val returnType: KoflType
+}
+
 data class LocalFunctionDescriptor(
-  val parameters: Map<String, KoflType>,
-  val returnType: KoflType,
+  override val parameters: Map<String, KoflType>,
+  override val returnType: KoflType,
   val body: Collection<Descriptor>
-) : Descriptor() {
+) : CallableDescriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLocalFunctionDescriptor(this)
 }
 
 data class NativeFunctionDescriptor(
   val name: String,
-  val parameters: Map<String, KoflType>,
-  val returnType: KoflType,
+  override val parameters: Map<String, KoflType>,
+  override val returnType: KoflType,
   val nativeCall: String
-) : Descriptor() {
+) : CallableDescriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeFunctionDescriptor(this)
 }
 
 data class FunctionDescriptor(
   val name: String,
-  val parameters: Map<String, KoflType>,
-  val returnType: KoflType,
+  override val parameters: Map<String, KoflType>,
+  override val returnType: KoflType,
   val body: Collection<Descriptor>
-) : Descriptor() {
+) : CallableDescriptor() {
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitFunctionDescriptor(this)
 }
 
