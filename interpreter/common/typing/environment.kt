@@ -8,6 +8,12 @@ data class TypeContainer(
   private val variables: MutableMap<String, KoflType> = mutableMapOf(),
   private val functions: MutableMap<String, List<KoflType.Function>> = mutableMapOf()
 ) {
+  fun containsName(name: String): Boolean {
+    return types.containsKey(name)
+      || variables.containsKey(name)
+      || functions.containsKey(name)
+  }
+
   fun defineType(name: String, type: KoflType) {
     if (type is KoflType.Function)
       defineFunction(name, type)

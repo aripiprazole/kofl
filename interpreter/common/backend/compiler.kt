@@ -10,12 +10,15 @@ import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 import com.lorenzoog.kofl.interpreter.typing.TypeValidator
 import com.lorenzoog.kofl.interpreter.typing.match
 
-class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descriptor>, Stmt.Visitor<Descriptor> {
+class Compiler(
+  locals: MutableMap<Descriptor, Int>,
+  private val container: Stack<TypeContainer>
+) : Expr.Visitor<Descriptor>, Stmt.Visitor<Descriptor> {
   private val emitter = Emitter()
-  private val validator = TypeValidator(container)
+  private val validator = TypeValidator(locals, container)
 
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    visitStmts(stmts.toList()).map {
+    visitStmts(stmts).map {
       emitter.emit(it)
     }
 
@@ -136,11 +139,10 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
     val returnType = typedReturn(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
-    val indexedName = name.indexed(index)
 
     container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
-    return FunctionDescriptor(indexedName, parameters, returnType, scoped {
+    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
       visitStmts(expr.body)
     })
   }
@@ -164,7 +166,7 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
 
     container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
-    return NativeFunctionDescriptor(name, parameters, returnType, name)
+    return NativeFunctionDescriptor(indexedName, parameters, returnType, name)
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): Descriptor {
@@ -217,7 +219,9 @@ class Compiler(private val container: Stack<TypeContainer>) : Expr.Visitor<Descr
   }
 
   private inline fun String.indexed(index: Int): String {
-    return "$this-$index"
+    val realIndex = if(index < 0) 0 else index
+
+    return "$this-$realIndex"
   }
 
   private inline fun Expr.indexed(index: Int): Expr {
