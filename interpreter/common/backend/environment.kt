@@ -9,11 +9,14 @@ sealed class Value {
   class Mutable(override var data: KoflObject) : Value()
 }
 
-data class Environment(val enclosing: Environment? = null) {
+data class Environment(private val callSite: Descriptor? = null, val enclosing: Environment? = null) {
   private val variables = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, KoflObject.Callable>()
 
-  fun child(builder: Environment.() -> Unit): Environment = copy(enclosing = this).apply(builder)
+  fun child(callSite: Descriptor, builder: Environment.() -> Unit): Environment = copy(
+    callSite = callSite,
+    enclosing = this
+  ).apply(builder)
 
   fun declareFunction(name: String, value: KoflObject.Callable) {
     if (functions.containsKey(name))
