@@ -14,11 +14,15 @@ sealed class KoflObject {
     internal abstract val descriptor: Descriptor
 
     @PublishedApi
-    internal abstract fun call(arguments: Map<String, KoflObject>, environment: Environment)
+    internal abstract fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment)
 
-    inline operator fun invoke(arguments: Map<String, KoflObject>, environment: Environment): KoflObject {
+    inline operator fun invoke(
+      callSite: Descriptor,
+      arguments: Map<String, KoflObject>,
+      environment: Environment
+    ): KoflObject {
       try {
-        call(arguments, environment)
+        call(callSite, arguments, environment)
       } catch (exception: ReturnException) {
         return exception.value
       }
@@ -27,8 +31,8 @@ sealed class KoflObject {
     }
 
     class Function(private val evaluator: Evaluator, override val descriptor: FunctionDescriptor) : Callable() {
-      override fun call(arguments: Map<String, KoflObject>, environment: Environment) {
-        evaluator.evaluate(descriptor.body, environment.child {
+      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
+        evaluator.evaluate(descriptor.body, environment.child(callSite) {
           arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
         })
       }
@@ -43,7 +47,7 @@ sealed class KoflObject {
     }
 
     class NativeFunction(override val descriptor: NativeFunctionDescriptor) : Callable() {
-      override fun call(arguments: Map<String, KoflObject>, environment: Environment) {
+      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
         TODO("make native call")
       }
 
@@ -61,8 +65,8 @@ sealed class KoflObject {
       private val evaluator: Evaluator,
       override val descriptor: LocalFunctionDescriptor
     ) : Callable() {
-      override fun call(arguments: Map<String, KoflObject>, environment: Environment) {
-        evaluator.evaluate(descriptor.body, environment.child {
+      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
+        evaluator.evaluate(descriptor.body, environment.child(callSite) {
           arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
         })
       }

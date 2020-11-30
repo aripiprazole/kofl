@@ -74,7 +74,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     if (callee !is KoflObject.Callable)
       throw KoflRuntimeException.InvalidType(KoflObject.Callable::class, callee)
 
-    return callee(arguments, environment)
+    return callee(descriptor, arguments, environment)
   }
 
   private fun evaluateValDescriptor(descriptor: ValDescriptor, environment: Environment): KoflObject {
