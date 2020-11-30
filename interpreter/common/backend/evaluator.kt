@@ -1,8 +1,10 @@
 package com.lorenzoog.kofl.interpreter.backend
 
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.runtime.NativeEnvironment
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
+  private val nativeEnvironment = NativeEnvironment()
   private val globalEnvironment = Environment()
 
   fun evaluate(
@@ -135,7 +137,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     descriptor: NativeFunctionDescriptor,
     environment: Environment
   ): KoflObject {
-    return KoflObject.Callable.NativeFunction(descriptor).also { function ->
+    return KoflObject.Callable.NativeFunction(nativeEnvironment, descriptor).also { function ->
       environment.declareFunction(descriptor.name, function)
     }
   }

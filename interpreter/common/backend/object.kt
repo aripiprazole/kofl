@@ -1,6 +1,7 @@
 package com.lorenzoog.kofl.interpreter.backend
 
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.runtime.NativeEnvironment
 
 sealed class KoflObject {
   protected abstract val value: Any
@@ -46,9 +47,13 @@ sealed class KoflObject {
       }
     }
 
-    class NativeFunction(override val descriptor: NativeFunctionDescriptor) : Callable() {
+    class NativeFunction(
+      private val nativeEnvironment: NativeEnvironment,
+      override val descriptor: NativeFunctionDescriptor
+    ) : Callable() {
       override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-        TODO("make native call")
+        // TODO return unit if hasn't returned nothing
+        nativeEnvironment.call(descriptor.nativeCall, callSite, arguments, environment)
       }
 
       override fun toString(): String = buildString {

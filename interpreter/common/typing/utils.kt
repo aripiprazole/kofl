@@ -1,5 +1,9 @@
 package com.lorenzoog.kofl.interpreter.typing
 
+import com.lorenzoog.kofl.interpreter.backend.Descriptor
+import com.lorenzoog.kofl.interpreter.backend.Environment
+import com.lorenzoog.kofl.interpreter.backend.KoflObject
+
 fun KoflType.isAssignableBy(another: KoflType?): Boolean {
   return this == KoflType.Primitive.Any || this == another
 }
