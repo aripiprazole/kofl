@@ -34,11 +34,15 @@ interface Interpreter {
   }
 }
 
-fun Interpreter(debug: Boolean = false, repl: Boolean = false): Interpreter {
-  return InterpreterImpl(debug, repl)
+fun Interpreter(debug: Boolean = false, repl: Boolean = false, consoleSender: ConsoleSender? = null): Interpreter {
+  return InterpreterImpl(debug, repl, consoleSender)
 }
 
-private class InterpreterImpl(override val debug: Boolean, override val repl: Boolean) : Interpreter {
+private class InterpreterImpl(
+  override val debug: Boolean,
+  override val repl: Boolean,
+  private val consoleSender: ConsoleSender?
+) : Interpreter {
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
@@ -47,19 +51,19 @@ private class InterpreterImpl(override val debug: Boolean, override val repl: Bo
 
   override fun lex(code: String): Collection<Token> {
     return Scanner(code).scan().also {
-      if (debug) println("SCANNED: $it")
+      if (debug) consoleSender?.trace("SCANNED: $it")
     }
   }
 
   override fun parse(tokens: Collection<Token>): Collection<Stmt> {
     return Parser(tokens.toList(), repl).parse().also {
-      if (debug) println("PARSED: $it")
+      if (debug) consoleSender?.trace("PARSED: $it")
     }
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
     return Compiler(locals, container).compile(stmts).also {
-      if (debug) println("COMPILED: $it")
+      if (debug) consoleSender?.trace("COMPILED: $it")
     }
   }
 

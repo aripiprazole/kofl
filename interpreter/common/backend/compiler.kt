@@ -4,7 +4,7 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stack
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
-import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
+import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 import com.lorenzoog.kofl.interpreter.typing.TypeValidator
@@ -94,7 +94,7 @@ class Compiler(
 
     val arguments = expr.arguments.entries.mapIndexed { i, (_, expr) ->
       val name = type.parameters.entries.toList().getOrNull(i)?.key
-        ?: throw KoflCompileTimeException.UnresolvedParameter(i)
+        ?: throw KoflCompileException.UnresolvedParameter(i)
 
       val descriptor = visitExpr(expr)
 
@@ -252,7 +252,7 @@ class Compiler(
   }
 
   private inline fun findType(name: String): KoflType {
-    return container.peek().lookupType(name) ?: throw KoflCompileTimeException.UnresolvedVar(name)
+    return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
   private inline fun <R> scoped(body: () -> R): R {

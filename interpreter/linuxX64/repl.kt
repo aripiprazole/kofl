@@ -2,7 +2,6 @@
 
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.frontend.KoflException
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -46,8 +45,8 @@ internal fun clearScreen() {
 
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
-internal fun startRepl(debug: Boolean, path: String): Unit = memScoped {
-  val interpreter = Interpreter(debug, repl = true)
+internal fun startRepl(consoleSender: ConsoleSender, debug: Boolean, path: String): Unit = memScoped {
+  val interpreter = Interpreter(debug, repl = true, consoleSender = consoleSender)
 
   fun eval(code: String): Any? {
     if (code.isEmpty()) return null
@@ -65,35 +64,35 @@ internal fun startRepl(debug: Boolean, path: String): Unit = memScoped {
     eval(code)
 
     if (debug) {
-      println("STDLIB")
-      println(code)
-      println("END STDLIB")
+      consoleSender.trace("STDLIB")
+      consoleSender.trace(code)
+      consoleSender.trace("END STDLIB")
     }
   }
 
   clearScreen()
 
   if (debug) {
-    println()
-    println()
+    consoleSender.println()
+    consoleSender.println()
   }
 
-  println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
-  println()
+  consoleSender.println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
+  consoleSender.println()
 
   while (true) {
-    print("kofl>")
+    consoleSender.print("kofl> ")
 
     when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)
       ":clear" -> clearScreen()
       else -> try {
         eval(line) // interpret and run the provided code in the line
-      } catch (exception: KoflException) {
-        exception.report() // just report error to dont crash program
+      } catch (error: Throwable) {
+        consoleSender.handleError(error)
       }
     }
 
-    println()
+    consoleSender.println()
   }
 }

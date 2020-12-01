@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter.typing
 
-import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileTimeException
+import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 
 data class TypeContainer(
   private val enclosing: TypeContainer? = null,
@@ -36,7 +36,7 @@ data class TypeContainer(
   fun lookup(name: String): KoflType {
     return variables[name]
       ?: enclosing?.lookup(name)
-      ?: throw KoflCompileTimeException.UnresolvedVar(name)
+      ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
   fun lookupFunctionOverload(name: String): List<KoflType.Function> {
