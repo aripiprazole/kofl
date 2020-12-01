@@ -29,7 +29,7 @@ class TypeValidator(
     val current = visitExpr(expr.value)
 
     if (expected != current)
-      throw KoflCompileTimeException.Type.InvalidDeclaredType(current, expected)
+      throw KoflCompileTimeException.UnexpectedType(current, expected)
 
     return expected
   }
@@ -42,13 +42,13 @@ class TypeValidator(
       if (left.isNumber() && right.isNumber())
         return KoflType.Primitive.Boolean
 
-      throw  KoflCompileTimeException.Type.InvalidDeclaredType(right, KoflType.Primitive.Int)
+      throw  KoflCompileTimeException.UnexpectedType(right, KoflType.Primitive.Int)
     }
 
     if (left.isAssignableBy(KoflType.Primitive.Boolean) && right.isAssignableBy(KoflType.Primitive.Boolean))
       return KoflType.Primitive.Boolean
 
-    throw  KoflCompileTimeException.Type.InvalidDeclaredType(left, KoflType.Primitive.Boolean)
+    throw  KoflCompileTimeException.UnexpectedType(left, KoflType.Primitive.Boolean)
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): KoflType {
@@ -56,7 +56,7 @@ class TypeValidator(
     val current = visitExpr(expr.right)
 
     if (expected != current)
-      throw  KoflCompileTimeException.Type.InvalidDeclaredType(current, expected)
+      throw  KoflCompileTimeException.UnexpectedType(current, expected)
 
     return KoflType.Primitive.Boolean
   }
@@ -72,7 +72,7 @@ class TypeValidator(
       is Int -> KoflType.Primitive.Int
       is Boolean -> KoflType.Primitive.Boolean
 //      is KoflInstance -> value.type
-      else -> throw  KoflCompileTimeException.Type.InvalidType(expr.value::class)
+      else -> throw  KoflCompileTimeException.InvalidType(expr.value::class)
     }
   }
 
@@ -81,7 +81,7 @@ class TypeValidator(
 
     if (expr.op.type == TokenType.Bang) {
       if (right.isAssignableBy(KoflType.Primitive.Boolean))
-        throw  KoflCompileTimeException.Type.InvalidDeclaredType(right, KoflType.Primitive.Boolean)
+        throw  KoflCompileTimeException.UnexpectedType(right, KoflType.Primitive.Boolean)
 
       return KoflType.Primitive.Boolean
     }
@@ -112,17 +112,17 @@ class TypeValidator(
       is Expr.Get -> visitExpr(expr.receiver).functions[expr.name.lexeme].orEmpty()
         .match(arguments.values.map {
           visitExpr(it)
-        }) ?: throw  KoflCompileTimeException.Type.NameNotFound(expr.name.lexeme)
+        }) ?: throw  KoflCompileTimeException.UnresolvedVar(expr.name.lexeme)
       is Expr.Var -> container.peek()
         .lookupFunctionOverload(expr.name.lexeme)
         .match(arguments.values.map {
           visitExpr(it)
-        }) ?: throw  KoflCompileTimeException.Type.NameNotFound(expr.name.lexeme)
+        }) ?: throw  KoflCompileTimeException.UnresolvedVar(expr.name.lexeme)
       else -> visitExpr(expr)
     }
 
     if (callee !is KoflType.Callable)
-      throw  KoflCompileTimeException.Type.InvalidDeclaredType(callee, KoflType.Callable::class)
+      throw  KoflCompileTimeException.UnexpectedType(callee, KoflType.Callable::class)
 
     return callee
   }
@@ -140,7 +140,7 @@ class TypeValidator(
     val name = expr.name.lexeme
     val type = receiver[name] ?: throw KoflCompileTimeException.UnresolvedVar("$receiver.$name")
 
-    if (!type.isAssignableBy(value)) throw KoflCompileTimeException.Type.InvalidDeclaredType(value, type)
+    if (!type.isAssignableBy(value)) throw KoflCompileTimeException.UnexpectedType(value, type)
 
     return type
   }
@@ -193,7 +193,7 @@ class TypeValidator(
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
     val condition = visitExpr(expr.condition)
     if (KoflType.Primitive.Boolean.isAssignableBy(condition))
-      throw KoflCompileTimeException.Type.InvalidDeclaredType(condition, KoflType.Primitive.Boolean)
+      throw KoflCompileTimeException.UnexpectedType(condition, KoflType.Primitive.Boolean)
 
     val thenBranch = expr.thenBranch.also { thenStmts -> scoped { visitStmts(thenStmts) } }
     val thenLast = thenBranch.lastOrNull()
@@ -205,7 +205,8 @@ class TypeValidator(
       val then = visitExpr((thenLast as? Stmt.ExprStmt)?.expr ?: return KoflType.Primitive.Unit)
       val orElse = visitExpr((elseLast as? Stmt.ExprStmt)?.expr ?: return KoflType.Primitive.Unit)
 
-      if (then.isAssignableBy(orElse)) throw KoflCompileTimeException.Type.InvalidDeclaredType(orElse, then)
+      if (then.isAssignableBy(orElse))
+        throw KoflCompileTimeException.UnexpectedType(orElse, then)
 
       return then
     }
@@ -228,7 +229,7 @@ class TypeValidator(
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): KoflType {
     val condition = visitExpr(stmt.condition)
     if (KoflType.Primitive.Boolean.isAssignableBy(condition))
-      throw KoflCompileTimeException.Type.InvalidDeclaredType(condition, KoflType.Primitive.Boolean)
+      throw KoflCompileTimeException.UnexpectedType(condition, KoflType.Primitive.Boolean)
 
     scoped { visitStmts(stmt.body) }
 
@@ -262,7 +263,7 @@ class TypeValidator(
     if (container.isEmpty) return
 
     val scope = scopes.peek()
-    if (scope[name] == null) throw KoflCompileTimeException.Type.NameNotFound(name)
+    if (scope[name] == null) throw KoflCompileTimeException.UnresolvedVar(name)
 
     scope[name] = false
   }
@@ -271,7 +272,7 @@ class TypeValidator(
     if (container.isEmpty) return
 
     val scope = scopes.peek()
-    if (scope[name] != null) throw KoflCompileTimeException.Type.AlreadyResolvedVar(name)
+    if (scope[name] != null) throw KoflCompileTimeException.AlreadyResolvedVar(name)
 
     scope[name] = true
   }
@@ -299,7 +300,7 @@ class TypeValidator(
     val actualType = stmt?.let { visitStmt(it) } ?: KoflType.Primitive.Unit
 
     if (actualType != type)
-      throw KoflCompileTimeException.Type.InvalidDeclaredType(actualType, type)
+      throw KoflCompileTimeException.UnexpectedType(actualType, type)
 
     return type
   }
@@ -311,7 +312,7 @@ class TypeValidator(
 
     val found = findType(typeName)
     if (!actual.isAssignableBy(found))
-      throw KoflCompileTimeException.Type.InvalidDeclaredType(actual, found)
+      throw KoflCompileTimeException.UnexpectedType(actual, found)
 
     return found
   }
@@ -331,7 +332,7 @@ class TypeValidator(
   }
 
   private inline fun findType(name: String): KoflType {
-    return container.peek().lookupType(name) ?: throw KoflCompileTimeException.Type.TypeNotFound(name)
+    return container.peek().lookupType(name) ?: throw KoflCompileTimeException.UnresolvedVar(name)
   }
 
   private inline fun <R> scoped(body: () -> R): R {
