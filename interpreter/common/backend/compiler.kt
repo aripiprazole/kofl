@@ -70,6 +70,7 @@ class Compiler(
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
+    println("VAR $expr")
     validator.visitVarExpr(expr)
 
     return GlobalVarDescriptor(expr.name.lexeme)
@@ -82,7 +83,14 @@ class Compiler(
 
     val index = overload.indexOf(type)
 
-    val callee = visitExpr(expr.calle.indexed(index))
+    val callee = when (val callee = expr.calle) {
+      is Expr.Var -> GlobalVarDescriptor("${callee.name.lexeme}-$index")
+//      TODO
+//      is Expr.Get -> {
+//        GetDescriptor(visitExpr(callee.receiver), callee.name.lexeme)
+//      }
+      else -> visitExpr(expr.calle)
+    }
 
     val arguments = expr.arguments.entries.mapIndexed { i, (_, expr) ->
       val name = type.parameters.entries.toList().getOrNull(i)?.key
@@ -229,14 +237,6 @@ class Compiler(
     val realIndex = if (index < 0) 0 else index
 
     return "$this-$realIndex"
-  }
-
-  private inline fun Expr.indexed(index: Int): Expr {
-    return when (val callee = this) {
-      is Expr.Get -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
-      is Expr.Var -> callee.copy(name = callee.name.copy(lexeme = "${callee.name.lexeme}-$index"))
-      else -> callee
-    }
   }
 
   private inline fun typedReturn(name: Token?): KoflType {

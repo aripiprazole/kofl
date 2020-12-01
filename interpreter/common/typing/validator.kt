@@ -94,9 +94,7 @@ class TypeValidator(
   }
 
   override fun visitCallExpr(expr: Expr.Call): KoflType {
-    val callee = findCallCallee(expr.calle, expr.arguments)
-
-    return callee.returnType
+    return findCallCallee(expr.calle, expr.arguments).returnType
   }
 
   fun findCallOverload(expr: Expr): Collection<KoflType.Callable> {
