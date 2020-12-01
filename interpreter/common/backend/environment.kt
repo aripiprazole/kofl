@@ -33,11 +33,15 @@ data class Environment(val callSite: Descriptor? = null, val enclosing: Environm
   }
 
   fun lookup(name: String): KoflObject {
-    return variables[name]?.data ?: throw KoflRuntimeException.UndefinedVar(name, this)
+    return variables[name]?.data
+      ?: enclosing?.lookup(name)
+      ?: throw KoflRuntimeException.UndefinedVar(name, this)
   }
 
   fun lookupFunction(name: String): KoflObject.Callable {
-    return functions[name] ?: throw KoflRuntimeException.UndefinedFunction(name, this)
+    return functions[name]
+      ?: enclosing?.lookupFunction(name)
+      ?: throw KoflRuntimeException.UndefinedFunction(name, this)
   }
 
   fun assign(name: String, reassigned: KoflObject): Unit = when (val value = variables[name]) {
