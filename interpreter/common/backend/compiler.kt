@@ -70,6 +70,8 @@ class Compiler(
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
+    validator.visitVarExpr(expr)
+
     return GlobalVarDescriptor(expr.name.lexeme)
   }
 
