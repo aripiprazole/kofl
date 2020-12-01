@@ -1,6 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.KoflException
+import com.lorenzoog.kofl.interpreter.backend.Environment
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
@@ -45,6 +46,9 @@ class ErrorHandlerImpl : ConsoleSender {
 
   override fun reportRuntimeError(error: KoflRuntimeException) {
     println(WARN_COLOR + "[runtime error] ${error.message}")
+    error.environment.stackTrace().forEach { location ->
+      println("$WARN_COLOR  $location")
+    }
   }
 
   override fun reportCompileError(error: KoflCompileException) {
@@ -58,5 +62,18 @@ class ErrorHandlerImpl : ConsoleSender {
   override fun reportNativeError(error: Throwable) {
     println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
     println(error.stackTraceToString())
+  }
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+fun Environment.stackTrace(): List<String> = buildList {
+  var environment = this@stackTrace.also { (callSite) ->
+    add("at $callSite.")
+  }
+
+  while (environment.enclosing != null) {
+    environment = (environment.enclosing ?: continue).also { (callSite) ->
+      add("at $callSite.")
+    }
   }
 }

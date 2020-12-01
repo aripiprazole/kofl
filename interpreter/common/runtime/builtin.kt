@@ -15,7 +15,7 @@ class NativeEnvironment {
   )
 
   fun call(nativeCall: String, callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-    val call = functions[nativeCall] ?: throw KoflRuntimeException.UndefinedFunction(nativeCall)
+    val call = functions[nativeCall] ?: throw KoflRuntimeException.UndefinedFunction(nativeCall, environment)
 
     call(callSite, arguments, environment)
   }

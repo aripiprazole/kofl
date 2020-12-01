@@ -9,7 +9,7 @@ sealed class Value {
   class Mutable(override var data: KoflObject) : Value()
 }
 
-data class Environment(private val callSite: Descriptor? = null, val enclosing: Environment? = null) {
+data class Environment(val callSite: Descriptor? = null, val enclosing: Environment? = null) {
   private val variables = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, KoflObject.Callable>()
 
@@ -20,29 +20,29 @@ data class Environment(private val callSite: Descriptor? = null, val enclosing: 
 
   fun declareFunction(name: String, value: KoflObject.Callable) {
     if (functions.containsKey(name))
-      throw KoflRuntimeException.AlreadyDeclaredVar(name)
+      throw KoflRuntimeException.AlreadyDeclaredVar(name, this)
 
     functions[name] = value
   }
 
   fun declare(name: String, value: Value) {
     if (variables.containsKey(name))
-      throw KoflRuntimeException.AlreadyDeclaredVar(name)
+      throw KoflRuntimeException.AlreadyDeclaredVar(name, this)
 
     variables[name] = value
   }
 
   fun lookup(name: String): KoflObject {
-    return variables[name]?.data ?: throw KoflRuntimeException.UndefinedVar(name)
+    return variables[name]?.data ?: throw KoflRuntimeException.UndefinedVar(name, this)
   }
 
   fun lookupFunction(name: String): KoflObject.Callable {
-    return functions[name] ?: throw KoflRuntimeException.UndefinedFunction(name)
+    return functions[name] ?: throw KoflRuntimeException.UndefinedFunction(name, this)
   }
 
   fun assign(name: String, reassigned: KoflObject): Unit = when (val value = variables[name]) {
-    null -> throw KoflRuntimeException.UndefinedVar(name)
-    is Value.Immutable -> throw KoflRuntimeException.ReassignImmutableVar(name)
+    null -> throw KoflRuntimeException.UndefinedVar(name, this)
+    is Value.Immutable -> throw KoflRuntimeException.ReassignImmutableVar(name, this)
     is Value.Mutable -> value.data = reassigned
   }
 

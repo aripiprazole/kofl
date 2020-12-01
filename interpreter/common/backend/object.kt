@@ -28,7 +28,7 @@ sealed class KoflObject {
         return exception.value
       }
 
-      throw KoflRuntimeException.MissingReturn(descriptor)
+      throw KoflRuntimeException.MissingReturn(descriptor, environment)
     }
 
     class Function(private val evaluator: Evaluator, override val descriptor: FunctionDescriptor) : Callable() {
