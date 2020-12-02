@@ -18,6 +18,11 @@ data class TypeContainer(
     if (type is KoflType.Function)
       defineFunction(name, type)
 
+    if (type is KoflType.Class)
+      type.constructors.forEach {
+        defineFunction(name, it)
+      }
+
     types[name] = type
   }
 

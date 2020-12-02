@@ -1,24 +1,34 @@
 package com.lorenzoog.kofl.interpreter.typing
 
-import com.lorenzoog.kofl.interpreter.backend.Descriptor
-import com.lorenzoog.kofl.interpreter.backend.Environment
-import com.lorenzoog.kofl.interpreter.backend.KoflObject
-
 fun KoflType.isAssignableBy(another: KoflType?): Boolean {
-  return this == KoflType.Primitive.Any || this == another
+  return this == KoflType.Any || this == another
 }
 
 fun KoflType.isNumber(): Boolean {
-  return this == KoflType.Primitive.Int || this == KoflType.Primitive.Double
+  return this == KoflType.Int || this == KoflType.Primitive.Double
 }
 
-class ClassBuilder internal constructor(
-  private val name: String? = null,
-  private val fields: MutableMap<String, KoflType> = mutableMapOf(),
-  private val functions: MutableMap<String, List<KoflType.Function>> = mutableMapOf()
-) {
+class ClassDefinitionBuilder internal constructor(name: String? = null) {
+  private val constructors = mutableListOf<KoflType.Function>()
+  private val fields = mutableMapOf<String, KoflType>()
+  private val functions = mutableMapOf<String, List<KoflType.Function>>()
+
+  private val classDefinition = KoflType.Class(name, constructors, fields, functions)
+
+  fun constructor(vararg parameters: Pair<String, KoflType>) {
+    constructors += KoflType.Function(mapOf(*parameters), classDefinition)
+  }
+
+  fun constructor(parameters: Map<String, KoflType>) {
+    constructors += KoflType.Function(parameters, classDefinition)
+  }
+
   fun parameter(name: String, type: KoflType) {
     fields[name] = type
+  }
+
+  fun function(name: String, newFunctions: List<KoflType.Function>) {
+    functions[name] = newFunctions
   }
 
   fun function(name: String, function: KoflType.Function) {
@@ -27,9 +37,9 @@ class ClassBuilder internal constructor(
     functions[name] = definedFunctions + function
   }
 
-  fun build(): KoflType.Class = KoflType.Class(name, fields, functions)
+  fun build(): KoflType.Class = classDefinition
 }
 
-fun createClass(name: String, builder: ClassBuilder.() -> Unit = {}): KoflType.Class {
-  return ClassBuilder(name).apply(builder).build()
+fun createClassDefinition(name: String, builder: ClassDefinitionBuilder.() -> Unit = {}): KoflType.Class {
+  return ClassDefinitionBuilder(name).apply(builder).build()
 }

@@ -19,6 +19,7 @@ sealed class KoflType {
 
   data class Class(
     val name: String?,
+    val constructors: List<Function>,
     override val fields: Map<String, KoflType>,
     override val functions: MutableMap<String, List<Function>>
   ) : Callable() {
@@ -28,13 +29,15 @@ sealed class KoflType {
     override fun toString(): String = "$name(fields=$fields, functions=$functions)"
   }
 
-  object Primitive {
-    val Any = createClass("Any")
-    val String = createClass("String")
-    val Unit = createClass("Unit")
-    val Double = createClass("Double")
-    val Int = createClass("Int")
-    val Boolean = createClass("Boolean")
+  companion object Primitive {
+    val Any = createClassDefinition("Any")
+    val String = createClassDefinition("String") {
+      constructor("any" to Any)
+    }
+    val Unit = createClassDefinition("Unit")
+    val Double = createClassDefinition("Double")
+    val Int = createClassDefinition("Int")
+    val Boolean = createClassDefinition("Boolean")
   }
 }
 

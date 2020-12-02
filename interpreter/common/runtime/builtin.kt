@@ -1,22 +1,17 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.backend.Environment
-import com.lorenzoog.kofl.interpreter.backend.KoflObject
-import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.typing.KoflType
 
-typealias KoflNativeCallable = (callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) -> Unit
+class Builtin internal constructor(environment: Environment) {
+  val String = environment.createClass(KoflType.String) {
+    constructor(mapOf("any" to KoflType.Any)) { _, arguments, _ ->
+      val any by arguments
 
-class NativeEnvironment {
-  private val functions = mapOf<String, KoflNativeCallable>(
-    "println" to { _, arguments, _ ->
-      println(arguments.entries.first().value.unwrap())
+      any.map { it.toString() }
     }
-  )
-
-  fun call(nativeCall: String, callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-    val call = functions[nativeCall] ?: throw KoflRuntimeException.UndefinedFunction(nativeCall, environment)
-
-    call(callSite, arguments, environment)
   }
+  val Int = environment.createClass(KoflType.Int)
+  val Double = environment.createClass(KoflType.Double)
+  val Unit = environment.createSingleton(KoflType.Unit)
 }
