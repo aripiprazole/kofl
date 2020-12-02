@@ -61,7 +61,7 @@ class ErrorHandlerImpl : ConsoleSender {
 
   override fun reportNativeError(error: Throwable) {
     println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
-    println(error.stackTraceToString())
+    println(ERROR_COLOR + error.stackTraceToString())
   }
 }
 
