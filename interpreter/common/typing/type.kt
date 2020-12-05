@@ -26,7 +26,7 @@ sealed class KoflType {
     override val parameters: Map<String, KoflType> get() = fields
     override val returnType: KoflType = this
 
-    override fun toString(): String = "$name(fields=$fields, functions=$functions)"
+    override fun toString(): String = "$name"
   }
 
   companion object Primitive {
