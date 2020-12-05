@@ -3,8 +3,8 @@ package com.lorenzoog.kofl.interpreter
 import com.lorenzoog.kofl.frontend.*
 import com.lorenzoog.kofl.interpreter.backend.Compiler
 import com.lorenzoog.kofl.interpreter.backend.Descriptor
-import com.lorenzoog.kofl.interpreter.backend.Evaluator
-import com.lorenzoog.kofl.interpreter.backend.KoflObject
+import com.lorenzoog.kofl.interpreter.runtime.Evaluator
+import com.lorenzoog.kofl.interpreter.runtime.KoflObject
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 

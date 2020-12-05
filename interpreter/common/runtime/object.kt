@@ -1,8 +1,7 @@
-package com.lorenzoog.kofl.interpreter.backend
+package com.lorenzoog.kofl.interpreter.runtime
 
+import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
-import com.lorenzoog.kofl.interpreter.runtime.KoflNativeCallable
-import com.lorenzoog.kofl.interpreter.runtime.NativeEnvironment
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 
 sealed class KoflObject {
@@ -22,6 +21,7 @@ sealed class KoflObject {
       val definition: KoflType.Class,
       val constructors: List<Callable>,
       val functions: Map<String, List<Callable>>,
+      val inherits: Collection<KoflType> = listOf()
     ) : Class() {
       override val value: Any get() = definition
     }
@@ -38,7 +38,7 @@ sealed class KoflObject {
     override val value get() = ::call
 
     @PublishedApi
-    internal abstract val descriptor: Descriptor
+    internal abstract val descriptor: CallableDescriptor
 
     @PublishedApi
     internal abstract fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment)
@@ -96,7 +96,6 @@ sealed class KoflObject {
       override val descriptor: NativeFunctionDescriptor
     ) : Callable() {
       override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-        // TODO return unit if hasn't returned nothing
         nativeEnvironment.call(descriptor.nativeCall, callSite, arguments, environment)
       }
 

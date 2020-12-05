@@ -1,6 +1,7 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.interpreter.backend.*
+import com.lorenzoog.kofl.interpreter.backend.CallableDescriptor
+import com.lorenzoog.kofl.interpreter.backend.NativeFunctionDescriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 
@@ -27,11 +28,13 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
     constructors += KoflObject.Callable.LocalNativeFunction(function, descriptor)
   }
 
-  fun build(): KoflObject.Class.KoflClass = KoflObject.Class.KoflClass(definition, constructors, functions)
-}
+  fun build(): KoflObject.Class.KoflClass {
+    if (constructors.isEmpty()) {
+      constructor(mapOf(), EMPTY_CONSTRUCTOR)
+    }
 
-class SingletonBuilder internal constructor() {
-
+    return KoflObject.Class.KoflClass(definition, constructors, functions)
+  }
 }
 
 fun Environment.createClass(
@@ -48,6 +51,15 @@ fun Environment.createClass(
   return koflClass
 }
 
-fun Environment.createSingleton(definition: KoflType.Class, builder: ClassBuilder.() -> Unit = {}) {
+fun Environment.createSingleton(definition: KoflType.Class, builder: ClassBuilder.() -> Unit = {}): KoflObject {
+  val name = definition.name ?: throw KoflCompileException.ClassMissingName(definition)
+  val koflClass = createClass(definition, builder)
 
+  val createInstance = koflClass.constructors.first { callable -> callable.descriptor.parameters.isEmpty() }
+
+  return createInstance(createInstance.descriptor, mapOf(), this).also { instance ->
+    declare(name, Value.Immutable(instance))
+
+    println("$this")
+  }
 }

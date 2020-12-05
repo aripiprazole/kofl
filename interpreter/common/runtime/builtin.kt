@@ -1,9 +1,10 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.interpreter.backend.Environment
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 
-class Builtin internal constructor(environment: Environment) {
+class Builtin internal constructor(private val evaluator: Evaluator) {
+  private inline val environment get() = evaluator.globalEnvironment
+
   val string = environment.createClass(KoflType.String) {
     constructor(mapOf("any" to KoflType.Any)) { _, arguments, _ ->
       val any by arguments
