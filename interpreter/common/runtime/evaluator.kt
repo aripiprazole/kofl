@@ -4,13 +4,20 @@ import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
+  private var isInitialized = false
+
   private val nativeEnvironment = NativeEnvironment()
-  internal val globalEnvironment = Environment()
+  private val globalEnvironment = Environment()
 
   fun evaluate(
-    descriptors: Collection<Descriptor>, environment: Environment = globalEnvironment
+    descriptors: Collection<Descriptor>,
+    environment: Environment = globalEnvironment
   ): Collection<KoflObject> {
-    Builtin(this)
+    if(isInitialized) {
+      Builtin(globalEnvironment).setup()
+
+      isInitialized = true
+    }
 
     return descriptors.map {
       evaluate(it, environment)

@@ -11,10 +11,10 @@ import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 const val MAX_STACK = 16
 
 private val builtinTypeContainer = TypeContainer().apply {
-  defineType("String", KoflType.Primitive.String)
-  defineType("Int", KoflType.Primitive.Int)
-  defineType("Double", KoflType.Primitive.Double)
-  defineType("Unit", KoflType.Primitive.Unit)
+  defineType("String", KoflType.String)
+  defineType("Int", KoflType.Int)
+  defineType("Double", KoflType.Double)
+  defineType("Unit", KoflType.Unit)
 }
 
 interface Interpreter {
