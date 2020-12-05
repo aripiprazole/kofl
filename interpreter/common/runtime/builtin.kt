@@ -6,7 +6,7 @@ class Builtin internal constructor(private val evaluator: Evaluator) {
   private inline val environment get() = evaluator.globalEnvironment
 
   val string = environment.createClass(KoflType.String) {
-    constructor(mapOf("any" to KoflType.Any)) { _, arguments, _ ->
+    constructor("any" to KoflType.Any) { _, arguments, _ ->
       val any by arguments
 
       any.map { it.toString() }

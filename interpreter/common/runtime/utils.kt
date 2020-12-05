@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.interpreter.backend.CallableDescriptor
+import com.lorenzoog.kofl.interpreter.backend.FunctionDescriptor
 import com.lorenzoog.kofl.interpreter.backend.NativeFunctionDescriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
@@ -10,11 +10,18 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
   private val fields = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, List<KoflObject.Callable>>()
 
-  fun function(descriptor: CallableDescriptor, function: KoflObject.Callable) {
+  fun function(descriptor: FunctionDescriptor, function: KoflObject.Callable) {
+    val foundFunctions = functions[descriptor.name] ?: emptyList()
+
+    functions[descriptor.name] = foundFunctions + function
   }
 
   fun constructor(function: KoflObject.Callable) {
     constructors += function
+  }
+
+  inline fun constructor(vararg parameters: Pair<String, KoflType>, noinline function: KoflNativeCallable) {
+    constructor(mapOf(*parameters), function)
   }
 
   fun constructor(parameters: Map<String, KoflType>, function: KoflNativeCallable) {
