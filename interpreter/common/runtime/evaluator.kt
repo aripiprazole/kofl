@@ -1,17 +1,20 @@
-package com.lorenzoog.kofl.interpreter.backend
+package com.lorenzoog.kofl.interpreter.runtime
 
+import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
-import com.lorenzoog.kofl.interpreter.runtime.NativeEnvironment
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   private val nativeEnvironment = NativeEnvironment()
-  private val globalEnvironment = Environment()
+  internal val globalEnvironment = Environment()
 
   fun evaluate(
-    descriptors: Collection<Descriptor>,
-    environment: Environment = globalEnvironment
-  ): Collection<KoflObject> = descriptors.map {
-    evaluate(it, environment)
+    descriptors: Collection<Descriptor>, environment: Environment = globalEnvironment
+  ): Collection<KoflObject> {
+    Builtin(this)
+
+    return descriptors.map {
+      evaluate(it, environment)
+    }
   }
 
   fun evaluate(descriptor: Descriptor, environment: Environment = globalEnvironment): KoflObject = when (descriptor) {
@@ -65,7 +68,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   }
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {
-    val callee = when(val callee = descriptor.callee) {
+    val callee = when (val callee = descriptor.callee) {
       is GlobalVarDescriptor -> lookupFunction(callee, environment, callee.name)
       else -> evaluate(callee, environment)
     }

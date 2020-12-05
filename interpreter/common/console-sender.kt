@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.frontend.KoflException
-import com.lorenzoog.kofl.interpreter.backend.Environment
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.runtime.Environment
 
 private const val ERROR_COLOR = "\u001b[31m"
 private const val WARN_COLOR = "\u001b[33m"

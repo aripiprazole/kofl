@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.interpreter.backend
+package com.lorenzoog.kofl.interpreter.runtime
 
+import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
-import com.lorenzoog.kofl.interpreter.runtime.Builtin
 
 sealed class Value {
   abstract val data: KoflObject
@@ -13,8 +13,6 @@ sealed class Value {
 data class Environment(val callSite: Descriptor? = null, val enclosing: Environment? = null) {
   private val variables = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, KoflObject.Callable>()
-
-  val builtin = Builtin(this)
 
   fun child(callSite: Descriptor, builder: Environment.() -> Unit): Environment = copy(
     callSite = callSite,
@@ -62,4 +60,6 @@ data class Environment(val callSite: Descriptor? = null, val enclosing: Environm
 
     return environment
   }
+
+  override fun toString(): String = "Environment(callSite=$callSite, enclosing=$enclosing, functions=$functions, variables=$variables)"
 }
