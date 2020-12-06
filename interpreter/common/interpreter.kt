@@ -11,6 +11,7 @@ import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 const val MAX_STACK = 16
 
 private val builtinTypeContainer = TypeContainer().apply {
+  defineType("Any", KoflType.Any)
   defineType("String", KoflType.String)
   defineType("Int", KoflType.Int)
   defineType("Double", KoflType.Double)
