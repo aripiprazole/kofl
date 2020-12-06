@@ -15,7 +15,23 @@ sealed class KoflType {
     override val parameters: Map<String, KoflType>,
     override val returnType: KoflType,
     val receiver: KoflType? = null
-  ) : Callable()
+  ) : Callable() {
+
+    override fun hashCode(): Int {
+      return super.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (other == null || other !is Function) return false
+
+      if (parameters != other.parameters) return false
+      if (returnType != other.returnType) return false
+      if (receiver != other.receiver) return false
+
+      return true
+    }
+  }
 
   data class Class(
     val name: String?,
@@ -27,6 +43,23 @@ sealed class KoflType {
     override val returnType: KoflType = this
 
     override fun toString(): String = "$name"
+
+    override fun hashCode(): Int {
+      return super.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (other == null || other !is Class) return false
+
+      if (name != other.name) return false
+      if (constructors != other.constructors) return false
+      if (fields != other.fields) return false
+      if (functions != other.functions) return false
+      if (returnType != other.returnType) return false
+
+      return true
+    }
   }
 
   companion object Primitive {

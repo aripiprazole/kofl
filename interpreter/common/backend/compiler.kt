@@ -70,9 +70,7 @@ class Compiler(
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
-    validator.visitVarExpr(expr)
-
-    return GlobalVarDescriptor(expr.name.lexeme)
+    return AccessVarDescriptor(expr.name.lexeme, validator.visitVarExpr(expr))
   }
 
   override fun visitCallExpr(expr: Expr.Call): Descriptor {
@@ -82,24 +80,30 @@ class Compiler(
 
     val index = overload.indexOf(type)
 
-    val callee = when (val callee = expr.calle) {
-      is Expr.Var -> GlobalVarDescriptor("${callee.name.lexeme}-$index")
-//      TODO
-//      is Expr.Get -> {
-//        GetDescriptor(visitExpr(callee.receiver), callee.name.lexeme)
-//      }
-      else -> visitExpr(expr.calle)
-    }
-
-    val arguments = expr.arguments.entries.mapIndexed { i, (_, expr) ->
+    val arguments = mapOf(*expr.arguments.entries.mapIndexed { i, (_, expr) ->
       val name = type.parameters.entries.toList().getOrNull(i)?.key
         ?: throw KoflCompileException.UnresolvedParameter(i)
 
       val descriptor = visitExpr(expr)
 
       name to descriptor
+    }.toTypedArray())
+
+    val callee = when (val callee = expr.calle) {
+      is Expr.Var -> {
+        val name = callee.name.lexeme
+
+        if (overload.isNotEmpty()) {
+          if (overload.match(arguments.values.map { it.type }) == null)
+            throw KoflCompileException.UnresolvedFunction(name)
+
+          AccessFunctionDescriptor("$name-$index", type)
+        } else AccessVarDescriptor(name, type)
+      }
+      else -> visitExpr(expr.calle)
     }
-    return CallDescriptor(callee, mapOf(*arguments.toTypedArray()), returnType)
+
+    return CallDescriptor(callee, arguments, returnType)
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {

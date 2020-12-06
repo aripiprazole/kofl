@@ -34,6 +34,14 @@ interface Interpreter {
   }
 }
 
+inline fun Interpreter.execute(code: String): Collection<KoflObject> {
+  val tokens = lex(code)
+  val stmts = parse(tokens)
+  val descriptors = compile(stmts)
+
+  return evaluate(descriptors)
+}
+
 fun Interpreter(debug: Boolean = false, repl: Boolean = false, consoleSender: ConsoleSender? = null): Interpreter {
   return InterpreterImpl(debug, repl, consoleSender)
 }
@@ -46,7 +54,7 @@ private class InterpreterImpl(
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
-  private val locals = mutableMapOf<Descriptor, Int>()
+  private val locals = linkedMapOf<Descriptor, Int>()
   private val evaluator = Evaluator(locals)
 
   override fun lex(code: String): Collection<Token> {

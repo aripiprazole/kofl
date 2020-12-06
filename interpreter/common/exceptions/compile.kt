@@ -5,6 +5,7 @@ import com.lorenzoog.kofl.interpreter.typing.KoflType
 
 sealed class KoflCompileException(message: String) : KoflException("compile", message) {
   class UnresolvedVar(name: String) : KoflCompileException("variable $name not found")
+  class UnresolvedFunction(name: String) : KoflCompileException("function $name not found")
   class UnresolvedParameter(index: Int) : KoflCompileException("unresolved parameter $index")
   class MissingReturn : KoflCompileException("missing return function body")
   class AlreadyResolvedVar(name: String) : KoflCompileException("already resolved var $name")

@@ -13,7 +13,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     descriptors: Collection<Descriptor>,
     environment: Environment = globalEnvironment
   ): Collection<KoflObject> {
-    if(isInitialized) {
+    if (isInitialized) {
       Builtin(globalEnvironment).setup()
 
       isInitialized = true
@@ -30,7 +30,8 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     is SetDescriptor -> evaluateSetDescriptor(descriptor, environment)
     is GetDescriptor -> evaluateGetDescriptor(descriptor, environment)
     is CallDescriptor -> evaluateCallDescriptor(descriptor, environment)
-    is GlobalVarDescriptor -> evaluateGlobalVarDescriptor(descriptor, environment)
+    is AccessVarDescriptor -> evaluateAccessVarDescriptor(descriptor, environment)
+    is AccessFunctionDescriptor -> evaluateAccessFunctionDescriptor(descriptor, environment)
     is UnaryDescriptor -> evaluateUnaryDescriptor(descriptor, environment)
     is ValDescriptor -> evaluateValDescriptor(descriptor, environment)
     is VarDescriptor -> evaluateVarDescriptor(descriptor, environment)
@@ -55,7 +56,14 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     return lookup(descriptor, environment, "this")
   }
 
-  private fun evaluateGlobalVarDescriptor(descriptor: GlobalVarDescriptor, environment: Environment): KoflObject {
+  private fun evaluateAccessVarDescriptor(descriptor: AccessVarDescriptor, environment: Environment): KoflObject {
+    return lookup(descriptor, environment, descriptor.name)
+  }
+
+  private fun evaluateAccessFunctionDescriptor(
+    descriptor: AccessFunctionDescriptor,
+    environment: Environment
+  ): KoflObject {
     return lookup(descriptor, environment, descriptor.name)
   }
 
@@ -76,7 +84,10 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {
     val callee = when (val callee = descriptor.callee) {
-      is GlobalVarDescriptor -> lookupFunction(callee, environment, callee.name)
+      is AccessFunctionDescriptor -> {
+        lookupFunction(callee, environment, callee.name)
+      }
+      is AccessVarDescriptor -> TODO("call variables")
       else -> evaluate(callee, environment)
     }
     val arguments = descriptor.arguments.mapValues { (_, value) ->

@@ -11,6 +11,11 @@ repositories {
 }
 
 kotlin {
+  jvm {
+    java.sourceCompatibility = JavaVersion.VERSION_1_8
+    java.targetCompatibility = JavaVersion.VERSION_1_8
+  }
+
   linuxX64("linuxX64") {
     binaries {
       executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
@@ -24,6 +29,10 @@ kotlin {
   }
 
   sourceSets {
+    val jvmMain by getting {
+      kotlin.srcDir("jvm")
+    }
+
     val commonMain by getting {
       kotlin.srcDir("common")
 
@@ -51,6 +60,11 @@ kotlin {
       }
     }
   }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile> {
+  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+  kotlinOptions.jvmTarget = "1.8"
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
