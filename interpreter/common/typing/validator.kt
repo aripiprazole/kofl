@@ -344,7 +344,8 @@ class TypeValidator(
     if (typeName == null) return actual
 
     val found = findType(typeName)
-    if (!actual.isAssignableBy(found))
+
+    if (!found.isAssignableBy(actual))
       throw KoflCompileException.UnexpectedType(actual, found)
 
     return found
