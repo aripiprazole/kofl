@@ -5,7 +5,7 @@ fun KoflType.isAssignableBy(another: KoflType?): Boolean {
 }
 
 fun KoflType.isNumber(): Boolean {
-  return this == KoflType.Int || this == KoflType.Primitive.Double
+  return this == KoflType.Int || this == KoflType.Double
 }
 
 class ClassDefinitionBuilder internal constructor(name: String? = null) {
@@ -42,4 +42,26 @@ class ClassDefinitionBuilder internal constructor(name: String? = null) {
 
 fun createClassDefinition(name: String, builder: ClassDefinitionBuilder.() -> Unit = {}): KoflType.Class {
   return ClassDefinitionBuilder(name).apply(builder).build()
+}
+
+inline fun Collection<KoflType.Callable>.match(
+  vararg parameters: KoflType,
+  receiver: KoflType? = null
+): KoflType.Callable? {
+  return match(parameters.toList(), receiver)
+}
+
+inline fun Collection<KoflType.Callable>.match(
+  parameters: List<KoflType>,
+  receiver: KoflType? = null
+): KoflType.Callable? {
+  return firstOrNull { function ->
+    val matchParameters = function.parameters.values.filterIndexed { i, parameterType ->
+      parameterType.isAssignableBy(parameters.getOrNull(i))
+    }
+
+    matchParameters.size == parameters.size
+      && matchParameters.size == function.parameters.size
+      && (function as? KoflType.Function)?.receiver == receiver
+  }
 }
