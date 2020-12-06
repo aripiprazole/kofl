@@ -137,6 +137,8 @@ class Compiler(
   }
 
   override fun visitFuncExpr(expr: Expr.CommonFunc): Descriptor {
+    validator.visitFuncExpr(expr)
+
     val name = expr.name.lexeme
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
@@ -152,6 +154,8 @@ class Compiler(
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): Descriptor {
+    validator.visitExtensionFuncExpr(expr)
+
     val name = expr.name.lexeme
     val parameters = mapOf("this" to findType(expr.receiver.lexeme)) + typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
@@ -166,6 +170,8 @@ class Compiler(
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): Descriptor {
+    validator.visitAnonymousFuncExpr(expr)
+
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
 
@@ -175,6 +181,8 @@ class Compiler(
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): Descriptor {
+    validator.visitNativeFuncExpr(expr)
+
     val name = expr.name.lexeme
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)

@@ -152,7 +152,13 @@ class TypeValidator(
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType, expr.body)
 
-    scoped { visitStmts(expr.body) }
+    scoped { container ->
+      parameters.forEach { (name, type) ->
+        container.define(name, type)
+      }
+
+      visitStmts(expr.body)
+    }
 
     return KoflType.Function(parameters, returnType).also { function ->
       container.peek().defineFunction(name, function)
@@ -165,7 +171,13 @@ class TypeValidator(
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType, expr.body)
 
-    scoped { visitStmts(expr.body) }
+    scoped { container ->
+      parameters.forEach { (name, type) ->
+        container.define(name, type)
+      }
+
+      visitStmts(expr.body)
+    }
 
     return KoflType.Function(parameters, returnType, receiver).also { function ->
       container.peek().defineFunction(name, function)
@@ -176,7 +188,13 @@ class TypeValidator(
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType, expr.body)
 
-    scoped { visitStmts(expr.body) }
+    scoped {
+      parameters.forEach { (name, type) ->
+        container.peek().define(name, type)
+      }
+
+      visitStmts(expr.body)
+    }
 
     return KoflType.Function(parameters, returnType)
   }
@@ -339,9 +357,9 @@ class TypeValidator(
     return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
-  private inline fun <R> scoped(body: () -> R): R {
+  private inline fun <R> scoped(body: (TypeContainer) -> R): R {
     container.push(TypeContainer(container.peek()))
-    val value = body()
+    val value = body(container.peek())
     container.pop()
 
     return value
