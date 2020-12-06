@@ -13,7 +13,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     descriptors: Collection<Descriptor>,
     environment: Environment = globalEnvironment
   ): Collection<KoflObject> {
-    if (isInitialized) {
+    if (!isInitialized) {
       Builtin(globalEnvironment).setup()
 
       isInitialized = true

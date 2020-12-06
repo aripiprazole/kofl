@@ -4,6 +4,9 @@ import com.lorenzoog.kofl.frontend.*
 import com.lorenzoog.kofl.interpreter.MAX_STACK
 import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 private val BINARY_TOKENS = listOf(
   TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
@@ -150,14 +153,16 @@ class TypeValidator(
   override fun visitFuncExpr(expr: Expr.CommonFunc): KoflType {
     val name = expr.name.lexeme
     val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType, expr.body)
+    val returnType: KoflType
 
-    scoped { container ->
+    scoped { current ->
       parameters.forEach { (name, type) ->
-        container.define(name, type)
+        current.define(name, type)
       }
 
       visitStmts(expr.body)
+
+      returnType = typedReturn(expr.returnType, expr.body)
     }
 
     return KoflType.Function(parameters, returnType).also { function ->
@@ -169,14 +174,16 @@ class TypeValidator(
     val name = expr.name.lexeme
     val receiver = findType(expr.receiver.lexeme)
     val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType, expr.body)
+    val returnType: KoflType
 
-    scoped { container ->
+    scoped { current ->
       parameters.forEach { (name, type) ->
-        container.define(name, type)
+        current.define(name, type)
       }
 
       visitStmts(expr.body)
+
+      returnType = typedReturn(expr.returnType, expr.body)
     }
 
     return KoflType.Function(parameters, returnType, receiver).also { function ->
@@ -186,14 +193,16 @@ class TypeValidator(
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): KoflType {
     val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType, expr.body)
+    val returnType: KoflType
 
-    scoped {
+    scoped { current ->
       parameters.forEach { (name, type) ->
-        container.peek().define(name, type)
+        current.define(name, type)
       }
 
       visitStmts(expr.body)
+
+      returnType = typedReturn(expr.returnType, expr.body)
     }
 
     return KoflType.Function(parameters, returnType)
@@ -319,7 +328,9 @@ class TypeValidator(
     if (type != KoflType.Unit && stmt == null)
       throw KoflCompileException.MissingReturn()
 
-    val actualType = stmt?.let { visitStmt(it) } ?: KoflType.Unit
+    val actualType = stmt?.let {
+      visitStmt(it)
+    } ?: KoflType.Unit
 
     if (actualType != type)
       throw KoflCompileException.UnexpectedType(actualType, type)
@@ -357,7 +368,12 @@ class TypeValidator(
     return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
+  @OptIn(ExperimentalContracts::class)
   private inline fun <R> scoped(body: (TypeContainer) -> R): R {
+    contract {
+      callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+
     container.push(TypeContainer(container.peek()))
     val value = body(container.peek())
     container.pop()
