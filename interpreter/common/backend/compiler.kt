@@ -9,6 +9,9 @@ import com.lorenzoog.kofl.interpreter.typing.KoflType
 import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 import com.lorenzoog.kofl.interpreter.typing.TypeValidator
 import com.lorenzoog.kofl.interpreter.typing.match
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 class Compiler(
   locals: MutableMap<Descriptor, Int>,
@@ -148,7 +151,11 @@ class Compiler(
 
     container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
-    return FunctionDescriptor(indexedName, parameters, returnType, scoped {
+    return FunctionDescriptor(indexedName, parameters, returnType, scoped { container ->
+      parameters.forEach { (name, type) ->
+        container.define(name, type)
+      }
+
       visitStmts(expr.body)
     })
   }
@@ -164,7 +171,11 @@ class Compiler(
 
     container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
-    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped {
+    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped { container ->
+      parameters.forEach { (name, type) ->
+        container.define(name, type)
+      }
+
       visitStmts(expr.body)
     })
   }
@@ -175,7 +186,11 @@ class Compiler(
     val parameters = typedParameters(expr.parameters)
     val returnType = typedReturn(expr.returnType)
 
-    return LocalFunctionDescriptor(parameters, returnType, scoped {
+    return LocalFunctionDescriptor(parameters, returnType, scoped { container ->
+      parameters.forEach { (name, type) ->
+        container.define(name, type)
+      }
+
       visitStmts(expr.body)
     })
   }
@@ -266,9 +281,14 @@ class Compiler(
     return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
-  private inline fun <R> scoped(body: () -> R): R {
+  @OptIn(ExperimentalContracts::class)
+  private inline fun <R> scoped(body: (TypeContainer) -> R): R {
+    contract {
+      callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+
     container.push(TypeContainer(container.peek()))
-    val value = body()
+    val value = body(container.peek())
     container.pop()
 
     return value
