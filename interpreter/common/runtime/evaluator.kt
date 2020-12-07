@@ -2,6 +2,7 @@ package com.lorenzoog.kofl.interpreter.runtime
 
 import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.typing.KoflType
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   private var isInitialized = false
@@ -48,8 +49,13 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     is ClassDescriptor -> evaluateClassDescriptor(descriptor, environment)
   }
 
-  private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject = when(val value = descriptor.value){
-    is Boolean -> KoflObject.Boolean(value)
+  private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject = when (val value = descriptor.value) {
+    is Boolean -> KoflObject(value, KoflType.Boolean)
+    is String -> KoflObject(value, KoflType.String)
+    is Int -> KoflObject(value, KoflType.Int)
+    is Double -> KoflObject(value, KoflType.Double)
+    is Unit -> KoflObject.Unit
+    is KoflObject.Instance -> value
     else -> KoflObject(value)
   }
 

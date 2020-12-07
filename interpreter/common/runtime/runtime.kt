@@ -6,15 +6,17 @@ import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 typealias KoflNativeCallable = (callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) -> KoflObject
 
 internal val EMPTY_CONSTRUCTOR: KoflNativeCallable = { _, _, _ ->
-  KoflObject(Unit)
+  KoflObject.Unit
 }
 
 class NativeEnvironment {
   private val functions = mapOf<String, KoflNativeCallable>(
     "println" to { _, arguments, _ ->
-      println(arguments.entries.first().value.unwrap())
+      val first = arguments.entries.first()
 
-      KoflObject(Unit)
+      println(first.value)
+
+      KoflObject.Unit
     }
   )
 

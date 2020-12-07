@@ -15,6 +15,7 @@ private val builtinTypeContainer = TypeContainer().apply {
   defineType("String", KoflType.String)
   defineType("Int", KoflType.Int)
   defineType("Double", KoflType.Double)
+  defineType("Boolean", KoflType.Boolean)
   defineType("Unit", KoflType.Unit)
 }
 
