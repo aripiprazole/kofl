@@ -2,6 +2,7 @@ package com.lorenzoog.kofl.interpreter.exceptions
 
 import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.interpreter.backend.Descriptor
+import com.lorenzoog.kofl.interpreter.dump
 import com.lorenzoog.kofl.interpreter.runtime.Environment
 
 sealed class KoflRuntimeException(
@@ -21,7 +22,7 @@ sealed class KoflRuntimeException(
     KoflRuntimeException("var $name is immutable", callSite)
 
   class MissingReturn(descriptor: Descriptor, callSite: Environment) :
-    KoflRuntimeException("missing return in descriptor $descriptor", callSite)
+    KoflRuntimeException("missing return in descriptor ${descriptor.dump()}", callSite)
 
   class InvalidType(expected: Any, current: Any, callSite: Environment) :
     KoflRuntimeException("invalid $current expected $expected", callSite)

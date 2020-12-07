@@ -68,12 +68,12 @@ class ErrorHandlerImpl : ConsoleSender {
 @OptIn(ExperimentalStdlibApi::class)
 fun Environment.stackTrace(): List<String> = buildList {
   var environment = this@stackTrace.also { (callSite) ->
-    add("at $callSite.")
+    add("at ${callSite.dump()}.")
   }
 
   while (environment.enclosing != null) {
     environment = (environment.enclosing ?: continue).also { (callSite) ->
-      add("at $callSite.")
+      add("at ${callSite.dump()}.")
     }
   }
 }
