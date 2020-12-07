@@ -14,7 +14,7 @@ data class Environment(val callSite: Descriptor? = null, val enclosing: Environm
   private val variables = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, KoflObject.Callable>()
 
-  fun child(callSite: Descriptor, builder: Environment.() -> Unit): Environment = copy(
+  fun child(callSite: Descriptor, builder: Environment.() -> Unit = {}): Environment = copy(
     callSite = callSite,
     enclosing = this
   ).apply(builder)
