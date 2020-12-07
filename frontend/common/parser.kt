@@ -155,10 +155,13 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun whileStatement(): Stmt {
     val condition = expression()
 
-    if (!match(TokenType.LeftBrace))
-      throw error(expecting(start("while body")))
+    val body = when {
+      match(TokenType.LeftBrace) -> block()
+      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      else -> throw error(expecting(start("while body")))
+    }
 
-    return Stmt.WhileStmt(condition, block(), line())
+    return Stmt.WhileStmt(condition, body, line())
   }
 
   private fun exprStatement(): Stmt {
@@ -202,14 +205,17 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private fun ifExpr(type: IfType): Expr {
     val condition = expression()
 
-    if (!match(TokenType.LeftBrace))
-      throw error(expecting(start("if body")))
-
-    val mainBranch = block()
+    val mainBranch = when {
+      match(TokenType.LeftBrace) -> block()
+      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      else -> throw error(expecting(start("if body")))
+    }
     val elseBranch = if (match(TokenType.Else))
-      if (match(TokenType.LeftBrace))
-        block()
-      else throw error(expecting(start("else body")))
+      when {
+        match(TokenType.LeftBrace) -> block()
+        match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+        else -> throw error(expecting(start("else body")))
+      }
     else null
 
     if (type == IfType.Anonymous && elseBranch == null) {
