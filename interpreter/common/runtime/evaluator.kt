@@ -56,7 +56,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     is Double -> KoflObject(value, KoflType.Double)
     is Unit -> KoflObject.Unit
     is KoflObject.Instance -> value
-    else -> KoflObject(value)
+    else -> KoflObject(value, descriptor.type)
   }
 
   private fun evaluateThisDescriptor(descriptor: ThisDescriptor, environment: Environment): KoflObject {
@@ -128,11 +128,17 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   }
 
   private fun evaluateBlockDescriptor(descriptor: BlockDescriptor, environment: Environment): KoflObject {
-    TODO("block descriptor")
+    val result = evaluate(descriptor.body, environment.child(descriptor))
+
+    return result.lastOrNull() ?: KoflObject.Unit
   }
 
   private fun evaluateWhileDescriptor(descriptor: WhileDescriptor, environment: Environment): KoflObject {
-    TODO("while descriptor")
+    while (evaluate(descriptor.condition, environment).isTruthy()) {
+      evaluate(descriptor.body, environment.child(descriptor))
+    }
+
+    return KoflObject.Unit
   }
 
   private fun evaluateIfDescriptor(descriptor: IfDescriptor, environment: Environment): KoflObject {
@@ -142,7 +148,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
       evaluate(descriptor.then, environment.child(descriptor)).lastOrNull()
     } else {
       evaluate(descriptor.orElse, environment.child(descriptor)).lastOrNull()
-    } ?: KoflObject(Unit)
+    } ?: KoflObject.Unit
   }
 
   private fun evaluateLogicalDescriptor(descriptor: LogicalDescriptor, environment: Environment): KoflObject {
