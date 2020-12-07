@@ -217,7 +217,8 @@ class TypeValidator(
 
   override fun visitIfExpr(expr: Expr.IfExpr): KoflType {
     val condition = visitExpr(expr.condition)
-    if (KoflType.Boolean.isAssignableBy(condition))
+
+    if (!KoflType.Boolean.isAssignableBy(condition))
       throw KoflCompileException.UnexpectedType(condition, KoflType.Boolean)
 
     val thenBranch = expr.thenBranch.also { thenStmts -> scoped { visitStmts(thenStmts) } }
@@ -230,7 +231,7 @@ class TypeValidator(
       val then = visitExpr((thenLast as? Stmt.ExprStmt)?.expr ?: return KoflType.Unit)
       val orElse = visitExpr((elseLast as? Stmt.ExprStmt)?.expr ?: return KoflType.Unit)
 
-      if (then.isAssignableBy(orElse))
+      if (!then.isAssignableBy(orElse))
         throw KoflCompileException.UnexpectedType(orElse, then)
 
       return then

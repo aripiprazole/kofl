@@ -48,8 +48,9 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     is ClassDescriptor -> evaluateClassDescriptor(descriptor, environment)
   }
 
-  private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject {
-    return KoflObject(descriptor.value)
+  private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject = when(val value = descriptor.value){
+    is Boolean -> KoflObject.Boolean(value)
+    else -> KoflObject(value)
   }
 
   private fun evaluateThisDescriptor(descriptor: ThisDescriptor, environment: Environment): KoflObject {
@@ -132,10 +133,12 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
 
   private fun evaluateIfDescriptor(descriptor: IfDescriptor, environment: Environment): KoflObject {
     val condition = evaluate(descriptor.condition, environment)
-    val then = evaluate(descriptor.then, environment)
-    val orElse = evaluate(descriptor.orElse, environment)
 
-    TODO("if descriptor")
+    return if (condition.isTruthy()) {
+      evaluate(descriptor.then, environment.child(descriptor)).lastOrNull()
+    } else {
+      evaluate(descriptor.orElse, environment.child(descriptor)).lastOrNull()
+    } ?: KoflObject(Unit)
   }
 
   private fun evaluateLogicalDescriptor(descriptor: LogicalDescriptor, environment: Environment): KoflObject {

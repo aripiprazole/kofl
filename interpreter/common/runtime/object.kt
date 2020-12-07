@@ -9,6 +9,8 @@ sealed class KoflObject {
 
   class Wrapper(override val value: Any) : KoflObject()
 
+  class Boolean(public override val value: kotlin.Boolean) : KoflObject()
+
   data class Instance(
     val definition: Class,
     val fields: Map<String, Value>
@@ -134,6 +136,11 @@ sealed class KoflObject {
     operator fun invoke(value: Any): KoflObject {
       return Wrapper(value)
     }
+  }
+
+  fun isTruthy(): kotlin.Boolean = when (this) {
+    is Boolean -> value
+    else -> false
   }
 
   fun map(fmap: (Any) -> Any): KoflObject {
