@@ -35,19 +35,19 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
     constructors += KoflObject.Callable.LocalNativeFunction(function, descriptor)
   }
 
-  fun build(): KoflObject.Class.KoflClass {
+  fun build(): KoflObject.Class {
     if (constructors.isEmpty()) {
       constructor(mapOf(), EMPTY_CONSTRUCTOR)
     }
 
-    return KoflObject.Class.KoflClass(definition, constructors, functions)
+    return KoflObject.Class(definition, constructors, functions)
   }
 }
 
 fun Environment.createClass(
   definition: KoflType.Class,
   builder: ClassBuilder.() -> Unit = {}
-): KoflObject.Class.KoflClass {
+): KoflObject.Class {
   val name = definition.name ?: throw KoflCompileException.ClassMissingName(definition)
   val koflClass = ClassBuilder(definition).apply(builder).build()
 

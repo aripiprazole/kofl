@@ -4,40 +4,29 @@ import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
 
-sealed class KoflObject {
+sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
+  abstract val definition: KoflType
+
   protected abstract val value: Any
 
-  class Wrapper(override val value: Any) : KoflObject()
+  class NativeObject(override val value: Any, override val definition: KoflType) : KoflObject()
 
-  class Boolean(public override val value: kotlin.Boolean) : KoflObject()
-
-  data class Instance(
-    val definition: Class,
-    val fields: Map<String, Value>
-  ) : KoflObject() {
+  class Instance(override val definition: KoflType) : KoflObject() {
     override val value: Instance get() = this
   }
 
-  sealed class Class : KoflObject() {
-    data class KoflClass(
-      val definition: KoflType.Class,
-      val constructors: List<Callable>,
-      val functions: Map<String, List<Callable>>,
-      val inherits: Collection<KoflType> = listOf()
-    ) : Class() {
-      override val value: Any get() = definition
-    }
-
-    data class Singleton(
-      public override val value: Instance,
-      val definition: KoflType.Class,
-      val constructors: List<Callable>,
-      val functions: Map<String, List<Callable>>,
-    ) : Class()
+  data class Class(
+    override val definition: KoflType.Class,
+    val constructors: List<Callable>,
+    val functions: Map<String, List<Callable>>,
+    val inherits: Collection<KoflType> = listOf()
+  ) : KoflObject() {
+    override val value: Any get() = definition
   }
 
   sealed class Callable : KoflObject() {
     override val value get() = ::call
+    override val definition: KoflType get() = KoflType.Function(descriptor.parameters, descriptor.returnType)
 
     @PublishedApi
     internal abstract val descriptor: CallableDescriptor
@@ -132,24 +121,35 @@ sealed class KoflObject {
     }
   }
 
-  companion object {
-    operator fun invoke(value: Any): KoflObject {
-      return Wrapper(value)
-    }
-  }
-
-  fun isTruthy(): kotlin.Boolean = when (this) {
-    is Boolean -> value
-    else -> false
+  fun isTruthy(): Boolean {
+    return value == true
   }
 
   fun map(fmap: (Any) -> Any): KoflObject {
-    return KoflObject(fmap(value))
+    return KoflObject(fmap(value), definition)
+  }
+
+  fun tmap(definition: KoflType, fmap: (Any) -> Any): KoflObject {
+    return KoflObject(fmap(value), definition)
   }
 
   fun flatMap(fmap: (Any) -> KoflObject): KoflObject {
     return fmap(value)
   }
 
-  fun unwrap(): Any = value
+  fun unwrap(): Any {
+    return value
+  }
+
+  override fun toString(): String {
+    return value.toString()
+  }
+
+  companion object {
+    val Unit = KoflObject(kotlin.Unit, KoflType.Unit)
+
+    operator fun invoke(value: Any, type: KoflType = KoflType.Any): KoflObject {
+      return NativeObject(value, type)
+    }
+  }
 }
