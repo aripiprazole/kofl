@@ -91,10 +91,8 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {
     val callee = when (val callee = descriptor.callee) {
-      is AccessFunctionDescriptor -> {
-        lookupFunction(callee, environment, callee.name)
-      }
-      is AccessVarDescriptor -> TODO("call variables")
+      is AccessFunctionDescriptor -> lookupFunction(callee, environment, callee.name)
+      is AccessVarDescriptor -> lookup(callee, environment, callee.name)
       else -> evaluate(callee, environment)
     }
     val arguments = descriptor.arguments.mapValues { (_, value) ->

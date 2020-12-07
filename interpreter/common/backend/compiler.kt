@@ -176,7 +176,12 @@ class Compiler(
         container.define(name, type)
       }
 
-      visitStmts(expr.body)
+      visitStmts(expr.body).let { body ->
+        if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KoflType.Unit)
+          // add return if return is missing and return type is unit
+          body + ReturnDescriptor(ConstDescriptor(Unit, KoflType.Unit), KoflType.Unit)
+        else body
+      }
     })
   }
 
@@ -268,7 +273,7 @@ class Compiler(
   private inline fun typedReturn(name: Token?): KoflType {
     return name?.lexeme
       ?.let { typeName -> findType(typeName) }
-      ?: findType("Unit")
+      ?: KoflType.Unit
   }
 
   private inline fun typedParameters(parameters: Map<Token, Token>): Map<String, KoflType> {

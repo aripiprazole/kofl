@@ -118,7 +118,7 @@ class TypeValidator(
         .lookupFunctionOverload(expr.name.lexeme)
         .match(arguments.values.map {
           visitExpr(it)
-        }) ?: throw KoflCompileException.UnresolvedVar(expr.name.lexeme)
+        }) ?: container.peek().lookup(expr.name.lexeme)
       else -> visitExpr(expr)
     }
 
