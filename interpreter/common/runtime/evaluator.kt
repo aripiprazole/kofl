@@ -1,5 +1,6 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
+import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.interpreter.backend.*
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 import com.lorenzoog.kofl.interpreter.typing.KoflType
@@ -86,7 +87,15 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     val op = descriptor.op
     val right = evaluate(descriptor.right, environment)
 
-    TODO("unary descriptor")
+    return when (op) {
+      TokenType.Minus -> when (val value = right.unwrap()) {
+        is Double -> KoflObject(-value, KoflType.Double)
+        is Int -> KoflObject(-value, KoflType.Int)
+        else -> right
+      }
+      TokenType.Bang -> KoflObject(!right.isTruthy(), KoflType.Boolean)
+      else -> right
+    }
   }
 
   private fun evaluateCallDescriptor(descriptor: CallDescriptor, environment: Environment): KoflObject {

@@ -83,7 +83,7 @@ class TypeValidator(
     val right = visitExpr(expr.right)
 
     if (expr.op.type == TokenType.Bang) {
-      if (right.isAssignableBy(KoflType.Boolean))
+      if (!right.isAssignableBy(KoflType.Boolean))
         throw KoflCompileException.UnexpectedType(right, KoflType.Boolean)
 
       return KoflType.Boolean
