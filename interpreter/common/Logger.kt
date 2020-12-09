@@ -31,7 +31,7 @@ interface Logger {
   }
 }
 
-class ErrorHandlerImpl : Logger {
+class ReplLogger : Logger {
   override fun print(message: Any) {
     kotlin.io.print(RESET_COLOR + message)
   }
