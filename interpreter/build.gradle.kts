@@ -33,12 +33,12 @@ kotlin {
     }
 
     compilations["main"].cinterops {
-      val global by creating {
+      val runtime by creating {
         defFile = File("$projectDir/runtime/runtime.def")
         includeDirs.headerFilterOnly("$projectDir/runtime")
         compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
         extraOpts("-libraryPath", "$projectDir/runtime/build")
-        extraOpts("-staticLibrary", "libruntime-library.a")
+        extraOpts("-staticLibrary", "libruntime.a")
       }
     }
   }
