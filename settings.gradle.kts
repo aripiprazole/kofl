@@ -1,6 +1,6 @@
 
 rootProject.name = "kfl"
 include("interpreter")
-include("vm")
 include("frontend")
+include("backend.vm")
 include("compiler.kvm")
