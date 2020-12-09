@@ -1,0 +1,16 @@
+package = sample.globalstate
+
+headers = runtime.h
+headerFilter = runtime/** runtime.h
+staticLibraries = libruntime-library.a
+
+---
+typedef struct {
+  int x;
+  float f;
+  char* string;
+  void* kotlinObject;
+  void* frozenKotlinObject;
+} SharedDataStruct;
+
+SharedDataStruct sharedData;

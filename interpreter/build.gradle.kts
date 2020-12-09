@@ -18,7 +18,21 @@ kotlin {
 
   linuxX64("linuxX64") {
     binaries {
-      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
+      executable {
+        entryPoint = "com.lorenzoog.kofl.interpreter.main"
+
+        runTask?.args(File(projectDir, "build/classes/kotlin/linuxX64/main"))
+      }
+    }
+
+    compilations["main"].cinterops {
+      val global by creating {
+        defFile = File("$projectDir/runtime/runtime.def")
+        includeDirs.headerFilterOnly("$projectDir/runtime")
+        compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
+        extraOpts("-libraryPath", "$projectDir/runtime/build")
+        extraOpts("-staticLibrary", "libruntime-library.a")
+      }
     }
   }
 
