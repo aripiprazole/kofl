@@ -5,6 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 include_directories(.)
 
-add_library(runtime-library
+add_library(runtime
         runtime.c
         runtime.h)
