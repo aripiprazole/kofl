@@ -1,4 +1,3 @@
-
 rootProject.name = "kfl"
 include("interpreter")
 include("frontend")

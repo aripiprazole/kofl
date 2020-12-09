@@ -27,19 +27,7 @@ kotlin {
 
   nativeTarget.apply {
     binaries {
-      executable {
-        entryPoint = "com.lorenzoog.kofl.interpreter.main"
-      }
-    }
-
-    compilations["main"].cinterops {
-      val runtime by creating {
-        defFile = File("$projectDir/runtime/runtime.def")
-        includeDirs.headerFilterOnly("$projectDir/runtime")
-        compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
-        extraOpts("-libraryPath", "$projectDir/runtime/build")
-        extraOpts("-staticLibrary", "libruntime.a")
-      }
+      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
     }
   }
 
@@ -50,18 +38,10 @@ kotlin {
       dependencies {
         api("pw.binom.io:file:0.1.19")
         implementation(project(":frontend"))
+        implementation(project(":compiler.kvm"))
         implementation(kotlin("stdlib-common"))
       }
     }
-
-    val jvmMain by getting {
-      kotlin.srcDir("jvm")
-    }
-
-    val nativeMain by getting {
-      kotlin.srcDir("native")
-    }
-
     val commonTest by getting {
       kotlin.srcDir("test")
 
@@ -69,6 +49,20 @@ kotlin {
         implementation(kotlin("test-common"))
         implementation(kotlin("test-annotations-common"))
       }
+    }
+
+    val jvmMain by getting {
+      kotlin.srcDir("jvm")
+    }
+    val jvmTest by getting {
+      kotlin.srcDir("jvmTest")
+    }
+
+    val nativeMain by getting {
+      kotlin.srcDir("native")
+    }
+    val nativeTest by getting {
+      kotlin.srcDir("nativeTest")
     }
   }
 }

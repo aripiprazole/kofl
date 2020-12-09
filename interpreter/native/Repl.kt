@@ -45,8 +45,8 @@ internal fun clearScreen() {
 
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
-internal fun startRepl(consoleSender: ConsoleSender, debug: Boolean, path: String): Unit = memScoped {
-  val interpreter = Interpreter(debug, repl = true, consoleSender = consoleSender)
+internal fun startRepl(logger: Logger, debug: Boolean, path: String): Unit = memScoped {
+  val interpreter = Interpreter(debug, repl = true, logger = logger)
 
   fun eval(code: String): Any? {
     if (code.isEmpty()) return null
@@ -64,24 +64,24 @@ internal fun startRepl(consoleSender: ConsoleSender, debug: Boolean, path: Strin
     eval(code)
 
     if (debug) {
-      consoleSender.trace("STDLIB")
-      consoleSender.trace(code)
-      consoleSender.trace("END STDLIB")
+      logger.trace("STDLIB")
+      logger.trace(code)
+      logger.trace("END STDLIB")
     }
   }
 
   clearScreen()
 
   if (debug) {
-    consoleSender.println()
-    consoleSender.println()
+    logger.println()
+    logger.println()
   }
 
-  consoleSender.println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
-  consoleSender.println()
+  logger.println("KOFL's repl. Type :quit to exit the program. Enjoy it 😃")
+  logger.println()
 
   while (true) {
-    consoleSender.print("kofl> ")
+    logger.print("kofl> ")
 
     when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)
@@ -89,10 +89,10 @@ internal fun startRepl(consoleSender: ConsoleSender, debug: Boolean, path: Strin
       else -> try {
         eval(line) // interpret and run the provided code in the line
       } catch (error: Throwable) {
-        consoleSender.handleError(error)
+        logger.handleError(error)
       }
     }
 
-    consoleSender.println()
+    logger.println()
   }
 }

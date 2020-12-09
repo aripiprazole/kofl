@@ -11,7 +11,6 @@ repositories {
 
 kotlin {
   jvm()
-  js()
 
   val hostOs = System.getProperty("os.name")
   val isMingwX64 = hostOs.startsWith("Windows")
@@ -35,14 +34,15 @@ kotlin {
    */
   sourceSets {
     val commonMain by getting {
-      kotlin.srcDir("commonMain")
+      kotlin.srcDir("common")
 
       dependencies {
+        implementation(project(":frontend"))
         implementation(kotlin("stdlib-common"))
       }
     }
     val commonTest by getting {
-      kotlin.srcDir("commonTest")
+      kotlin.srcDir("test")
 
       dependencies {
         implementation(kotlin("test-common"))
@@ -62,13 +62,6 @@ kotlin {
     }
     val jvmTest by getting {
       kotlin.srcDir("jvmTest")
-    }
-
-    val jsMain by getting {
-      kotlin.srcDir("js")
-    }
-    val jsTest by getting {
-      kotlin.srcDir("jsTest")
     }
   }
 }

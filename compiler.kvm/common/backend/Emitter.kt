@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter.backend
+package com.lorenzoog.kofl.compiler.kvm.backend
 
 class Emitter {
   private val compiled = mutableListOf<Descriptor>()

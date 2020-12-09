@@ -1,8 +1,8 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.interpreter.backend.*
+import com.lorenzoog.kofl.compiler.kvm.backend.*
+import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
-import com.lorenzoog.kofl.interpreter.typing.KoflType
 
 sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
   abstract val definition: KoflType
