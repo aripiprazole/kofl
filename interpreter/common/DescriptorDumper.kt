@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.interpreter.backend.*
-import com.lorenzoog.kofl.interpreter.typing.KoflType
+import com.lorenzoog.kofl.compiler.kvm.backend.*
+import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
 
 internal fun Descriptor?.dump(): String = when (this) {
   is ConstDescriptor -> dump()

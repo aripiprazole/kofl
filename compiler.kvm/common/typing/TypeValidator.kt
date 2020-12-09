@@ -1,12 +1,13 @@
-package com.lorenzoog.kofl.interpreter.typing
+package com.lorenzoog.kofl.compiler.kvm.typing
 
+import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
+import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
 import com.lorenzoog.kofl.frontend.*
-import com.lorenzoog.kofl.interpreter.MAX_STACK
-import com.lorenzoog.kofl.interpreter.backend.Descriptor
-import com.lorenzoog.kofl.interpreter.exceptions.KoflCompileException
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+
+private const val MAX_STACK = 512_000
 
 private val BINARY_TOKENS = listOf(
   TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,

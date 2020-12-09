@@ -1,12 +1,12 @@
 package com.lorenzoog.kofl.interpreter
 
+import com.lorenzoog.kofl.compiler.kvm.backend.Compiler
+import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
+import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.kvm.typing.TypeContainer
 import com.lorenzoog.kofl.frontend.*
-import com.lorenzoog.kofl.interpreter.backend.Compiler
-import com.lorenzoog.kofl.interpreter.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
 import com.lorenzoog.kofl.interpreter.runtime.KoflObject
-import com.lorenzoog.kofl.interpreter.typing.KoflType
-import com.lorenzoog.kofl.interpreter.typing.TypeContainer
 
 const val MAX_STACK = 16
 
@@ -44,14 +44,14 @@ inline fun Interpreter.execute(code: String): Collection<KoflObject> {
   return evaluate(descriptors)
 }
 
-fun Interpreter(debug: Boolean = false, repl: Boolean = false, consoleSender: ConsoleSender? = null): Interpreter {
-  return InterpreterImpl(debug, repl, consoleSender)
+fun Interpreter(debug: Boolean = false, repl: Boolean = false, logger: Logger? = null): Interpreter {
+  return InterpreterImpl(debug, repl, logger)
 }
 
 private class InterpreterImpl(
   override val debug: Boolean,
   override val repl: Boolean,
-  private val consoleSender: ConsoleSender?
+  private val logger: Logger?
 ) : Interpreter {
   private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
@@ -61,19 +61,19 @@ private class InterpreterImpl(
 
   override fun lex(code: String): Collection<Token> {
     return Scanner(code).scan().also {
-      if (debug) consoleSender?.trace("SCANNED: $it")
+      if (debug) logger?.trace("SCANNED: $it")
     }
   }
 
   override fun parse(tokens: Collection<Token>): Collection<Stmt> {
     return Parser(tokens.toList(), repl).parse().also {
-      if (debug) consoleSender?.trace("PARSED: $it")
+      if (debug) logger?.trace("PARSED: $it")
     }
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
     return Compiler(locals, container).compile(stmts).also {
-      if (debug) consoleSender?.trace("COMPILED: $it")
+      if (debug) logger?.trace("COMPILED: $it")
     }
   }
 

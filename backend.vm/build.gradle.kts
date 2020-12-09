@@ -44,14 +44,6 @@ kotlin {
    * https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets
    */
   sourceSets {
-    val nativeMain by getting {
-      kotlin.srcDir("native")
-
-      dependencies {
-        implementation(project(":frontend"))
-      }
-    }
-
     val commonMain by getting {
       kotlin.srcDir("common")
 
@@ -59,13 +51,20 @@ kotlin {
         implementation(kotlin("stdlib-common"))
       }
     }
-
     val commonTest by getting {
       kotlin.srcDir("test")
 
       dependencies {
         implementation(kotlin("test-common"))
         implementation(kotlin("test-annotations-common"))
+      }
+    }
+
+    val nativeMain by getting {
+      kotlin.srcDir("native")
+
+      dependencies {
+        implementation(project(":frontend"))
       }
     }
 

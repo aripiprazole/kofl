@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.interpreter.backend
+package com.lorenzoog.kofl.compiler.kvm.backend
 
 import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.interpreter.typing.KoflType
+import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
 
 sealed class Descriptor {
   interface Visitor<T> {
