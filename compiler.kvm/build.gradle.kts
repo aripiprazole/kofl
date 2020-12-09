@@ -2,7 +2,7 @@ plugins {
   kotlin("multiplatform")
 }
 
-group = "com.lorenzoog.kofl"
+group = "com.lorenzoog"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -10,6 +10,9 @@ repositories {
 }
 
 kotlin {
+  jvm()
+  js()
+
   val hostOs = System.getProperty("os.name")
   val isMingwX64 = hostOs.startsWith("Windows")
   val nativeTarget = when {
@@ -21,20 +24,7 @@ kotlin {
 
   nativeTarget.apply {
     binaries {
-      executable {
-        entryPoint = "com.lorenzoog.kofl.vm.main"
-      }
-    }
-
-    compilations["main"].cinterops {
-      val runtime by creating {
-        defFile = File("$projectDir/runtime/runtime.def")
-        includeDirs.headerFilterOnly("$projectDir/runtime")
-
-        compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
-        extraOpts("-libraryPath", "$projectDir/runtime/build")
-        extraOpts("-staticLibrary", "libruntime.a")
-      }
+      executable { entryPoint = "com.lorenzoog.kofl.compiler.vm.main" }
     }
   }
 
@@ -44,24 +34,15 @@ kotlin {
    * https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets
    */
   sourceSets {
-    val nativeMain by getting {
-      kotlin.srcDir("native")
-
-      dependencies {
-        implementation(project(":frontend"))
-      }
-    }
-
     val commonMain by getting {
-      kotlin.srcDir("common")
+      kotlin.srcDir("commonMain")
 
       dependencies {
         implementation(kotlin("stdlib-common"))
       }
     }
-
     val commonTest by getting {
-      kotlin.srcDir("test")
+      kotlin.srcDir("commonTest")
 
       dependencies {
         implementation(kotlin("test-common"))
@@ -69,12 +50,25 @@ kotlin {
       }
     }
 
-    all {
-      languageSettings.enableLanguageFeature("InlineClasses")
+    val nativeMain by getting {
+      kotlin.srcDir("native")
+    }
+    val nativeTest by getting {
+      kotlin.srcDir("nativeTest")
+    }
+
+    val jvmMain by getting {
+      kotlin.srcDir("jvm")
+    }
+    val jvmTest by getting {
+      kotlin.srcDir("jvmTest")
+    }
+
+    val jsMain by getting {
+      kotlin.srcDir("js")
+    }
+    val jsTest by getting {
+      kotlin.srcDir("jsTest")
     }
   }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
-  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
