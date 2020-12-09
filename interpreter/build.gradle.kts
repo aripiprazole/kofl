@@ -16,12 +16,19 @@ kotlin {
     java.targetCompatibility = JavaVersion.VERSION_1_8
   }
 
-  linuxX64("linuxX64") {
+  val hostOs = System.getProperty("os.name")
+  val isMingwX64 = hostOs.startsWith("Windows")
+  val nativeTarget = when {
+    hostOs == "Mac OS X" -> macosX64("native")
+    hostOs == "Linux" -> linuxX64("native")
+    isMingwX64 -> mingwX64("native")
+    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+  }
+
+  nativeTarget.apply {
     binaries {
       executable {
         entryPoint = "com.lorenzoog.kofl.interpreter.main"
-
-        runTask?.args(File(projectDir, "build/classes/kotlin/linuxX64/main"))
       }
     }
 
@@ -36,17 +43,7 @@ kotlin {
     }
   }
 
-  mingwX64("windowsX64") {
-    binaries {
-      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
-    }
-  }
-
   sourceSets {
-    val jvmMain by getting {
-      kotlin.srcDir("jvm")
-    }
-
     val commonMain by getting {
       kotlin.srcDir("common")
 
@@ -57,12 +54,12 @@ kotlin {
       }
     }
 
-    val linuxX64Main by getting {
-      kotlin.srcDir("linuxX64")
+    val jvmMain by getting {
+      kotlin.srcDir("jvm")
     }
 
-    val windowsX64Main by getting {
-      kotlin.srcDir("windowsX64")
+    val nativeMain by getting {
+      kotlin.srcDir("native")
     }
 
     val commonTest by getting {
