@@ -7,4 +7,4 @@ include_directories(.)
 
 add_library(runtime
         runtime.c
-        runtime.h)
+        runtime.h heap.c heap.h value.c value.h)
