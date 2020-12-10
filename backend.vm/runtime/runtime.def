@@ -1,5 +1,5 @@
 package = com.lorenzoog.kofl.interpreter.internal
 
-headers = runtime.h
-headerFilter = runtime/** runtime.h
+headers = heap.h
+headerFilter = runtime/** heap.h
 staticLibraries = libruntime.a
