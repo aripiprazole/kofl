@@ -29,7 +29,7 @@ kotlin {
     compilations["main"].cinterops {
       val runtime by creating {
         defFile = File("$projectDir/runtime/runtime.def")
-        includeDirs.headerFilterOnly("$projectDir/runtime")
+//        includeDirs.headerFilterOnly("$projectDir/runtime")
 
         compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
         extraOpts("-libraryPath", "$projectDir/runtime/build")
@@ -75,5 +75,5 @@ kotlin {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
-  kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+  kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-XXLanguage:+InlineClasses")
 }

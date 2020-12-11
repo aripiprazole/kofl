@@ -1,17 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "heap.h"
-
-mem_info_t *osalloc(size_t size) {
-    mem_info_t *mem = sbrk(0);
-
-    if (sbrk(size + sizeof(mem_info_t) - sizeof(value_t)) == (void *) -1) {
-        return NULL;
-    }
-
-    return mem;
-}
 
 heap_t *create_heap(int size) {
     heap_t *heap = malloc(sizeof(heap_t));
@@ -36,12 +27,12 @@ mem_info_t *heap_block_alloc(heap_t *heap, size_t rem) {
 }
 
 void *heap_alloc(heap_t *heap, size_t size) {
-    mem_info_t *ptr;
+    mem_info_t *ptr = NULL;
     mem_info_t *block = heap->root;
 
     do {
         if (block->is_free && block->size >= size) {
-            ptr =  (block ++);
+            ptr = (block++);
 
             block->size = size;
             block->is_free = 0;
@@ -49,6 +40,7 @@ void *heap_alloc(heap_t *heap, size_t size) {
             if (block->next != NULL) {
                 block->next = heap_block_alloc(heap, (block - 1)->size - size);
             }
+            break;
         }
     } while (block != NULL);
 
