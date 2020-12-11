@@ -3,6 +3,6 @@
 
 #include<stdlib.h>
 
-char* doSomething(char* message);
+typedef void callable(void *);
 
 #endif //RUNTIME_H
