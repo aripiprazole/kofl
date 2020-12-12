@@ -2,10 +2,11 @@
 
 package com.lorenzoog.kofl.vm
 
+import com.lorenzoog.kofl.interpreter.internal.chunk
 import kotlinx.cinterop.*
 import platform.posix.sprintf
 
-fun Chunk.disassemble(name: String) {
+fun chunk.disassemble(name: String) {
   println("== $name ==")
 
   var offset = 0
@@ -14,7 +15,7 @@ fun Chunk.disassemble(name: String) {
   }
 }
 
-fun Chunk.disassembleInstructions(offset: Int): Int {
+fun chunk.disassembleInstructions(offset: Int): Int {
   val line = if (offset > 0 && lines[offset] == lines[offset - 1])
     "   | " // indicates that the above instruction is the same here.
   else memScoped {
@@ -51,7 +52,7 @@ fun Chunk.disassembleInstructions(offset: Int): Int {
   }
 }
 
-fun Chunk.constantInstruction(name: String, offset: Int): Int {
+fun chunk.constantInstruction(name: String, offset: Int): Int {
   val const = code[offset + 1]!!
   val offsetStr = memScoped {
     val str = alloc<ByteVar>()

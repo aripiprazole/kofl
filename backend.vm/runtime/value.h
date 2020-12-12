@@ -7,6 +7,7 @@ typedef union value {
     int int_;
     double double_;
     char *string_;
+    _Bool bool_;
 } value_t;
 
 typedef struct value_array {

@@ -10,7 +10,7 @@ typedef struct mem_info {
     _Bool is_free;
 } mem_info_t;
 
-typedef struct {
+typedef struct heap {
     mem_info_t *root;
     size_t capacity;
     char *end;

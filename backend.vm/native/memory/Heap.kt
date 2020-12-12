@@ -1,11 +1,11 @@
 package com.lorenzoog.kofl.vm.memory
 
-import com.lorenzoog.kofl.interpreter.internal.heap_t
-import com.lorenzoog.kofl.interpreter.internal.mem_info_t
+import com.lorenzoog.kofl.interpreter.internal.heap
+import com.lorenzoog.kofl.interpreter.internal.mem_info
 import kotlinx.cinterop.*
 
 @OptIn(ExperimentalUnsignedTypes::class)
-fun mem_info_t.render(capacity: ULong) = buildString {
+fun mem_info.render(capacity: ULong) = buildString {
   append("mem_info_t(")
   append("is_free=${is_free}, ")
   append("next=${next.render(capacity)}, ")
@@ -14,13 +14,13 @@ fun mem_info_t.render(capacity: ULong) = buildString {
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-fun CPointer<mem_info_t>?.render(capacity: ULong): String = buildString {
+fun CPointer<mem_info>?.render(capacity: ULong): String = buildString {
   if (this@render == null) return "null"
 
   append("[")
 
   var first = true
-  var oldMemInfo: mem_info_t? = null
+  var oldMemInfo: mem_info? = null
   var memInfo = pointed
 
   for (index in 0uL..capacity) {
@@ -41,11 +41,11 @@ fun CPointer<mem_info_t>?.render(capacity: ULong): String = buildString {
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-fun mem_info_t.isTheSame(memInfo: mem_info_t?): Boolean {
+fun mem_info.isTheSame(memInfo: mem_info?): Boolean {
   return memInfo?.is_free == is_free && memInfo.size == memInfo.size
 }
 
-fun CPointer<heap_t>?.render(): String = buildString {
+fun CPointer<heap>?.render(): String = buildString {
   if (this@render == null) return "null"
 
   pointed.apply {
