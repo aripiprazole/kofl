@@ -7,6 +7,7 @@ chunk_t *chunk_create(int count, int capacity) {
 
     chunk->count = count;
     chunk->capacity = capacity;
+    chunk->values = *value_array_create(0, 0);
     chunk->code = malloc(capacity * sizeof(chunk_t));
     chunk->lines = malloc(capacity * sizeof(int));
 

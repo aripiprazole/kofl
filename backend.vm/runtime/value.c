@@ -11,6 +11,6 @@ value_array_t *value_array_create(int count, int capacity) {
     return array;
 }
 
-void value_array_write(value_t value) {
+void value_array_write(value_array_t *array, value_t value) {
     // TODO
 }

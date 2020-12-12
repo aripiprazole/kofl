@@ -16,8 +16,8 @@ typedef struct value_array {
     value_t *values;
 } value_array_t;
 
-value_array_t* value_array_create(int count, int capacity);
+value_array_t *value_array_create(int count, int capacity);
 
-void value_array_write(value_t value);
+void value_array_write(value_array_t *array, value_t value);
 
 #endif //RUNTIME_VALUE_H

@@ -2,25 +2,36 @@
 
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.interpreter.internal.chunk
+import com.lorenzoog.kofl.vm.interop.Chunk
+import com.lorenzoog.kofl.vm.interop.OpCode
+import com.lorenzoog.kofl.vm.interop.Value
 import kotlinx.cinterop.*
 import platform.posix.sprintf
 
-fun chunk.disassemble(name: String) {
+fun Value?.print(): String {
+  if (this == null) return "NULL"
+
+  return "TODO"
+}
+
+fun Chunk.disassemble(name: String) {
   println("== $name ==")
 
   var offset = 0
   while (offset < count) {
-    offset = disassembleInstructions(offset)
+    offset = disassembleInstructions(name, offset)
   }
 }
 
-fun chunk.disassembleInstructions(offset: Int): Int {
-  val line = if (offset > 0 && lines[offset] == lines[offset - 1])
+fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
+  if (lines == null) error("CHUNK $name SHOULD NOT HAVE LINES NULL")
+  if (code == null) error("CHUNK $name SHOULD NOT HAVE CODE NULL")
+
+  val line = if (offset > 0 && lines!![offset] == lines!![offset - 1])
     "   | " // indicates that the above instruction is the same here.
   else memScoped {
     val str = alloc<ByteVar>()
-    sprintf(str.ptr, "%04d ", lines[offset]!!)
+    sprintf(str.ptr, "%04d ", lines!![offset])
     str.ptr.toKString()
   }
 
@@ -30,21 +41,21 @@ fun chunk.disassembleInstructions(offset: Int): Int {
     str.ptr.toKString()
   })
 
-  return when (val opcode = code[offset]) {
-    OpCode.OpReturn -> simpleInstruction("OP_RETURN", offset)
-    OpCode.OpNegate -> simpleInstruction("OP_NEGATE", offset)
-    OpCode.OpMultiply -> simpleInstruction("OP_MULTIPLY", offset)
-    OpCode.OpSum -> simpleInstruction("OP_SUM", offset)
-    OpCode.OpSubtract -> simpleInstruction("OP_SUBTRACT", offset)
-    OpCode.OpDivide -> simpleInstruction("OP_DIVIDE", offset)
-    OpCode.OpConcat -> simpleInstruction("OP_CONCAT", offset)
-    OpCode.OpPop -> simpleInstruction("OP_POP", offset)
-    OpCode.OpStoreGlobal -> simpleInstruction("OP_STORE_GLOBAL", offset)
-    OpCode.OpAccessGlobal -> simpleInstruction("OP_ACCESS_GLOBAL", offset)
-    OpCode.OpConstant,
-    OpCode.OpTrue,
-    OpCode.OpFalse -> constantInstruction("OP_CONSTANT", offset)
-    OpCode.OpNot -> simpleInstruction("OP_NOT", offset)
+  return when (val opcode = code?.get(offset)?.value) {
+    OpCode.OP_RETURN -> simpleInstruction("RET", offset)
+    OpCode.OP_NEGATE -> simpleInstruction("NEGATE", offset)
+    OpCode.OP_MULT -> simpleInstruction("MUL", offset)
+    OpCode.OP_SUM -> simpleInstruction("SUM", offset)
+    OpCode.OP_SUB -> simpleInstruction("SUB", offset)
+    OpCode.OP_DIV -> simpleInstruction("DIV", offset)
+    OpCode.OP_CONCAT -> simpleInstruction("CONCAT", offset)
+    OpCode.OP_POP -> simpleInstruction("POP", offset)
+    OpCode.OP_STORE_GLOBAL -> simpleInstruction("STORE_GLOBAL", offset)
+    OpCode.OP_ACCESS_GLOBAL -> simpleInstruction("ACCESS_GLOBAL", offset)
+    OpCode.OP_CONST,
+    OpCode.OP_TRUE,
+    OpCode.OP_FALSE -> constantInstruction("CONST", offset)
+    OpCode.OP_NOT -> simpleInstruction("NOT", offset)
     else -> {
       println("unknown opcode: $opcode")
       offset + 1
@@ -52,18 +63,21 @@ fun chunk.disassembleInstructions(offset: Int): Int {
   }
 }
 
-fun chunk.constantInstruction(name: String, offset: Int): Int {
-  val const = code[offset + 1]!!
+fun Chunk.constantInstruction(name: String, offset: Int): Int {
+  val const = code!![offset + 1].value
   val offsetStr = memScoped {
     val str = alloc<ByteVar>()
     sprintf(str.ptr, "%04d", const)
     str.ptr.toKString()
   }
-  println("$name $offsetStr '${constants.values[const.toInt()]!!.print()}'")
+
+  println("$name $offsetStr '${values.values?.get(const.value.toInt()).print()}'")
+
   return offset + 2
 }
 
 private fun simpleInstruction(name: String, offset: Int): Int {
   println(name)
+
   return offset + 1
 }
