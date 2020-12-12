@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+
 plugins {
   kotlin("multiplatform")
 }
@@ -29,7 +32,6 @@ kotlin {
     compilations["main"].cinterops {
       val runtime by creating {
         defFile = File("$projectDir/runtime/runtime.def")
-//        includeDirs.headerFilterOnly("$projectDir/runtime")
 
         compilerOpts("-I/usr/local/include", "-I$projectDir/runtime")
         extraOpts("-libraryPath", "$projectDir/runtime/build")
@@ -74,6 +76,27 @@ kotlin {
   }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
-  kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-XXLanguage:+InlineClasses")
+tasks {
+  val runtimeKLib = projectDir.resolve("build/classes/kotlin/native/main/backend.vm-cinterop-runtime.klib")
+
+  val buildRuntime by creating(Exec::class) {
+    errorOutput = System.err
+    standardOutput = System.out
+    commandLine = listOf(projectDir.resolve("runtime/build.sh").toString())
+  }
+
+  val removeRuntime by creating(Delete::class) {
+    if(runtimeKLib.exists()) {
+      delete(runtimeKLib)
+    }
+  }
+
+  withType<KotlinNativeCompile> {
+    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-XXLanguage:+InlineClasses")
+  }
+
+  getByName<CInteropProcess>("cinteropRuntimeNative") {
+    dependsOn(removeRuntime)
+    dependsOn(buildRuntime)
+  }
 }
