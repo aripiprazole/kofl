@@ -4,12 +4,9 @@
 #include <errno.h>
 #include <stddef.h>
 
-#include "value.h"
-
 typedef struct mem_info {
     struct mem_info *next;
     size_t size;
-    value_t value;
     _Bool is_free;
 } mem_info_t;
 

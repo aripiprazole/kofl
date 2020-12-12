@@ -43,7 +43,7 @@ void *heap_alloc(heap_t *heap, size_t size) {
         }
     } while (block != NULL);
 
-    return &ptr->value;
+    return ptr;
 }
 
 _Bool *heap_free(heap_t *heap, void *ptr) {
