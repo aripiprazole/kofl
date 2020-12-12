@@ -24,14 +24,14 @@ typedef enum opcode {
 typedef struct chunk {
     int count;
     int capacity;
-    int* lines;
+    int *lines;
     opcode_t *code;
 } chunk_t;
 
-chunk_t* chunk_create(int count, int capacity);
+chunk_t *chunk_create(int count, int capacity);
 
-void chunk_write(opcode_t op, int line);
+void chunk_write(chunk_t *chunk, unsigned int op, int line);
 
-int chunk_write_const(value_t const_);
+int chunk_write_const(chunk_t *chunk, value_t const_);
 
 #endif //RUNTIME_CHUNK_H
