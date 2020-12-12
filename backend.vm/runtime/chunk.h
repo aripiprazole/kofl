@@ -26,6 +26,7 @@ typedef struct chunk {
     int capacity;
     int *lines;
     opcode_t *code;
+    value_array_t values;
 } chunk_t;
 
 chunk_t *chunk_create(int count, int capacity);

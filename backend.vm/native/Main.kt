@@ -1,19 +1,20 @@
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.interpreter.internal.*
-import com.lorenzoog.kofl.vm.memory.render
-import kotlinx.cinterop.*
+import com.lorenzoog.kofl.frontend.Parser
+import com.lorenzoog.kofl.frontend.Scanner
+import kotlinx.cinterop.memScoped
 
-@OptIn(ExperimentalUnsignedTypes::class)
 fun main(): Unit = memScoped {
-  val heap = create_heap(512_000)
+  val bytecodeCompiler = BytecodeCompiler()
 
-  val pointer = heap_alloc(heap, sizeOf<IntVar>().toULong())?.reinterpret<IntVar>()?.apply {
-    pointed.value = 34
-  }
+  val lexer = Scanner(
+    """
+      val x: String = "";
+      val y: String = x;
+    """.trimIndent()
+  )
+  val parser = Parser(lexer.scan(), repl = true)
 
-  println("HEAP=${heap.render()}")
-  println("INTVAR=${pointer?.pointed?.value}")
-
-  heap_free(heap, pointer)
+  bytecodeCompiler.compile(parser.parse())
 }
+

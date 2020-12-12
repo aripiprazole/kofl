@@ -5,27 +5,25 @@ package com.lorenzoog.kofl.vm
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.interpreter.internal.*
+import com.lorenzoog.kofl.vm.interop.*
 import kotlinx.cinterop.*
 import platform.posix.UINT8_MAX
 
-open class CompilationException(message: String) : RuntimeException(message)
-
-class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
+class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private val heap = MemScope()
 
   // chunk index
   private var ci = 0
-  private var chunks = arrayOf(chunk_create(0, 0))
+  private var chunks = arrayOf(Chunk())
 
-  fun compile(stmts: List<Stmt>): Array<CPointer<chunk_t>?> {
+  fun compile(stmts: List<Stmt>): Array<CPointer<Chunk>> {
     visitStmts(stmts)
     endCompiler()
 
     return chunks
   }
 
-  fun compile(exprs: List<Expr>): Array<CPointer<chunk_t>?> {
+  fun compile(exprs: List<Expr>): Array<CPointer<Chunk>> {
     visitExprs(exprs)
     endCompiler()
 
@@ -41,10 +39,10 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     visitExpr(expr.right)
 
     when (expr.op.type) {
-      TokenType.Plus -> emit(opcode.OP_SUM, expr.line) // TODO: compile OpCode.Concat when have typechecking
-      TokenType.Minus -> emit(opcode.OP_SUB, expr.line)
-      TokenType.Slash -> emit(opcode.OP_DIV, expr.line)
-      TokenType.Star -> emit(opcode.OP_MULT, expr.line)
+      TokenType.Plus -> emit(OpCode.OP_SUM, expr.line) // TODO: compile OpCode.Concat when have typechecking
+      TokenType.Minus -> emit(OpCode.OP_SUB, expr.line)
+      TokenType.Slash -> emit(OpCode.OP_DIV, expr.line)
+      TokenType.Star -> emit(OpCode.OP_MULT, expr.line)
       else -> Unit
     }
   }
@@ -59,10 +57,10 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
 
   override fun visitLiteralExpr(expr: Expr.Literal) {
     when (val value = expr.value) {
-      is Int -> emit(opcode.OP_CONST, makeConst(value), expr.line)
-      is Number -> emit(opcode.OP_CONST, makeConst(value.toDouble()), expr.line)
-      is Boolean -> emit(opcode.OP_CONST, makeConst(value), expr.line)
-      is String -> emit(opcode.OP_CONST, makeConst(value), expr.line)
+      is Int -> emit(OpCode.OP_CONST, makeConst(value), expr.line)
+      is Number -> emit(OpCode.OP_CONST, makeConst(value.toDouble()), expr.line)
+      is Boolean -> emit(OpCode.OP_CONST, makeConst(value), expr.line)
+      is String -> emit(OpCode.OP_CONST, makeConst(value), expr.line)
     }
   }
 
@@ -70,16 +68,16 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     visitExpr(expr.right)
 
     when (expr.op.type) {
-      TokenType.Minus -> emit(opcode.OP_NEGATE, expr.line)
-      TokenType.Bang -> emit(opcode.OP_NOT, expr.line)
+      TokenType.Minus -> emit(OpCode.OP_NEGATE, expr.line)
+      TokenType.Bang -> emit(OpCode.OP_NOT, expr.line)
       else -> {
       }
     }
   }
 
   override fun visitVarExpr(expr: Expr.Var) {
-    emit(opcode.OP_CONST, makeConst(expr.name.lexeme), expr.line)
-    emit(opcode.OP_ACCESS_GLOBAL, expr.line)
+    emit(OpCode.OP_CONST, makeConst(expr.name.lexeme), expr.line)
+    emit(OpCode.OP_ACCESS_GLOBAL, expr.line)
   }
 
   override fun visitCallExpr(expr: Expr.Call) {
@@ -135,9 +133,9 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl) {
-    emit(opcode.OP_CONCAT, makeConst(stmt.name.lexeme), stmt.line)
+    emit(OpCode.OP_CONCAT, makeConst(stmt.name.lexeme), stmt.line)
     visitExpr(stmt.value)
-    emit(opcode.OP_STORE_GLOBAL, stmt.line)
+    emit(OpCode.OP_STORE_GLOBAL, stmt.line)
   }
 
   override fun visitVarDeclStmt(stmt: Stmt.VarDecl) {
@@ -164,8 +162,8 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     string_ = value.cstr.placeTo(heap)
   })
 
-  private fun makeConst(value: CValue<value>): UInt {
-    val const = chunk_write_const(chunk(), value)
+  private fun makeConst(value: CValue<Value>): UInt {
+    val const = chunk().addConst(value)
 
     if (const > UINT8_MAX) {
       error("TOO LONG CONST") // TODO: make a error
@@ -174,23 +172,23 @@ class Compiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     return const.toUInt()
   }
 
-  private fun chunk(): CPointer<chunk_t>? {
-    return chunks[ci]
+  private fun chunk(): Chunk {
+    return chunks[ci].pointed
   }
 
   private fun endCompiler() {
-    emit(opcode.OP_RETURN, -1)
+    emit(OpCode.OP_RETURN, -1)
   }
 
-  private fun emit(op: opcode, line: Int) {
-    chunk_write(chunk(), op.value, line)
+  private fun emit(op: OpCode, line: Int) {
+    chunk().write(op.value, line)
   }
 
   private fun emit(op: UInt, line: Int) {
-    chunk_write(chunk(), op, line)
+    chunk().write(op, line)
   }
 
-  private fun emit(op: opcode, value: UInt, line: Int) {
+  private fun emit(op: OpCode, value: UInt, line: Int) {
     emit(op.value, line)
     emit(value, line)
   }
