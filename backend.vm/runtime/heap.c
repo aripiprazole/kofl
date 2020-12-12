@@ -1,11 +1,10 @@
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
 
 #include "heap.h"
 
 heap_t *create_heap(int size) {
     heap_t *heap = malloc(sizeof(heap_t));
+    heap->capacity = size;
 
     mem_info_t *root = malloc(size * sizeof(mem_info_t));
 

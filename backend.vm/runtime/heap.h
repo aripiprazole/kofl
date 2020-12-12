@@ -15,6 +15,7 @@ typedef struct mem_info {
 
 typedef struct {
     mem_info_t *root;
+    size_t capacity;
     char *end;
 } heap_t;
 
