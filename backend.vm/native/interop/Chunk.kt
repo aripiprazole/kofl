@@ -18,9 +18,16 @@ fun Chunk.write(op: UInt, line: Int) {
 
 inline fun Chunk.addConst(value: CValue<Value>) = chunk_write_const(ptr, value)
 inline fun Chunk.addConst(value: Value.() -> Unit) = addConst(cValue(value))
-inline fun Chunk.addConst(bool: Boolean) = addConst { bool_ = bool }
-inline fun Chunk.addConst(double: Double) = addConst { double_ = double }
-inline fun Chunk.addConst(int: Int) = addConst { int_ = int }
-inline fun Chunk.addConst(string: String) = addConst {
-  string_ = string.cstr.placeTo(MemScope())
+inline fun Chunk.addConst(bool: Boolean) = addConst {
+  obj._bool = bool
 }
+inline fun Chunk.addConst(double: Double) = addConst {
+  obj._double = double
+}
+inline fun Chunk.addConst(int: Int) = addConst {
+  obj._int = int
+}
+inline fun Chunk.addConst(string: String) = addConst {
+  obj._string = string.cstr.placeTo(MemScope())
+}
+

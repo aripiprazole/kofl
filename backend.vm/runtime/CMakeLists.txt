@@ -6,4 +6,4 @@ set(CMAKE_C_STANDARD 11)
 include_directories(.)
 
 add_library(runtime
-        heap.c heap.h value.c value.h chunk.c chunk.h)
+        heap.c heap.h value.c value.h chunk.c chunk.h utils.c utils.h)

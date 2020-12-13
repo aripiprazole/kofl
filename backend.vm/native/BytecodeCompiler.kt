@@ -147,21 +147,22 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   private fun makeConst(value: Boolean): UInt = makeConst(cValue {
-    bool_ = value
+    obj._bool = value
   })
 
   private fun makeConst(value: Double): UInt = makeConst(cValue {
-    double_ = value
+    obj._double = value
   })
 
   private fun makeConst(value: Int): UInt = makeConst(cValue {
-    int_ = value
+    obj._int = value
   })
 
   private fun makeConst(value: String): UInt = makeConst(cValue {
-    string_ = value.cstr.placeTo(heap)
+    obj._string = value.cstr.placeTo(heap)
   })
 
+  @OptIn(ExperimentalUnsignedTypes::class)
   private fun makeConst(value: CValue<Value>): UInt {
     val const = chunk().addConst(value)
 
@@ -177,7 +178,7 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   private fun endCompiler() {
-    emit(OpCode.OP_RETURN, -1)
+    emit(OpCode.OP_RET, -1)
   }
 
   private fun emit(op: OpCode, line: Int) {

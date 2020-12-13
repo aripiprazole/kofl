@@ -23,6 +23,8 @@ mem_info_t *heap_block_alloc(heap_t *heap, size_t rem) {
 
     new_block->is_free = 1;
     new_block->size = rem - sizeof(mem_info_t);
+
+    return new_block;
 }
 
 void *heap_alloc(heap_t *heap, size_t size) {

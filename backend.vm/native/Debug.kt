@@ -41,8 +41,12 @@ fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
     str.ptr.toKString()
   })
 
-  return when (val opcode = code?.get(offset)?.value) {
-    OpCode.OP_RETURN -> simpleInstruction("RET", offset)
+  val opcode = kotlin.runCatching {
+    code!![offset].value
+  }.getOrNull()
+
+  return when (opcode) {
+    OpCode.OP_RET -> simpleInstruction("RET", offset)
     OpCode.OP_NEGATE -> simpleInstruction("NEGATE", offset)
     OpCode.OP_MULT -> simpleInstruction("MUL", offset)
     OpCode.OP_SUM -> simpleInstruction("SUM", offset)
@@ -63,6 +67,7 @@ fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
   }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 fun Chunk.constantInstruction(name: String, offset: Int): Int {
   val const = code!![offset + 1].value
   val offsetStr = memScoped {
@@ -71,7 +76,7 @@ fun Chunk.constantInstruction(name: String, offset: Int): Int {
     str.ptr.toKString()
   }
 
-  println("$name $offsetStr '${values.values?.get(const.value.toInt()).print()}'")
+  println("$name $offsetStr '${values?.pointed?.values?.get(const.value.toInt()).print()}'")
 
   return offset + 2
 }
