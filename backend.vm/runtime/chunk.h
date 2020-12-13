@@ -31,14 +31,18 @@ typedef struct chunk {
     value_array_t *values;
 } chunk_t;
 
+// opcode functions>
+opcode_t uint_to_opcode(unsigned int raw);
+
+// chunk functions>
 chunk_t *chunk_create(int count, int capacity);
 
 void chunk_write(chunk_t *chunk, unsigned int, int line);
 
 int chunk_write_const(chunk_t *chunk, value_t const_);
 
-opcode_t uint_to_opcode(unsigned int raw);
-
 char *chunk_dump(chunk_t *chunk);
+
+void chunk_dispose(chunk_t *chunk);
 
 #endif //RUNTIME_CHUNK_H

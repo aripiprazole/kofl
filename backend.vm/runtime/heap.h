@@ -17,10 +17,13 @@ typedef struct heap {
     char *end;
 } heap_t;
 
+// heap functions>
 heap_t *heap_create(size_t size);
 
 void *heap_alloc(heap_t *heap, size_t size);
 
-bool *heap_free(heap_t * heap, void *ptr);
+bool *heap_free(heap_t *heap, void *ptr);
+
+void heap_dispose(heap_t *heap);
 
 #endif //RUNTIME_HEAP_H

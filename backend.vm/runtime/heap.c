@@ -2,6 +2,7 @@
 
 #include "heap.h"
 
+// heap functions>
 heap_t *heap_create(size_t size) {
     heap_t *heap = malloc(sizeof(heap_t));
     heap->capacity = size;

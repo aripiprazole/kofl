@@ -159,3 +159,8 @@ bool table_set(table_t *table, char *key, int length, void *value) {
 
     return is_new;
 }
+
+void table_dispose(table_t *table) {
+    free(table->nodes);
+    free(table);
+}
