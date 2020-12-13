@@ -17,8 +17,10 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   private var chunks = arrayOf(Chunk())
 
   fun compile(stmts: List<Stmt>): Array<CPointer<Chunk>> {
+    println("COMPILING $stmts")
+
     visitStmts(stmts)
-    endCompiler()
+//    endCompiler()
 
     return chunks
   }
@@ -146,20 +148,20 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     TODO("Not yet implemented")
   }
 
-  private fun makeConst(value: Boolean): UInt = makeConst(cValue {
-    obj._bool = value
+  private fun makeConst(value: Boolean) = makeConst(Value(ValueType.V_TYPE_BOOL) {
+    _bool = value
   })
 
-  private fun makeConst(value: Double): UInt = makeConst(cValue {
-    obj._double = value
+  private fun makeConst(value: Double) = makeConst(Value(ValueType.V_TYPE_DOUBLE) {
+    _double = value
   })
 
-  private fun makeConst(value: Int): UInt = makeConst(cValue {
-    obj._int = value
+  private fun makeConst(value: Int) = makeConst(Value(ValueType.V_TYPE_INT) {
+    _int = value
   })
 
-  private fun makeConst(value: String): UInt = makeConst(cValue {
-    obj._string = value.cstr.placeTo(heap)
+  private fun makeConst(value: String) = makeConst(Value(ValueType.V_TYPE_STR) {
+    _string = value.cstr.placeTo(heap)
   })
 
   @OptIn(ExperimentalUnsignedTypes::class)
@@ -182,7 +184,7 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   private fun emit(op: OpCode, line: Int) {
-    chunk().write(op.value, line)
+    emit(op.value, line)
   }
 
   private fun emit(op: UInt, line: Int) {
@@ -190,7 +192,7 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   private fun emit(op: OpCode, value: UInt, line: Int) {
-    emit(op.value, line)
+    emit(op, line)
     emit(value, line)
   }
 }

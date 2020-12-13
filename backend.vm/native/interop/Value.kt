@@ -1,13 +1,18 @@
 package com.lorenzoog.kofl.vm.interop
 
-import com.lorenzoog.kofl.interpreter.internal.value
-import com.lorenzoog.kofl.interpreter.internal.value_array
-import com.lorenzoog.kofl.interpreter.internal.value_array_create
-import com.lorenzoog.kofl.interpreter.internal.value_array_write
+import com.lorenzoog.kofl.interpreter.internal.*
 import kotlinx.cinterop.*
 
 typealias Value = value
+typealias ValueType = value_type
 typealias ValueArray = value_array
+
+inline fun Value(type: ValueType, builder: anonymousStruct1.() -> Unit): CValue<Value> {
+  return cValue {
+    this.type = type
+    obj.builder()
+  }
+}
 
 fun ValueArray(): CPointer<ValueArray> {
   return value_array_create(0, 0)
@@ -15,19 +20,3 @@ fun ValueArray(): CPointer<ValueArray> {
 }
 
 inline fun ValueArray.write(value: CValue<Value>) = value_array_write(ptr, value)
-inline fun ValueArray.write(value: Value.() -> Unit) = write(cValue(value))
-inline fun ValueArray.write(bool: Boolean) = write {
-  obj._bool = bool
-}
-
-inline fun ValueArray.write(double: Double) = write {
-  obj._double = double
-}
-
-inline fun ValueArray.write(int: Int) = write {
-  obj._int = int
-}
-
-inline fun ValueArray.write(string: String) = write {
-  obj._string = string.cstr.placeTo(VM_HEAP)
-}

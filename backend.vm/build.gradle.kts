@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
@@ -70,10 +69,6 @@ kotlin {
         implementation(project(":compiler.kvm"))
       }
     }
-
-    all {
-      languageSettings.enableLanguageFeature("InlineClasses")
-    }
   }
 }
 
@@ -93,11 +88,15 @@ tasks {
   }
 
   withType<KotlinNativeCompile> {
-    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-XXLanguage:+InlineClasses")
+    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
   }
 
-  getByName<CInteropProcess>("cinteropRuntimeNative") {
+  val cinteropRuntimeNative by getting {
     dependsOn(removeRuntime)
     dependsOn(buildRuntime)
+  }
+
+  val runDebugExecutableNative by getting {
+    dependsOn(cinteropRuntimeNative)
   }
 }
