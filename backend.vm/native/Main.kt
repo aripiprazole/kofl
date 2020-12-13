@@ -8,7 +8,9 @@ import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Scanner
 import com.lorenzoog.kofl.frontend.Stack
 import com.lorenzoog.kofl.vm.compiler.BytecodeCompiler
-import kotlinx.cinterop.memScoped
+import com.lorenzoog.kofl.vm.interop.Chunk
+import com.lorenzoog.kofl.vm.interop.Vm
+import com.lorenzoog.kofl.vm.interop.eval
 
 const val MAX_STACK = 250
 
@@ -21,7 +23,7 @@ val builtinTypeContainer = TypeContainer().apply {
   defineType("Unit", KoflType.Unit)
 }
 
-fun main(): Unit = memScoped {
+private fun emitBytecode(): Chunk {
   val locals = mutableMapOf<Descriptor, Int>()
 
   val compiler = BytecodeCompiler()
@@ -45,8 +47,19 @@ fun main(): Unit = memScoped {
   println("DESCRIPTORS = $descriptors")
   println("== ------ ==")
 
-  println("== COMPILED ==")
-  compiler.compile(descriptors).disassemble("CODE")
-  println("== -------- ==")
+  return compiler.compile(descriptors).also { chunk ->
+    println("== COMPILED ==")
+    chunk.disassemble("CODE")
+    println("== -------- ==")
+  }
+}
+
+fun main() {
+  println("DEBUGGING KOFL VM")
+  println()
+
+  val vm = Vm(verbose = true, memory = 512)
+
+  println("INTERPRET RESULT = ${vm.eval(emitBytecode())}")
 }
 

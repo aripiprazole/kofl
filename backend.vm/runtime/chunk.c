@@ -54,7 +54,7 @@ char *chunk_dump(chunk_t *chunk) {
     sprintf(str, "Chunk(count ) [");
 
     for (size_t i = 0; i < chunk->count; i++) {
-        int code = chunk->code[i];
+        uint32_t code = chunk->code[i];
         int line = chunk->lines[i];
 
         sprintf(str, "%s, {code: %d, line: %d}", str, code, line);
