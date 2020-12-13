@@ -6,8 +6,8 @@ import kotlinx.cinterop.*
 typealias OpCode = opcode
 typealias Chunk = chunk
 
-fun Chunk(): CPointer<Chunk> {
-  return chunk_create(0, 0)
+fun Chunk(): Chunk {
+  return chunk_create(0, 0)?.pointed
     ?: error("chunk_create(count = 0, capacity 0): returned null reference")
 }
 
