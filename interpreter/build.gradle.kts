@@ -38,7 +38,7 @@ kotlin {
       dependencies {
         api("pw.binom.io:file:0.1.19")
         implementation(project(":frontend"))
-        implementation(project(":compiler.kvm"))
+        implementation(project(":compiler.common"))
         implementation(kotlin("stdlib-common"))
       }
     }

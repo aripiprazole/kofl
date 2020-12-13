@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.compiler.kvm.typing
+package com.lorenzoog.kofl.compiler.common.typing
 
 sealed class KoflType {
   open val fields: Map<String, KoflType> = mapOf()

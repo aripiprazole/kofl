@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.kvm.backend.Compiler
-import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
-import com.lorenzoog.kofl.compiler.kvm.typing.TypeContainer
+import com.lorenzoog.kofl.compiler.common.backend.AstConverter
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
 import com.lorenzoog.kofl.frontend.*
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
 import com.lorenzoog.kofl.interpreter.runtime.KoflObject
@@ -72,7 +72,7 @@ private class InterpreterImpl(
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return Compiler(locals, container).compile(stmts).also {
+    return AstConverter(locals, container).compile(stmts).also {
       if (debug) logger?.trace("COMPILED: $it")
     }
   }

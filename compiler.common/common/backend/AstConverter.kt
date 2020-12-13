@@ -1,10 +1,10 @@
-package com.lorenzoog.kofl.compiler.kvm.backend
+package com.lorenzoog.kofl.compiler.common.backend
 
-import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
-import com.lorenzoog.kofl.compiler.kvm.typing.TypeContainer
-import com.lorenzoog.kofl.compiler.kvm.typing.TypeValidator
-import com.lorenzoog.kofl.compiler.kvm.typing.match
+import com.lorenzoog.kofl.compiler.common.KoflCompileException
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
+import com.lorenzoog.kofl.compiler.common.typing.TypeValidator
+import com.lorenzoog.kofl.compiler.common.typing.match
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stack
 import com.lorenzoog.kofl.frontend.Stmt
@@ -13,7 +13,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-class Compiler(
+class AstConverter(
   locals: MutableMap<Descriptor, Int>,
   private val container: Stack<TypeContainer>
 ) : Expr.Visitor<Descriptor>, Stmt.Visitor<Descriptor> {
@@ -33,7 +33,7 @@ class Compiler(
     val name = expr.name.lexeme
     val value = visitExpr(expr.value)
 
-    return AssignDescriptor(name, value, type)
+    return AssignDescriptor(name, value, type, expr.line)
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary): Descriptor {
@@ -42,7 +42,7 @@ class Compiler(
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
 
-    return BinaryDescriptor(left, op, right, type)
+    return BinaryDescriptor(left, op, right, type, expr.line)
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): Descriptor {
@@ -51,7 +51,7 @@ class Compiler(
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
 
-    return LogicalDescriptor(left, op, right, type)
+    return LogicalDescriptor(left, op, right, type, expr.line)
   }
 
   override fun visitGroupingExpr(expr: Expr.Grouping): Descriptor {
@@ -61,7 +61,7 @@ class Compiler(
   override fun visitLiteralExpr(expr: Expr.Literal): Descriptor {
     val type = validator.visitLiteralExpr(expr)
 
-    return ConstDescriptor(expr.value, type)
+    return ConstDescriptor(expr.value, type, expr.line)
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): Descriptor {
@@ -69,11 +69,11 @@ class Compiler(
     val op = expr.op.type
     val right = visitExpr(expr.right)
 
-    return UnaryDescriptor(op, right, type)
+    return UnaryDescriptor(op, right, type, expr.line)
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
-    return AccessVarDescriptor(expr.name.lexeme, validator.visitVarExpr(expr))
+    return AccessVarDescriptor(expr.name.lexeme, validator.visitVarExpr(expr), expr.line)
   }
 
   override fun visitCallExpr(expr: Expr.Call): Descriptor {
@@ -100,13 +100,13 @@ class Compiler(
           if (overload.match(arguments.values.map { it.type }) == null)
             throw KoflCompileException.UnresolvedFunction(name)
 
-          AccessFunctionDescriptor("$name-$index", type)
-        } else AccessVarDescriptor(name, type)
+          AccessFunctionDescriptor("$name-$index", type, expr.line)
+        } else AccessVarDescriptor(name, type, expr.line)
       }
       else -> visitExpr(expr.calle)
     }
 
-    return CallDescriptor(callee, arguments, returnType)
+    return CallDescriptor(callee, arguments, returnType, expr.line)
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {
@@ -114,7 +114,7 @@ class Compiler(
     val receiver = visitExpr(expr.receiver)
     val name = expr.name.lexeme
 
-    return GetDescriptor(receiver, name, type)
+    return GetDescriptor(receiver, name, type, expr.line)
   }
 
   override fun visitSetExpr(expr: Expr.Set): Descriptor {
@@ -123,11 +123,11 @@ class Compiler(
     val value = visitExpr(expr.value)
     val name = expr.name.lexeme
 
-    return SetDescriptor(receiver, name, value, type)
+    return SetDescriptor(receiver, name, value, type, expr.line)
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): Descriptor {
-    return ThisDescriptor()
+    return ThisDescriptor(expr.line)
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): Descriptor {
@@ -136,7 +136,7 @@ class Compiler(
     val then = visitStmts(expr.thenBranch)
     val orElse = visitStmts(expr.elseBranch ?: emptyList())
 
-    return IfDescriptor(condition, then, orElse, type)
+    return IfDescriptor(condition, then, orElse, type, expr.line)
   }
 
   override fun visitFuncExpr(expr: Expr.CommonFunc): Descriptor {
@@ -157,7 +157,7 @@ class Compiler(
       }
 
       visitStmts(expr.body)
-    })
+    }, expr.line)
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): Descriptor {
@@ -179,10 +179,10 @@ class Compiler(
       visitStmts(expr.body).let { body ->
         if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KoflType.Unit)
         // add return if return is missing and return type is unit
-          body + ReturnDescriptor(ConstDescriptor(Unit, KoflType.Unit), KoflType.Unit)
+          body + ReturnDescriptor(ConstDescriptor(Unit, KoflType.Unit, expr.line), KoflType.Unit, expr.line)
         else body
       }
-    })
+    }, expr.line)
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): Descriptor {
@@ -197,7 +197,7 @@ class Compiler(
       }
 
       visitStmts(expr.body)
-    })
+    }, expr.line)
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): Descriptor {
@@ -212,7 +212,7 @@ class Compiler(
 
     container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
 
-    return NativeFunctionDescriptor(indexedName, parameters, returnType, name)
+    return NativeFunctionDescriptor(indexedName, parameters, returnType, name, expr.line)
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): Descriptor {
@@ -222,7 +222,7 @@ class Compiler(
   override fun visitBlockStmt(stmt: Stmt.Block): Descriptor {
     return BlockDescriptor(scoped {
       visitStmts(stmt.body)
-    })
+    }, stmt.line)
   }
 
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): Descriptor {
@@ -230,14 +230,14 @@ class Compiler(
 
     return WhileDescriptor(condition, scoped {
       visitStmts(stmt.body)
-    })
+    }, stmt.line)
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): Descriptor {
     val type = validator.visitReturnStmt(stmt)
     val value = visitExpr(stmt.expr)
 
-    return ReturnDescriptor(value, type)
+    return ReturnDescriptor(value, type, stmt.line)
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): Descriptor {
@@ -245,7 +245,7 @@ class Compiler(
     val name = stmt.name.lexeme
     val value = visitExpr(stmt.value)
 
-    return ValDescriptor(name, value, type)
+    return ValDescriptor(name, value, type, stmt.line)
   }
 
   override fun visitVarDeclStmt(stmt: Stmt.VarDecl): Descriptor {
@@ -253,7 +253,7 @@ class Compiler(
     val name = stmt.name.lexeme
     val value = visitExpr(stmt.value)
 
-    return VarDescriptor(name, value, type)
+    return VarDescriptor(name, value, type, stmt.line)
   }
 
   override fun visitClassTypeStmt(stmt: Stmt.Type.Class): Descriptor {
@@ -261,7 +261,7 @@ class Compiler(
     val inherits = emptyList<KoflType>()
     val parameters = typedParameters(stmt.parameters)
 
-    return ClassDescriptor(name, inherits, parameters)
+    return ClassDescriptor(name, inherits, parameters, stmt.line)
   }
 
   private inline fun String.indexed(index: Int): String {

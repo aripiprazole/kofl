@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
 
 class Builtin internal constructor(private val environment: Environment) {
   fun setup() {

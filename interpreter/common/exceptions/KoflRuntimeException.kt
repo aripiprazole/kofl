@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter.exceptions
 
-import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
 import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.interpreter.dump
 import com.lorenzoog.kofl.interpreter.runtime.Environment

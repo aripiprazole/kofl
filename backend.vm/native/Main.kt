@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.vm
 
-import com.lorenzoog.kofl.compiler.kvm.backend.Compiler
-import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
-import com.lorenzoog.kofl.compiler.kvm.typing.TypeContainer
+import com.lorenzoog.kofl.compiler.common.backend.AstConverter
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
 import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Scanner
 import com.lorenzoog.kofl.frontend.Stack
@@ -33,12 +33,12 @@ fun main(): Unit = memScoped {
     """.trimIndent()
   )
   val parser = Parser(lexer.scan(), repl = true)
-  val descriptorCompiler = Compiler(locals, Stack<TypeContainer>(MAX_STACK).also { container ->
+  val converter = AstConverter(locals, Stack<TypeContainer>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   })
 
   val stmts = parser.parse()
-  val descriptors = descriptorCompiler.compile(stmts)
+  val descriptors = converter.compile(stmts)
 
   println("== PARSED ==")
   println("STMTS = $stmts")

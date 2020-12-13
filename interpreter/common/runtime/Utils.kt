@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
-import com.lorenzoog.kofl.compiler.kvm.backend.FunctionDescriptor
-import com.lorenzoog.kofl.compiler.kvm.backend.NativeFunctionDescriptor
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.KoflCompileException
+import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
 
 class ClassBuilder internal constructor(private val definition: KoflType.Class) {
   private val constructors = mutableListOf<KoflObject.Callable>()
@@ -29,7 +29,8 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
       name = definition.name ?: "<no name provided>",
       parameters = parameters,
       returnType = definition,
-      nativeCall = "${definition.name}.<init>"
+      nativeCall = "${definition.name}.<init>",
+      line = -1
     )
 
     constructors += KoflObject.Callable.LocalNativeFunction(function, descriptor)

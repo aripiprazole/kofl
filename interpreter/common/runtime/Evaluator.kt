@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.kvm.backend.*
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.backend.*
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 

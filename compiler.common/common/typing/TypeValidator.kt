@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.compiler.kvm.typing
+package com.lorenzoog.kofl.compiler.common.typing
 
-import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
-import com.lorenzoog.kofl.compiler.kvm.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.KoflCompileException
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
 import com.lorenzoog.kofl.frontend.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

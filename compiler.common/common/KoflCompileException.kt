@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.compiler.kvm
+package com.lorenzoog.kofl.compiler.common
 
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.frontend.KoflException
 
 sealed class KoflCompileException(message: String) : KoflException("compile", message) {

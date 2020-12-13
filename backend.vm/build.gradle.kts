@@ -66,7 +66,7 @@ kotlin {
 
       dependencies {
         implementation(project(":frontend"))
-        implementation(project(":compiler.kvm"))
+        implementation(project(":compiler.common"))
       }
     }
   }
