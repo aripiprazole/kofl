@@ -3,9 +3,10 @@ package com.lorenzoog.kofl.vm
 import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Scanner
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.pointed
 
 fun main(): Unit = memScoped {
-  val bytecodeCompiler = BytecodeCompiler()
+  val compiler = BytecodeCompiler()
 
   val lexer = Scanner(
     """
@@ -15,6 +16,10 @@ fun main(): Unit = memScoped {
   )
   val parser = Parser(lexer.scan(), repl = true)
 
-  bytecodeCompiler.compile(parser.parse())
+  println("== COMPILED ==")
+  compiler.compile(parser.parse()).forEachIndexed { index, chunk ->
+    chunk.pointed.disassemble("CHUNK[$index]")
+  }
+  println("== -------- ==")
 }
 
