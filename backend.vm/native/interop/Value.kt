@@ -7,7 +7,7 @@ typealias Value = value
 typealias ValueType = value_type
 typealias ValueArray = value_array
 
-inline fun Value(type: ValueType, builder: anonymousStruct1.() -> Unit): CValue<Value> {
+inline fun Value(type: ValueType, builder: obj_as_t.() -> Unit): CValue<Value> {
   return cValue {
     this.type = type
     obj.builder()

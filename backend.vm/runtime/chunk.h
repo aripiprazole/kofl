@@ -28,7 +28,7 @@ typedef struct chunk {
     int capacity;
     int *lines;
     unsigned int *code;
-    value_array_t *values;
+    value_array_t *consts;
 } chunk_t;
 
 // opcode functions>
