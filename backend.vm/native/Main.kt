@@ -27,7 +27,7 @@ fun main(): Unit = memScoped {
 
   println("== COMPILED ==")
   compiler.compile(stmts).forEachIndexed { i, chunk ->
-    println(chunk.pointed.disassemble("CODE $i"))
+    chunk.pointed.disassemble("CODE $i")
   }
   println("== -------- ==")
 }

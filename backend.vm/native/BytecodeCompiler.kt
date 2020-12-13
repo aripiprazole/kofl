@@ -135,7 +135,7 @@ class BytecodeCompiler : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl) {
-    emit(OpCode.OP_CONCAT, makeConst(stmt.name.lexeme), stmt.line)
+    emit(OpCode.OP_CONST, makeConst(stmt.name.lexeme), stmt.line)
     visitExpr(stmt.value)
     emit(OpCode.OP_STORE_GLOBAL, stmt.line)
   }
