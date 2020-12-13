@@ -52,3 +52,9 @@ void *heap_alloc(heap_t *heap, size_t size) {
 bool *heap_free(heap_t *heap, void *ptr) {
     return false;
 }
+
+void heap_dispose(heap_t *heap) {
+    free(heap->root);
+    free(heap->end);
+    free(heap);
+}

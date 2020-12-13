@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#define VM_DEBUG_TRACE
+
 #undef CHUNK_DEBUG
 #undef VALUE_DEBUG
 

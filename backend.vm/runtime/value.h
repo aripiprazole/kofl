@@ -1,7 +1,18 @@
 #ifndef RUNTIME_VALUE_H
 #define RUNTIME_VALUE_H
 
+#include <stdbool.h>
+
 #include "heap.h"
+
+#define NUM_VALUE(value) value_create(V_TYPE_DOUBLE, \
+    (obj_as_t) { ._double = (value) })
+
+#define BOOL_VALUE(value) value_create(V_TYPE_BOOL, \
+    (obj_as_t) { ._bool = (value) })
+
+#define STR_VALUE(value) value_create(V_TYPE_STR, \
+    (obj_as_t) { ._string = (value) })
 
 typedef enum value_type {
     V_TYPE_OBJ,
@@ -11,14 +22,16 @@ typedef enum value_type {
     V_TYPE_STR,
 } value_type_t;
 
+typedef union obj_as {
+    int _int;
+    double _double;
+    char *_string;
+    bool _bool;
+} obj_as_t;
+
 typedef struct value {
     value_type_t type;
-    union {
-        int _int;
-        double _double;
-        char *_string;
-        _Bool _bool;
-    } obj;
+    obj_as_t obj;
 } value_t;
 
 typedef struct value_array {
@@ -28,7 +41,7 @@ typedef struct value_array {
 } value_array_t;
 
 // value functions>
-value_t *value_create(value_type_t type);
+value_t *value_create(value_type_t type, obj_as_t obj);
 
 void value_dispose(value_t *value);
 

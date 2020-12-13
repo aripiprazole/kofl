@@ -16,7 +16,8 @@ typedef struct flags {
 
 typedef struct vm {
     stack_t *stack;
-    chunk_t *pc;
+    chunk_t *chunk;
+    opcode_t *pc;
     heap_t *heap;
     table_t *table;
 } vm_t;

@@ -5,10 +5,11 @@
 #include "utils.h"
 
 // value functions>
-value_t *value_create(value_type_t type) {
+value_t *value_create(value_type_t type, obj_as_t obj) {
     value_t *value = malloc(sizeof(value_t));
 
     value->type = type;
+    value->obj = obj;
 
     return value;
 }

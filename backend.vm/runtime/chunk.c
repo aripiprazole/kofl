@@ -16,7 +16,7 @@ chunk_t *chunk_create(int count, int capacity) {
 
     chunk->count = count;
     chunk->capacity = capacity;
-    chunk->values = value_array_create(0, 0);
+    chunk->consts = value_array_create(0, 0);
     chunk->code = malloc(capacity * sizeof(opcode_t));
     chunk->lines = malloc(capacity * sizeof(int));
 
@@ -45,9 +45,9 @@ int chunk_write_const(chunk_t *chunk, value_t const_) {
     printf("chunk_write_const(chunk = UNKNOWN, const_ = %s)\n", value_to_str(&const_));
 #endif
 
-    value_array_write(chunk->values, const_);
+    value_array_write(chunk->consts, const_);
 
-    return chunk->values->count - 1;
+    return chunk->consts->count - 1;
 }
 
 char *chunk_dump(chunk_t *chunk) {
@@ -68,7 +68,7 @@ char *chunk_dump(chunk_t *chunk) {
 }
 
 void chunk_dispose(chunk_t *chunk) {
-    value_array_dispose(chunk->values);
+    value_array_dispose(chunk->consts);
     free(chunk->lines);
     free(chunk->code);
     free(chunk);

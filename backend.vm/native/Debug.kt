@@ -78,7 +78,7 @@ fun Chunk.constantInstruction(name: String, offset: Int): Int {
     " "
   }
 
-  println("$spacedName $offsetStr '${values?.pointed?.values?.get(const.toInt()).print()}'")
+  println("$spacedName $offsetStr '${consts?.pointed?.values?.get(const.toInt()).print()}'")
 
   return offset + 2
 }

@@ -4,6 +4,8 @@ package com.lorenzoog.kofl.vm.compiler
 
 import com.lorenzoog.kofl.compiler.common.backend.*
 import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
+import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.vm.interop.*
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.MemScope
@@ -100,7 +102,21 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
   }
 
   override fun visitBinaryDescriptor(descriptor: BinaryDescriptor) {
-    TODO("Not yet implemented")
+    visitDescriptor(descriptor.left)
+    visitDescriptor(descriptor.right)
+
+    when (descriptor.op) {
+      TokenType.Plus -> emit(
+        op = if (KoflType.String.isAssignableBy(descriptor.left.type))
+          OpCode.OP_CONCAT
+        else OpCode.OP_SUM,
+        line = descriptor.line
+      )
+      TokenType.Minus -> emit(OpCode.OP_SUB, descriptor.line)
+      TokenType.Slash -> emit(OpCode.OP_DIV, descriptor.line)
+      TokenType.Star -> emit(OpCode.OP_MULT, descriptor.line)
+      else -> {}
+    }
   }
 
   override fun visitLocalFunctionDescriptor(descriptor: LocalFunctionDescriptor) {
