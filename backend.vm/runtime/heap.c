@@ -2,7 +2,7 @@
 
 #include "heap.h"
 
-heap_t *create_heap(int size) {
+heap_t *heap_create(size_t size) {
     heap_t *heap = malloc(sizeof(heap_t));
     heap->capacity = size;
 
@@ -48,6 +48,6 @@ void *heap_alloc(heap_t *heap, size_t size) {
     return ptr;
 }
 
-_Bool *heap_free(heap_t *heap, void *ptr) {
-    return 0;
+bool *heap_free(heap_t *heap, void *ptr) {
+    return false;
 }

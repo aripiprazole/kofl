@@ -74,7 +74,11 @@ fun Chunk.constantInstruction(name: String, offset: Int): Int {
     str.ptr.toKString()
   }
 
-  println("$name $offsetStr '${values?.pointed?.values?.get(const.toInt()).print()}'")
+  val spacedName = name + (0..16 - name.length).joinToString(separator = "") {
+    " "
+  }
+
+  println("$spacedName $offsetStr '${values?.pointed?.values?.get(const.toInt()).print()}'")
 
   return offset + 2
 }
