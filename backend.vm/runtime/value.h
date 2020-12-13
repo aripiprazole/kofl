@@ -27,14 +27,20 @@ typedef struct value_array {
     value_t *values;
 } value_array_t;
 
+// value functions>
 value_t *value_create(value_type_t type);
 
-value_array_t *value_array_create(int count, int capacity);
+void value_dispose(value_t *value);
 
 char *value_to_str(value_t *value);
+
+// value_array functions>
+value_array_t *value_array_create(int count, int capacity);
 
 void value_array_write(value_array_t *array, value_t value);
 
 char *value_array_dump(value_array_t *array);
+
+void value_array_dispose(value_array_t *array);
 
 #endif //RUNTIME_VALUE_H

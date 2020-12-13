@@ -5,6 +5,12 @@
 #include "chunk.h"
 #include "utils.h"
 
+// opcode functions>
+opcode_t uint_to_opcode(unsigned int raw) {
+    return (opcode_t) raw;
+}
+
+// chunk functions>
 chunk_t *chunk_create(int count, int capacity) {
     chunk_t *chunk = malloc(sizeof(chunk_t));
 
@@ -44,10 +50,6 @@ int chunk_write_const(chunk_t *chunk, value_t const_) {
     return chunk->values->count - 1;
 }
 
-opcode_t uint_to_opcode(unsigned int raw) {
-    return (opcode_t) raw;
-}
-
 char *chunk_dump(chunk_t *chunk) {
     char *str = malloc(1100 * sizeof(char));
 
@@ -63,4 +65,11 @@ char *chunk_dump(chunk_t *chunk) {
     strcat(str, "]");
 
     return str;
+}
+
+void chunk_dispose(chunk_t *chunk) {
+    value_array_dispose(chunk->values);
+    free(chunk->lines);
+    free(chunk->code);
+    free(chunk);
 }

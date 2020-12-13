@@ -4,22 +4,13 @@
 #include "value.h"
 #include "utils.h"
 
+// value functions>
 value_t *value_create(value_type_t type) {
     value_t *value = malloc(sizeof(value_t));
 
     value->type = type;
 
     return value;
-}
-
-value_array_t *value_array_create(int count, int capacity) {
-    value_array_t *array = malloc(sizeof(value_array_t));
-
-    array->capacity = capacity;
-    array->count = count;
-    array->values = malloc(capacity * sizeof(value_t));
-
-    return array;
 }
 
 char *value_to_str(value_t *value) {
@@ -42,6 +33,17 @@ char *value_to_str(value_t *value) {
     return str;
 }
 
+// value array functions>
+value_array_t *value_array_create(int count, int capacity) {
+    value_array_t *array = malloc(sizeof(value_array_t));
+
+    array->capacity = capacity;
+    array->count = count;
+    array->values = malloc(capacity * sizeof(value_t));
+
+    return array;
+}
+
 void value_array_write(value_array_t *array, value_t value) {
 #ifdef VALUE_DEBUG
     printf("value_array_write(array = UNKNOWN, value = %s)\n", value_to_str(&value));
@@ -58,7 +60,7 @@ void value_array_write(value_array_t *array, value_t value) {
 }
 
 char *value_array_dump(value_array_t *array) {
-    char *str = "[";
+    char *str = malloc(80 * sizeof(char));
 
     for (size_t i = 0; i < array->capacity; ++i) {
         sprintf(str, "%s, %s", str, value_to_str(&array->values[i]));
@@ -67,4 +69,9 @@ char *value_array_dump(value_array_t *array) {
     *str += ']';
 
     return str;
+}
+
+void value_array_dispose(value_array_t *array) {
+    free(array->values);
+    free(array);
 }
