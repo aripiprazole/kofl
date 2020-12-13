@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.compiler.kvm.typing
+package com.lorenzoog.kofl.compiler.common.typing
 
-import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
+import com.lorenzoog.kofl.compiler.common.KoflCompileException
 
 data class TypeContainer(
   private val enclosing: TypeContainer? = null,

@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.kvm.KoflCompileException
+import com.lorenzoog.kofl.compiler.common.KoflCompileException
 import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 import com.lorenzoog.kofl.interpreter.runtime.Environment

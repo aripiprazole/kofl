@@ -2,17 +2,14 @@
 
 package com.lorenzoog.kofl.vm.compiler
 
-import com.lorenzoog.kofl.compiler.kvm.backend.*
-import com.lorenzoog.kofl.compiler.kvm.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.backend.*
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.vm.interop.*
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.placeTo
 import platform.posix.UINT8_MAX
-
-val Descriptor.line
-  get() = -1
 
 class BytecodeCompiler : Descriptor.Visitor<Unit> {
   private val heap = MemScope()

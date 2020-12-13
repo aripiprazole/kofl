@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.compiler.kvm.typing
+package com.lorenzoog.kofl.compiler.common.typing
 
 fun KoflType.isAssignableBy(another: KoflType?): Boolean {
   return this == KoflType.Any || this == another
