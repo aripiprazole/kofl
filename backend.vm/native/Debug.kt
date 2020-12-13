@@ -2,16 +2,18 @@
 
 package com.lorenzoog.kofl.vm
 
+import com.lorenzoog.kofl.interpreter.internal.value_to_str
 import com.lorenzoog.kofl.vm.interop.Chunk
 import com.lorenzoog.kofl.vm.interop.OpCode
 import com.lorenzoog.kofl.vm.interop.Value
+import com.lorenzoog.kofl.vm.interop.toOpcode
 import kotlinx.cinterop.*
 import platform.posix.sprintf
 
 fun Value?.print(): String {
   if (this == null) return "NULL"
 
-  return "TODO"
+  return value_to_str(ptr)?.toKString() ?: "NULL"
 }
 
 fun Chunk.disassemble(name: String) {
@@ -41,11 +43,7 @@ fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
     str.ptr.toKString()
   })
 
-  val opcode = kotlin.runCatching {
-    code!![offset].value
-  }.getOrNull()
-
-  return when (opcode) {
+  return when (val opcode = runCatching { code!![offset].toOpcode() }.getOrNull()) {
     OpCode.OP_RET -> simpleInstruction("RET", offset)
     OpCode.OP_NEGATE -> simpleInstruction("NEGATE", offset)
     OpCode.OP_MULT -> simpleInstruction("MUL", offset)
@@ -69,14 +67,14 @@ fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
 
 @OptIn(ExperimentalUnsignedTypes::class)
 fun Chunk.constantInstruction(name: String, offset: Int): Int {
-  val const = code!![offset + 1].value
+  val const = code!![offset + 1]
   val offsetStr = memScoped {
     val str = alloc<ByteVar>()
     sprintf(str.ptr, "%04d", const)
     str.ptr.toKString()
   }
 
-  println("$name $offsetStr '${values?.pointed?.values?.get(const.value.toInt()).print()}'")
+  println("$name $offsetStr '${values?.pointed?.values?.get(const.toInt()).print()}'")
 
   return offset + 2
 }

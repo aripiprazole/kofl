@@ -31,6 +31,10 @@ value_t *value_create(value_type_t type);
 
 value_array_t *value_array_create(int count, int capacity);
 
+char *value_to_str(value_t *value);
+
 void value_array_write(value_array_t *array, value_t value);
+
+char *value_array_dump(value_array_t *array);
 
 #endif //RUNTIME_VALUE_H
