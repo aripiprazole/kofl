@@ -15,20 +15,24 @@ value_t *value_create(value_type_t type, obj_as_t obj) {
 }
 
 char *value_to_str(value_t *value) {
-    char *str = NULL;
+    char *str = malloc(80 * sizeof(char));
 
     switch (value->type) {
         case V_TYPE_BOOL:
             sprintf(str, "%d", value->obj._bool);
+            break;
         case V_TYPE_DOUBLE:
             sprintf(str, "%f", value->obj._double);
+            break;
         case V_TYPE_INT:
             sprintf(str, "%d", value->obj._int);
+            break;
         case V_TYPE_OBJ:
             // TODO CREATE OBJ TYPE IN VM
             return NULL;
         case V_TYPE_STR:
             str = value->obj._string;
+            break;
     }
 
     return str;

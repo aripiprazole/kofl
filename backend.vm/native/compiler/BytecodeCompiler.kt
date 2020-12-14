@@ -30,7 +30,7 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
       KoflType.String -> makeConst(value)
       KoflType.Boolean -> makeConst(value.toBoolean())
       KoflType.Double -> makeConst(value.toDouble())
-      KoflType.Int -> makeConst(value.toInt())
+      KoflType.Int -> makeConst(value.toDouble())
       else -> error("UNSUPPORTED CONST TYPE ${descriptor.type} (${descriptor.value::class})")
     }
     emit(OpCode.OP_CONST, const, descriptor.line)

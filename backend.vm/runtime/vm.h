@@ -30,7 +30,7 @@ typedef enum interpret_result {
 // vm functions>
 vm_t *vm_create(flags_t flags);
 
-interpret_result_t vm_eval(vm_t *vm, chunk_t *code);
+interpret_result_t vm_eval(vm_t *vm, chunk_t *chunk);
 
 void vm_dispose(vm_t *vm);
 
