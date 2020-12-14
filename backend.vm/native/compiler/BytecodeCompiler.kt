@@ -62,7 +62,13 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
   }
 
   override fun visitUnaryDescriptor(descriptor: UnaryDescriptor) {
-    TODO("Not yet implemented")
+    visitDescriptor(descriptor.right)
+
+    when (descriptor.op) {
+      TokenType.Minus -> emit(OpCode.OP_NEGATE, descriptor.line)
+      TokenType.Bang -> emit(OpCode.OP_NOT, descriptor.line)
+      else -> error("UNSUPPORTED UNARY OP ${descriptor.op}")
+    }
   }
 
   override fun visitValDescriptor(descriptor: ValDescriptor) {
@@ -115,7 +121,7 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
       TokenType.Minus -> emit(OpCode.OP_SUB, descriptor.line)
       TokenType.Slash -> emit(OpCode.OP_DIV, descriptor.line)
       TokenType.Star -> emit(OpCode.OP_MULT, descriptor.line)
-      else -> {}
+      else -> error("UNSUPPORTED BINARY OP ${descriptor.op}")
     }
   }
 

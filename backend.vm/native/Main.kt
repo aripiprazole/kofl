@@ -32,7 +32,7 @@ private fun emitBytecode(): Chunk {
   val lexer = Scanner(
     // 16
     """
-      "HELLO, " + "WORLD";
+      !true;
     """.trimIndent()
   )
   val parser = Parser(lexer.scan(), repl = true)
