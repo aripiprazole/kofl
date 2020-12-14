@@ -49,9 +49,16 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 return I_RESULT_OK;
 
                 // handle negate op
-            case OP_NEGATE:
-                stack_push(vm->stack, NUM_VALUE(-READ_NUMBER()));
+            case OP_NEGATE: {
+                double d0 = READ_NUMBER();
+
+#ifdef VM_DEBUG_TRACE
+                printf("NEGATE %f\n", d0);
+#endif
+
+                stack_push(vm->stack, NUM_VALUE(-d0));
                 break;
+            }
 
 
                 // handle sum op
