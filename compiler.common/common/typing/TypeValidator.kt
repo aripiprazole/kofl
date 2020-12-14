@@ -46,6 +46,9 @@ class TypeValidator(
       if (left.isNumber() && right.isNumber())
         return KoflType.Double
 
+      if(KoflType.String.isAssignableBy(left))
+        return KoflType.String
+
       throw KoflCompileException.UnexpectedType(right, KoflType.Int)
     }
 

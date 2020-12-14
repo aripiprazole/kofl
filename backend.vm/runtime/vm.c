@@ -122,9 +122,14 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
 
                 // handle concat op
             case OP_CONCAT: {
-                char *str = READ_STR();
-                strcat(str, READ_STR());
-                stack_push(vm->stack, STR_VALUE(str));
+                char *s1 = READ_STR();
+                char *s0 = READ_STR();
+
+#ifdef VM_DEBUG_TRACE
+                printf("CONCAT %s %s\n", s0, s1);
+#endif
+
+                stack_push(vm->stack, STR_VALUE(strcat(s0, s1)));
                 break;
             }
                 // handle pop op
