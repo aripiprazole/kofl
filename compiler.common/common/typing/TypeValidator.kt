@@ -44,7 +44,7 @@ class TypeValidator(
 
     if (expr.op.type in BINARY_TOKENS) {
       if (left.isNumber() && right.isNumber())
-        return KoflType.Boolean
+        return KoflType.Double
 
       throw KoflCompileException.UnexpectedType(right, KoflType.Int)
     }

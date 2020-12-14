@@ -23,6 +23,8 @@ fun Chunk.disassemble(name: String) {
   while (offset < count) {
     offset = disassembleInstructions(name, offset)
   }
+
+  println("== ${(0..name.length).joinToString("") { " " }} ==")
 }
 
 fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
@@ -68,6 +70,7 @@ fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
 @OptIn(ExperimentalUnsignedTypes::class)
 fun Chunk.constantInstruction(name: String, offset: Int): Int {
   val const = code!![offset + 1]
+
   val offsetStr = memScoped {
     val str = alloc<ByteVar>()
     sprintf(str.ptr, "%04d", const)
@@ -78,7 +81,7 @@ fun Chunk.constantInstruction(name: String, offset: Int): Int {
     " "
   }
 
-  println("$spacedName $offsetStr '${consts?.pointed?.values?.get(const.toInt()).print()}'")
+  println("$spacedName $offsetStr '${consts?.pointed?.values?.get(const.toLong()).print()}'")
 
   return offset + 2
 }

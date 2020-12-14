@@ -11,6 +11,8 @@ import com.lorenzoog.kofl.vm.compiler.BytecodeCompiler
 import com.lorenzoog.kofl.vm.interop.Chunk
 import com.lorenzoog.kofl.vm.interop.Vm
 import com.lorenzoog.kofl.vm.interop.eval
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.pointed
 
 const val MAX_STACK = 250
 
@@ -28,8 +30,9 @@ private fun emitBytecode(): Chunk {
 
   val compiler = BytecodeCompiler()
   val lexer = Scanner(
+    // 16
     """
-      1 + 4;
+      2 + 4 * 4 - 4 / 2;
     """.trimIndent()
   )
   val parser = Parser(lexer.scan(), repl = true)
@@ -46,9 +49,7 @@ private fun emitBytecode(): Chunk {
   println("== ------ ==")
 
   return compiler.compile(descriptors).also { chunk ->
-    println("== COMPILED ==")
     chunk.disassemble("CODE")
-    println("== -------- ==")
   }
 }
 
