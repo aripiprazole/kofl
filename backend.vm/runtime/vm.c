@@ -113,20 +113,34 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
             }
 
                 // handle true op
-            case OP_TRUE:
+            case OP_TRUE: {
+#ifdef VM_DEBUG_TRACE
+                printf("TRUE\n");
+#endif
+
                 stack_push(vm->stack, BOOL_VALUE(true));
                 break;
-
+            }
                 // handle false op
-            case OP_FALSE:
+            case OP_FALSE: {
+#ifdef VM_DEBUG_TRACE
+                printf("FALSE\n");
+#endif
+
                 stack_push(vm->stack, BOOL_VALUE(false));
                 break;
-
+            }
                 // handle not op
-            case OP_NOT:
-                stack_push(vm->stack, BOOL_VALUE(!READ_BOOL()));
-                break;
+            case OP_NOT: {
+                bool b0 = READ_BOOL();
 
+#ifdef VM_DEBUG_TRACE
+                printf("NOT %d\n", b0);
+#endif
+
+                stack_push(vm->stack, BOOL_VALUE(!b0));
+                break;
+            }
                 // handle concat op
             case OP_CONCAT: {
                 char *s1 = READ_STR();

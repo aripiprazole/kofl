@@ -6,6 +6,7 @@ import com.lorenzoog.kofl.compiler.common.backend.*
 import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
 import com.lorenzoog.kofl.frontend.TokenType
+import com.lorenzoog.kofl.interpreter.internal.opcode
 import com.lorenzoog.kofl.vm.interop.*
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.MemScope
@@ -26,9 +27,18 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
 
   override fun visitConstDescriptor(descriptor: ConstDescriptor) {
     val value = descriptor.value.toString()
+
+    if(descriptor.type == KoflType.Boolean) {
+      val opcode = if(value.toBoolean())
+        OpCode.OP_TRUE
+      else
+        OpCode.OP_FALSE
+
+      return emit(opcode, descriptor.line)
+    }
+
     val const = when (descriptor.type) {
       KoflType.String -> makeConst(value)
-      KoflType.Boolean -> makeConst(value.toBoolean())
       KoflType.Double -> makeConst(value.toDouble())
       KoflType.Int -> makeConst(value.toDouble())
       else -> error("UNSUPPORTED CONST TYPE ${descriptor.type} (${descriptor.value::class})")
