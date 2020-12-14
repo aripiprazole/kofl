@@ -24,7 +24,7 @@ fun Chunk.disassemble(name: String) {
     offset = disassembleInstructions(name, offset)
   }
 
-  println("== ${(0..name.length).joinToString("") { " " }} ==")
+  println("== ${(1..name.length).joinToString("") { " " }} ==")
 }
 
 fun Chunk.disassembleInstructions(name: String, offset: Int): Int {
@@ -77,7 +77,7 @@ fun Chunk.constantInstruction(name: String, offset: Int): Int {
     str.ptr.toKString()
   }
 
-  val spacedName = name + (0..16 - name.length).joinToString(separator = "") {
+  val spacedName = name + (1..16 - name.length).joinToString(separator = "") {
     " "
   }
 

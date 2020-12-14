@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+
 plugins {
   kotlin("multiplatform")
 }
@@ -63,5 +65,11 @@ kotlin {
     val jvmTest by getting {
       kotlin.srcDir("jvmTest")
     }
+  }
+}
+
+tasks {
+  withType<KotlinNativeCompile> {
+    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
   }
 }
