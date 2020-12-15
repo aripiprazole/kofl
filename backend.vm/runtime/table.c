@@ -1,5 +1,7 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "utils.h"
 #include "table.h"
@@ -76,7 +78,7 @@ table_node_t *table_find_entry(table_t *table, char *key, int length) {
             }
         }
 
-        if (node->key == key || node->key == NULL) {
+        if (strcmp(node->key, key) == 0 || node->key == NULL) {
             return node;
         }
 
@@ -99,6 +101,7 @@ void table_adjust(table_t *table, size_t capacity) {
         if (node->key == NULL) continue;
 
         table_node_t *dest = table_find_entry(table, node->key, node->length);
+
         dest->key = node->key;
         dest->length = node->length;
         dest->value = node->value;
@@ -147,6 +150,10 @@ bool table_remove(table_t *table, char *key, int length) {
  */
 bool table_set(table_t *table, char *key, int length, void *value) {
     table_node_t *node = table_find_entry(table, key, length);
+
+    if (table->count + 1 > (table->capacity + 1) * TABLE_MAX_LOAD) { // NOLINT(cppcoreguidelines-narrowing-conversions)
+        table_adjust(table, GROW_CAPACITY(table->capacity));
+    }
 
     bool is_new = node->key == NULL;
     if (is_new && node->value == NULL) {

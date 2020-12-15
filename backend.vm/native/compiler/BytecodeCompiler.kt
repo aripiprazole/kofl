@@ -6,12 +6,10 @@ import com.lorenzoog.kofl.compiler.common.backend.*
 import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
 import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.interpreter.internal.opcode
+import com.lorenzoog.kofl.interpreter.internal.object_t
+import com.lorenzoog.kofl.interpreter.internal.string
 import com.lorenzoog.kofl.vm.interop.*
-import kotlinx.cinterop.CValue
-import kotlinx.cinterop.MemScope
-import kotlinx.cinterop.cstr
-import kotlinx.cinterop.placeTo
+import kotlinx.cinterop.*
 import platform.posix.UINT8_MAX
 
 class BytecodeCompiler : Descriptor.Visitor<Unit> {
@@ -28,8 +26,8 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
   override fun visitConstDescriptor(descriptor: ConstDescriptor) {
     val value = descriptor.value.toString()
 
-    if(descriptor.type == KoflType.Boolean) {
-      val opcode = if(value.toBoolean())
+    if (descriptor.type == KoflType.Boolean) {
+      val opcode = if (value.toBoolean())
         OpCode.OP_TRUE
       else
         OpCode.OP_FALSE
@@ -119,15 +117,17 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
 
   override fun visitBinaryDescriptor(descriptor: BinaryDescriptor) {
     visitDescriptor(descriptor.left)
-    visitDescriptor(descriptor.right)
+
+    if (!KoflType.String.isAssignableBy(descriptor.left.type)) {
+      visitDescriptor(descriptor.right)
+    } else {
+      visitDescriptor(descriptor.right.mapType { KoflType.String })
+
+      return emit(OpCode.OP_CONCAT, descriptor.line)
+    }
 
     when (descriptor.op) {
-      TokenType.Plus -> emit(
-        op = if (KoflType.String.isAssignableBy(descriptor.left.type))
-          OpCode.OP_CONCAT
-        else OpCode.OP_SUM,
-        line = descriptor.line
-      )
+      TokenType.Plus -> emit(OpCode.OP_CONCAT, descriptor.line)
       TokenType.Minus -> emit(OpCode.OP_SUB, descriptor.line)
       TokenType.Slash -> emit(OpCode.OP_DIV, descriptor.line)
       TokenType.Star -> emit(OpCode.OP_MULT, descriptor.line)
@@ -164,7 +164,10 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
   })
 
   private fun makeConst(value: String) = makeConst(Value(ValueType.V_TYPE_STR) {
-    _string = value.cstr.placeTo(heap)
+    _obj = heap.alloc<string> {
+      length = value.length.toULong()
+      values = value.cstr.placeTo(heap)
+    }.reinterpret<object_t>().ptr
   })
 
   @OptIn(ExperimentalUnsignedTypes::class)
