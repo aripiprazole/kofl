@@ -4,9 +4,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "object.h"
+
 typedef struct table_node {
-    char *key;
-    int length;
+    string_t *key;
     void *value;
 } table_node_t;
 
@@ -18,11 +19,11 @@ typedef struct table {
 
 table_t *table_create(size_t capacity);
 
-bool table_set(table_t *table, char *key, int length, void *value);
+bool table_set(table_t *table, string_t *key, void *value);
 
-bool table_remove(table_t *table, char *key, int length);
+bool table_remove(table_t *table, string_t *key);
 
-void *table_get(table_t *table, char *key, int length);
+void *table_get(table_t *table, string_t *key);
 
 void table_dispose(table_t* table);
 

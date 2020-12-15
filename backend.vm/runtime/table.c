@@ -55,11 +55,10 @@ table_t *table_create(size_t capacity) {
  *
  * @param table the target table
  * @param key the string key
- * @param length the string key length
  * @return the table node
  */
-table_node_t *table_find_entry(table_t *table, char *key, int length) {
-    uint32_t index = table_hash(key, length) % table->capacity;
+table_node_t *table_find_entry(table_t *table, string_t *key) {
+    uint32_t index = table_hash(key->values, key->length) % table->capacity;
     table_node_t *tombstone = NULL;
 
     while (true) {
@@ -78,7 +77,7 @@ table_node_t *table_find_entry(table_t *table, char *key, int length) {
             }
         }
 
-        if (strcmp(node->key, key) == 0 || node->key == NULL) {
+        if (strcmp(node->key->values, key->values) == 0 || node->key == NULL) {
             return node;
         }
 
@@ -100,10 +99,9 @@ void table_adjust(table_t *table, size_t capacity) {
         table_node_t *node = &table->nodes[i];
         if (node->key == NULL) continue;
 
-        table_node_t *dest = table_find_entry(table, node->key, node->length);
+        table_node_t *dest = table_find_entry(table, node->key);
 
         dest->key = node->key;
-        dest->length = node->length;
         dest->value = node->value;
 
         table->count++;
@@ -114,10 +112,10 @@ void table_adjust(table_t *table, size_t capacity) {
     table->capacity = capacity;
 }
 
-void *table_get(table_t *table, char *key, int length) {
+void *table_get(table_t *table, string_t *key) {
     if (table->count == 0) return NULL;
 
-    table_node_t *node = table_find_entry(table, key, length);
+    table_node_t *node = table_find_entry(table, key);
     if (node->key == NULL) return NULL;
 
     return node->value;
@@ -126,13 +124,12 @@ void *table_get(table_t *table, char *key, int length) {
 /**
  * @param table the target table
  * @param key the string key
- * @param length the string key length
  * @return if the operation was successful
  */
-bool table_remove(table_t *table, char *key, int length) {
+bool table_remove(table_t *table, string_t *key) {
     if (table->count == 0) return false;
 
-    table_node_t *node = table_find_entry(table, key, length);
+    table_node_t *node = table_find_entry(table, key);
     if (node->key == NULL) return false;
 
     node->key = NULL;
@@ -148,8 +145,8 @@ bool table_remove(table_t *table, char *key, int length) {
  * @param value the value
  * @return if the node is new
  */
-bool table_set(table_t *table, char *key, int length, void *value) {
-    table_node_t *node = table_find_entry(table, key, length);
+bool table_set(table_t *table, string_t* key, void *value) {
+    table_node_t *node = table_find_entry(table, key);
 
     if (table->count + 1 > (table->capacity + 1) * TABLE_MAX_LOAD) { // NOLINT(cppcoreguidelines-narrowing-conversions)
         table_adjust(table, GROW_CAPACITY(table->capacity));
@@ -161,7 +158,6 @@ bool table_set(table_t *table, char *key, int length, void *value) {
     }
 
     node->key = key;
-    node->length = length;
     node->value = value;
 
     return is_new;

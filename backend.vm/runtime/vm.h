@@ -21,6 +21,7 @@ typedef struct vm {
     opcode_t *pc;
     heap_t *heap;
     table_t *globals;
+    table_t *strings;
     object_t *objects;
 } vm_t;
 
