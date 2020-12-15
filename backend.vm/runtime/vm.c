@@ -12,8 +12,9 @@ vm_t *vm_create(flags_t flags) {
 
     vm->pc = NULL;
     vm->chunk = NULL;
+    vm->objects = NULL;
     vm->heap = heap_create(flags.memory);
-    vm->table = table_create(10);
+    vm->globals = table_create(10);
     vm->stack = stack_create(10);
 
     return vm;
@@ -25,7 +26,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
         printf("=>> ");
 
         for (int i = 0; i < vm->stack->top; i++) {
-            printf("[ %s ]", value_to_str(&vm->stack->values[i]));
+            printf("[ '%s' ]", value_to_str(&vm->stack->values[i]));
         }
 
         printf("\n");
@@ -34,12 +35,13 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
 #endif
 
 #define READ_INST() (*vm->pc++)
-#define READ_NUMBER() (stack_pop(vm->stack)->obj._double)
-#define READ_BOOL() (stack_pop(vm->stack)->obj._bool)
-#define READ_STR() (stack_pop(vm->stack)->obj._string)
+#define READ_NUMBER() (stack_pop(vm->stack)->as._double)
+#define READ_BOOL() (stack_pop(vm->stack)->as._bool)
+#define READ_OBJ() (stack_pop(vm->stack)->as._obj)
 
+        opcode_t op = READ_INST();
 
-        switch (READ_INST()) {
+        switch (op) {
             // handle ret op
             case OP_RET:
 #ifdef VM_DEBUG_TRACE
@@ -143,8 +145,8 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
             }
                 // handle concat op
             case OP_CONCAT: {
-                char *s1 = READ_STR();
-                char *s0 = READ_STR();
+                char *s1 = AS_CSTR(READ_OBJ());
+                char *s0 = AS_CSTR(READ_OBJ());
 
 #ifdef VM_DEBUG_TRACE
                 printf("CONCAT %s %s\n", s0, s1);
@@ -154,21 +156,43 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 break;
             }
                 // handle pop op
-            case OP_POP:
+            case OP_POP: {
+                value_t *v = stack_pop(vm->stack);
+
 #ifdef VM_DEBUG_TRACE
-                printf("OP_POP: %s\n", value_to_str(stack_pop(vm->stack)));
+                printf("POP %s\n", value_to_str(v));
 #endif
 
                 break;
-
+            }
                 // handle store global op
-            case OP_STORE_GLOBAL:
-                break;
+            case OP_STORE_GLOBAL: {
+                value_t *v = stack_pop(vm->stack);
+                string_t *name = AS_STR(READ_OBJ());
 
+                table_set(vm->globals, name->values, name->length, v);
+
+#ifdef VM_DEBUG_TRACE
+                printf("STORE_GLOBAL '%s' '%s'\n", name->values, value_to_str(v));
+#endif
+
+                break;
+            }
                 // handle access global op
-            case OP_ACCESS_GLOBAL:
-                break;
+            case OP_ACCESS_GLOBAL: {
+                string_t *name = AS_STR(READ_OBJ());
 
+#ifdef VM_DEBUG_TRACE
+                printf("ACCESS_GLOBAL %s\n", name->values);
+#endif
+
+                value_t *v = table_get(vm->globals, name->values, name->length);
+                if (v == NULL) return I_NULL_POINTER;
+
+                stack_push(vm->stack, v);
+
+                break;
+            }
                 // handle const op
             case OP_CONST: {
                 value_t *v = &vm->chunk->consts->values[READ_INST()];
@@ -178,10 +202,18 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
 #endif
 
                 stack_push(vm->stack, v);
+
                 break;
+            }
+
+            default: {
+                return I_RESULT_ERROR;
             }
         }
 #undef READ_INST
+#undef READ_BOOL
+#undef READ_OBJ
+#undef READ_NUMBER
     }
 }
 
@@ -192,10 +224,13 @@ interpret_result_t vm_eval(vm_t *vm, chunk_t *chunk) {
     return vm_eval_impl(vm);
 }
 
+void vm_dispose_objects(vm_t *vm) {
+}
+
 void vm_dispose(vm_t *vm) {
     heap_dispose(vm->heap);
     stack_dispose(vm->stack);
-    table_dispose(vm->table);
+    table_dispose(vm->globals);
 
     if (vm->chunk != NULL) {
         free(vm->chunk);

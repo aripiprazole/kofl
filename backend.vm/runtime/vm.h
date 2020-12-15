@@ -8,6 +8,7 @@
 #include "value.h"
 #include "table.h"
 #include "stack.h"
+#include "object.h"
 
 typedef struct flags {
     bool verbose;
@@ -19,12 +20,14 @@ typedef struct vm {
     chunk_t *chunk;
     opcode_t *pc;
     heap_t *heap;
-    table_t *table;
+    table_t *globals;
+    object_t *objects;
 } vm_t;
 
 typedef enum interpret_result {
     I_RESULT_OK,
-    I_RESULT_ERROR
+    I_RESULT_ERROR,
+    I_NULL_POINTER
 } interpret_result_t;
 
 // vm functions>

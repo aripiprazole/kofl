@@ -127,7 +127,7 @@ class AstConverter(
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): Descriptor {
-    return ThisDescriptor(expr.line)
+    return ThisDescriptor(expr.line, KoflType.Any)
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): Descriptor {
