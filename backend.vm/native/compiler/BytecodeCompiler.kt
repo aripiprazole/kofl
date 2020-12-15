@@ -116,17 +116,23 @@ class BytecodeCompiler : Descriptor.Visitor<Unit> {
   }
 
   override fun visitBinaryDescriptor(descriptor: BinaryDescriptor) {
-    visitDescriptor(descriptor.left)
+    val (left, op, right) = descriptor
 
-    if (!KoflType.String.isAssignableBy(descriptor.left.type)) {
-      visitDescriptor(descriptor.right)
-    } else {
-      visitDescriptor(descriptor.right.mapType { KoflType.String })
+    visitDescriptor(left)
+
+    if (KoflType.String.isAssignableBy(descriptor.left.type)) {
+      if(right is MutableDescriptor) {
+        visitDescriptor(right.mutate(type = KoflType.String))
+      } else {
+        TODO("emit toString call if isn't mutable descriptor")
+      }
 
       return emit(OpCode.OP_CONCAT, descriptor.line)
+    } else {
+      visitDescriptor(descriptor.right)
     }
 
-    when (descriptor.op) {
+    when (op) {
       TokenType.Plus -> emit(OpCode.OP_CONCAT, descriptor.line)
       TokenType.Minus -> emit(OpCode.OP_SUB, descriptor.line)
       TokenType.Slash -> emit(OpCode.OP_DIV, descriptor.line)

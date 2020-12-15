@@ -36,18 +36,20 @@ sealed class Descriptor {
   abstract val line: Int
   abstract val type: KoflType
 
-  abstract fun mapType(f: (KoflType) -> KoflType): Descriptor
-
   abstract fun <T> accept(visitor: Visitor<T>): T
+}
+
+sealed class MutableDescriptor : Descriptor() {
+  abstract fun mutate(type: KoflType): Descriptor
 }
 
 data class ConstDescriptor(
   val value: Any,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitConstDescriptor(this)
@@ -56,9 +58,9 @@ data class ConstDescriptor(
 data class ThisDescriptor(
   override val line: Int,
   override val type: KoflType
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitThisDescriptor(this)
@@ -70,9 +72,9 @@ data class SetDescriptor(
   val value: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetDescriptor(this)
@@ -83,9 +85,9 @@ data class GetDescriptor(
   val name: String,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGetDescriptor(this)
@@ -96,9 +98,9 @@ data class CallDescriptor(
   val arguments: Map<String, Descriptor>,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallDescriptor(this)
@@ -108,9 +110,9 @@ data class AccessVarDescriptor(
   val name: String,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAccessVarDescriptor(this)
@@ -120,9 +122,9 @@ data class AccessFunctionDescriptor(
   val name: String,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAccessFunctionDescriptor(this)
@@ -133,9 +135,9 @@ data class UnaryDescriptor(
   val right: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUnaryDescriptor(this)
@@ -146,9 +148,9 @@ data class ValDescriptor(
   val value: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDescriptor(this)
@@ -159,9 +161,9 @@ data class VarDescriptor(
   val value: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDescriptor(this)
@@ -172,9 +174,9 @@ data class AssignDescriptor(
   val value: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAssignDescriptor(this)
@@ -184,19 +186,15 @@ data class ReturnDescriptor(
   val value: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitReturnDescriptor(this)
 }
 
 data class BlockDescriptor(val body: Collection<Descriptor>, override val line: Int) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = KoflType.Unit
 
@@ -208,10 +206,6 @@ data class WhileDescriptor(
   val body: Collection<Descriptor>,
   override val line: Int
 ) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = KoflType.Unit
 
@@ -224,9 +218,9 @@ data class IfDescriptor(
   val orElse: Collection<Descriptor>,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitIfDescriptor(this)
@@ -238,9 +232,9 @@ data class LogicalDescriptor(
   val right: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLogicalDescriptor(this)
@@ -252,9 +246,9 @@ data class BinaryDescriptor(
   val right: Descriptor,
   override val type: KoflType,
   override val line: Int
-) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy(type = f(type))
+) : MutableDescriptor() {
+  override fun mutate(type: KoflType): Descriptor {
+    return copy(type = type)
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryDescriptor(this)
@@ -271,10 +265,6 @@ data class LocalFunctionDescriptor(
   val body: Collection<Descriptor>,
   override val line: Int
 ) : CallableDescriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = TODO("Add type to LOCAL FUNCTION DESCRIPTOR")
 
@@ -288,10 +278,6 @@ data class NativeFunctionDescriptor(
   val nativeCall: String,
   override val line: Int
 ) : CallableDescriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = TODO("Add type to NATIVE FUNCTION DESCRIPTOR")
 
@@ -305,10 +291,6 @@ data class FunctionDescriptor(
   val body: Collection<Descriptor>,
   override val line: Int
 ) : CallableDescriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = TODO("Add type to FUNCTION DESCRIPTOR")
 
@@ -321,10 +303,6 @@ data class ClassDescriptor(
   val fields: Map<String, KoflType>,
   override val line: Int
 ) : Descriptor() {
-  override fun mapType(f: (KoflType) -> KoflType): Descriptor {
-    return copy()
-  }
-
   override val type: KoflType
     get() = TODO("Add type to CLASS DESCRIPTOR")
 
