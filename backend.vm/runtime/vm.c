@@ -13,8 +13,9 @@ vm_t *vm_create(flags_t flags) {
     vm->pc = NULL;
     vm->chunk = NULL;
     vm->objects = NULL;
-    vm->heap = heap_create(flags.memory);
+    vm->strings = table_create(10);
     vm->globals = table_create(10);
+    vm->heap = heap_create(flags.memory);
     vm->stack = stack_create(10);
 
     return vm;
@@ -170,7 +171,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 value_t *v = stack_pop(vm->stack);
                 string_t *name = AS_STR(READ_OBJ());
 
-                table_set(vm->globals, name->values, name->length, v);
+                table_set(vm->globals, name, v);
 
 #ifdef VM_DEBUG_TRACE
                 printf("STORE_GLOBAL '%s' '%s'\n", name->values, value_to_str(v));
@@ -186,7 +187,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("ACCESS_GLOBAL %s\n", name->values);
 #endif
 
-                value_t *v = table_get(vm->globals, name->values, name->length);
+                value_t *v = table_get(vm->globals, name);
                 if (v == NULL) return I_NULL_POINTER;
 
                 stack_push(vm->stack, v);

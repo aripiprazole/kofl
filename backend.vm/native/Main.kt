@@ -28,6 +28,7 @@ val builtinTypeContainer = TypeContainer().apply {
 private fun emitBytecode(): Chunk {
   val locals = mutableMapOf<Descriptor, Int>()
 
+
   val compiler = BytecodeCompiler()
   val lexer = Scanner(
     // 16
