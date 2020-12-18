@@ -232,6 +232,11 @@ void vm_dispose(vm_t *vm) {
     heap_dispose(vm->heap);
     stack_dispose(vm->stack);
     table_dispose(vm->globals);
+    table_dispose(vm->strings);
+
+    if (vm->objects != NULL) {
+        vm_dispose_objects(vm);
+    }
 
     if (vm->chunk != NULL) {
         free(vm->chunk);
