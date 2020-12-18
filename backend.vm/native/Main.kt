@@ -11,8 +11,6 @@ import com.lorenzoog.kofl.vm.compiler.BytecodeCompiler
 import com.lorenzoog.kofl.vm.interop.Chunk
 import com.lorenzoog.kofl.vm.interop.Vm
 import com.lorenzoog.kofl.vm.interop.eval
-import kotlinx.cinterop.StableRef
-import kotlinx.cinterop.pointed
 
 const val MAX_STACK = 250
 
@@ -60,7 +58,10 @@ fun main() {
   println("DEBUGGING KOFL VM")
   println()
 
-  val vm = Vm(verbose = true, memory = 512)
+  val vm = Vm(
+    verbose = true,
+    memory = 512
+  )
 
   println("INTERPRET RESULT = ${vm.eval(emitBytecode())}")
 }
