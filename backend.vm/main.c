@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    chunk_t *bytecode = interpret_chunk(bytes);
+    chunk_t *bytecode = parse_chunk(bytes);
     if (bytecode == NULL) {
         printf("Failed to read bytecode\n");
 

@@ -52,7 +52,7 @@ class IrBinary(
 ) : IrComponent() {
   override fun render(context: IrContext) {
     val op = when (op) {
-      TokenType.Plus -> OpCode.Concat
+      TokenType.Plus -> OpCode.Sum
       TokenType.Minus -> OpCode.Sub
       TokenType.Slash -> OpCode.Div
       TokenType.Star -> OpCode.Mult

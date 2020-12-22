@@ -2,6 +2,9 @@
 
 package com.lorenzoog.kofl.compiler.vm
 
+import pw.binom.ByteBuffer
+import pw.binom.writeInt
+
 data class Chunk(
   val count: Int,
   val capacity: Int,
@@ -33,24 +36,34 @@ data class Chunk(
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-object OpChunk {
-  const val ChunkStart: UByte = 0u
-  const val ChunkEnd: UByte = 1u
+enum class ChunkOp(val end: ChunkOp? = null) {
+  ChunkEnd,
+  Chunk(ChunkEnd),
 
-  const val InfoStart: UByte = 2u
-  const val InfoEnd: UByte = 3u
+  InfoEnd,
+  Info(InfoEnd),
 
-  const val CodeStart: UByte = 4u
-  const val CodeEnd: UByte = 5u
+  CodeEnd,
+  Code(CodeEnd),
 
-  const val ValueStart: UByte = 6u
-  const val ValueEnd: UByte = 7u
+  ValueEnd,
+  Value(ValueEnd),
 
-  const val LinesStart: UByte = 8u
-  const val LinesEnd: UByte = 9u
+  LinesEnd,
+  Lines(LinesEnd),
 
-  const val ConstsStart: UByte = 10u
-  const val ConstsEnd: UByte = 11u
+  ConstsEnd,
+  Consts(ConstsEnd),
+}
+
+fun ByteBuffer.writeChunkOp(buffer: ByteBuffer, chunk: ChunkOp) {
+  writeInt(buffer, chunk.ordinal)
+}
+
+fun ByteBuffer.writeChunkInfo(op: ChunkOp, block: () -> Unit) {
+  writeChunkOp(ByteBuffer.alloc(Int.SIZE_BITS), op)
+  block()
+  op.end?.let { writeChunkOp(ByteBuffer.alloc(Int.SIZE_BITS), op) }
 }
 
 enum class OpCode {

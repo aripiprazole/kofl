@@ -3,6 +3,6 @@
 
 #include "chunk.h"
 
-chunk_t *interpret_chunk(char *bytes);
+chunk_t *parse_chunk(const char *bytes);
 
 #endif //RUNTIME_BYTECODE_H

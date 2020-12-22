@@ -52,6 +52,6 @@ fun IrContext.write(op: OpCode, line: Int) {
 }
 
 fun IrContext.write(op: OpCode, const: UByte, line: Int) {
-  write(op.ordinal.toUByte(), line)
+  write(op, line)
   write(const, line)
 }
