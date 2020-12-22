@@ -15,11 +15,9 @@ import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
 import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Scanner
 import com.lorenzoog.kofl.frontend.Stack
-import pw.binom.ByteBuffer
 import pw.binom.io.file.File
 import pw.binom.io.file.write
 import pw.binom.io.use
-import pw.binom.writeByte
 
 class Koflc : CliktCommand() {
   private val file by argument().help("The file that will be compiled")
@@ -52,18 +50,22 @@ class Koflc : CliktCommand() {
     val converter = AstConverter(locals, Stack<TypeContainer>(maxStack).also { stack ->
       stack.push(container)
     })
-    val compiler = Compiler(converter.compile(parser.parse()).toList())
+    val compiler = Compiler(verbose, converter.compile(parser.parse()).toList())
 
     target.write(append = false).use { channel ->
-      val bufferPool = ByteBuffer.alloc(10)
-
-      compiler.compile().let { bytecode ->
-        bytecode.toByteArray().forEach {
-          channel.writeByte(bufferPool, it)
+      channel.write(compiler.compile().also { buffer ->
+        if (verbose) {
+          echo("BYTECODE:")
+          buffer.toByteArray().toList().chunked(20) {
+            it.forEach {
+              echo("0x${it.toUInt().toString(16)}", lineSeparator = " ")
+            }
+            echo()
+          }
         }
+      })
 
-        channel.flush()
-      }
+      channel.flush()
     }
 
     echo("Successfully compiled bytecode from ${file.path} to file ${target.path}")

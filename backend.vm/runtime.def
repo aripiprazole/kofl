@@ -1,0 +1,4 @@
+package = com.lorenzoog.kofl.interpreter.internal
+
+headers = bytecode.h chunk.h debug.h heap.h object.h stack.h table.h utils.h value.h vm.h
+staticLibraries = libruntime.a

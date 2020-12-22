@@ -4,41 +4,119 @@ package com.lorenzoog.kofl.compiler.vm
 
 import com.lorenzoog.kofl.compiler.common.backend.*
 import com.lorenzoog.kofl.compiler.vm.ir.*
+import pw.binom.ByteBuffer
+import pw.binom.io.use
+import pw.binom.writeInt
 
-class Compiler(private val code: List<Descriptor>) : Descriptor.Visitor<IrComponent> {
+class Compiler(private val verbose: Boolean, private val code: List<Descriptor>) : Descriptor.Visitor<IrComponent> {
   @OptIn(ExperimentalUnsignedTypes::class)
-  fun compile(): UByteArray {
+  fun compile(): ByteBuffer {
     val chunk = IrContext().let { context ->
-      visitDescriptors(code).forEach {
-        it.render(context)
+      visitDescriptors(code).forEach { component ->
+        component.render(context)
       }
 
       context.toChunk()
     }
 
-    return ubyteArrayOf(
-      OpChunk.ChunkStart,
+    if (verbose) {
+      println("CHUNK INFO =")
+      println("  count = ${chunk.count}")
+      println("  capacity = ${chunk.capacity}")
+      println("  lines =")
+      chunk.lines.forEach {
+        println("    - $it")
+      }
+      print("  code = ")
 
-      OpChunk.InfoStart,
-      chunk.count.toUByte(),
-      chunk.capacity.toUByte(),
-      OpChunk.InfoEnd,
+      var first = true
 
-      OpChunk.CodeStart,
-      *chunk.code.map { it.toUByte() }.toUByteArray(),
-      OpChunk.CodeEnd,
+      chunk.code.chunked(20) { code ->
+        if (first) first = false else {
+          print("        ")
+        }
 
-      OpChunk.LinesStart,
-      *chunk.lines.map { it.toUByte() }.toUByteArray(),
-      OpChunk.LinesEnd,
+        code.forEach { op ->
+          print("0x")
+          print(op.toString(16))
+          print(" ")
+        }
 
-      OpChunk.ConstsStart,
+        println()
+      }
+      println("  consts =")
+      println("    count = ${chunk.consts.count}")
+      println("    capacity = ${chunk.consts.capacity}")
+      println("    values = ")
+      chunk.consts.values.forEach { const ->
+        println("      - $const")
+      }
+    }
+
+    val constPoolCapacity = chunk.consts.values.fold(chunk.consts.capacity) { total, right ->
+      total + right.size
+    }
+
+    val totalSize = chunk.capacity + constPoolCapacity + chunk.lines.size + 100
+
+    return ByteBuffer.alloc(totalSize).use { buffer ->
+      buffer.writeChunkInfo(ChunkOp.Chunk) {
+        buffer.writeChunkInfo(ChunkOp.Info) {
+          buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), chunk.count)
+          buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), chunk.capacity)
+          buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), chunk.lines.size)
+          buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), chunk.consts.capacity)
+        }
+
+        buffer.writeChunkInfo(ChunkOp.Code) {
+          chunk.code.forEach { op ->
+            buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), op.toInt())
+          }
+        }
+
+        buffer.writeChunkInfo(ChunkOp.Lines) {
+          chunk.lines.forEach { op ->
+            buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), op)
+          }
+        }
+
+        buffer.writeChunkInfo(ChunkOp.Consts) {
+          chunk.consts.values.forEach { value ->
+            value.write(buffer)
+          }
+        }
+      }
+
+      buffer.flush()
+
+      buffer
+    }
+  }
+/*
+      OpChunk.ChunkStart, // 0
+
+      OpChunk.InfoStart, // 1
+      chunk.count.toUByte(), // 2
+      chunk.capacity.toUByte(), // 3
+      chunk.lines.size.toUByte(), // 4
+      chunk.consts.count.toUByte(), // 5
+      OpChunk.InfoEnd, // 6
+
+      OpChunk.CodeStart, // 7
+      // code.size = 2
+      *chunk.code.map { it.toUByte() }.toUByteArray(), // 8
+      OpChunk.CodeEnd, // 10
+
+      OpChunk.LinesStart, // 11
+      *chunk.lines.map { it.toUByte() }.toUByteArray(), // 12
+      OpChunk.LinesEnd, // 13
+
+      OpChunk.ConstsStart, // 14
       *chunk.consts.values.flatMap { it.toUByteArray() }.toUByteArray(),
       OpChunk.ConstsEnd,
 
       OpChunk.ChunkEnd
-    )
-  }
+ */
 
   override fun visitConstDescriptor(descriptor: ConstDescriptor): IrComponent {
     return IrConst(descriptor.value, descriptor.type, descriptor.line)

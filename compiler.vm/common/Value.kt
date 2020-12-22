@@ -2,33 +2,38 @@
 
 package com.lorenzoog.kofl.compiler.vm
 
+import pw.binom.ByteBuffer
+import pw.binom.writeDouble
+import pw.binom.writeInt
+import pw.binom.writeUTF8String
+
 sealed class Value {
-  fun toUByteArray(): UByteArray {
-    return ubyteArrayOf(
-      OpChunk.ValueStart,
-      *render(),
-      OpChunk.ValueEnd,
-    )
-  }
+  abstract val size: Int
 
-  protected abstract fun render(): UByteArray
+  abstract fun write(buffer: ByteBuffer)
 }
 
-class StringValue(private val value: String) : Value() {
-  override fun render(): UByteArray {
-    return value.encodeToByteArray().toUByteArray()
+data class StringValue(private val value: String) : Value() {
+  override val size = Char.SIZE_BITS * value.length + Int.SIZE_BITS
+
+  override fun write(buffer: ByteBuffer) {
+    buffer.writeUTF8String(ByteBuffer.alloc(size), value)
   }
 }
 
-class DoubleValue(private val value: Double) : Value() {
-  override fun render(): UByteArray {
-    return ubyteArrayOf(value.toInt().toUByte())
+data class DoubleValue(private val value: Double) : Value() {
+  override val size: Int = Double.SIZE_BITS
+
+  override fun write(buffer: ByteBuffer) {
+    buffer.writeDouble(ByteBuffer.alloc(size), value)
   }
 }
 
-class IntValue(private val value: Int) : Value() {
-  override fun render(): UByteArray {
-    return ubyteArrayOf(value.toUByte())
+data class IntValue(private val value: Int) : Value() {
+  override val size: Int = Int.SIZE_BITS
+
+  override fun write(buffer: ByteBuffer) {
+    buffer.writeInt(ByteBuffer.alloc(size), value)
   }
 }
 
