@@ -10,6 +10,7 @@ sealed class Descriptor {
     }
 
     fun visitDescriptor(descriptor: Descriptor): T = descriptor.accept(this)
+    fun visitNativeDescriptor(descriptor: NativeDescriptor): T
     fun visitConstDescriptor(descriptor: ConstDescriptor): T
     fun visitThisDescriptor(descriptor: ThisDescriptor): T
     fun visitSetDescriptor(descriptor: SetDescriptor): T
@@ -43,6 +44,13 @@ sealed class Descriptor {
 
 sealed class MutableDescriptor : Descriptor() {
   abstract fun mutate(type: KoflType): Descriptor
+}
+
+object NativeDescriptor : Descriptor() {
+  override val line: Int = -1
+  override val type: KoflType = KoflType.Any
+
+  override fun <T> accept(visitor: Visitor<T>): T = visitor.visitNativeDescriptor(this)
 }
 
 data class ConstDescriptor(
