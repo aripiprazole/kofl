@@ -210,7 +210,7 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     return KoflObject.Unit
   }
 
-  private fun evaluateUseDescriptor(descriptor: ModuleDescriptor, environment: Environment): KoflObject {
+  private fun evaluateUseDescriptor(descriptor: UseDescriptor, environment: Environment): KoflObject {
     return KoflObject.Unit
   }
 

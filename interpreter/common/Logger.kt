@@ -3,6 +3,8 @@ package com.lorenzoog.kofl.interpreter
 import com.lorenzoog.kofl.compiler.common.KoflCompileException
 import com.lorenzoog.kofl.frontend.KoflException
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import com.lorenzoog.kofl.interpreter.module.MainNotFoundException
+import com.lorenzoog.kofl.interpreter.module.MainReturnedNotInt
 import com.lorenzoog.kofl.interpreter.runtime.Environment
 
 private const val ERROR_COLOR = "\u001b[31m"
@@ -61,7 +63,12 @@ class ReplLogger : Logger {
 
   override fun reportNativeError(error: Throwable) {
     println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
-    println(ERROR_COLOR + error.stackTraceToString())
+
+    if (error is MainNotFoundException || error is MainReturnedNotInt) {
+      exit(1)
+    } else {
+      println(ERROR_COLOR + error.stackTraceToString())
+    }
   }
 }
 

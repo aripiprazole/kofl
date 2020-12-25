@@ -33,6 +33,7 @@ interface Interpreter {
   companion object : Interpreter by Interpreter() {
     override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
       return SourceCode(
+        repl = false,
         evaluator = Evaluator(mutableMapOf()),
         descriptors = descriptors
       )
@@ -86,6 +87,6 @@ private class InterpreterImpl(
   }
 
   override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
-    return SourceCode(evaluator, descriptors)
+    return SourceCode(repl, evaluator, descriptors)
   }
 }
