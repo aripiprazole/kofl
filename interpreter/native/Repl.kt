@@ -4,6 +4,10 @@ package com.lorenzoog.kofl.interpreter
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import pw.binom.io.file.File
+import pw.binom.io.file.read
+import pw.binom.io.readText
+import pw.binom.io.utf8Reader
 
 // save copy of original termios to apply again to terminal
 // when the user quit the program
@@ -46,21 +50,9 @@ internal fun clearScreen() {
 // TODO: handle arrow keys
 @OptIn(ExperimentalUnsignedTypes::class)
 internal fun startRepl(logger: Logger, debug: Boolean, path: String): Unit = memScoped {
-  val interpreter = Interpreter(debug, repl = true, logger = logger)
+  val eval = createEval(Interpreter(debug, repl = true, logger))
 
-  fun eval(code: String): Any? {
-    if (code.isEmpty()) return null
-
-    return interpreter.run {
-      val tokens = lex(code)
-      val stmts = parse(tokens)
-      val descriptors = compile(stmts)
-
-      evaluate(descriptors).main(arrayOf())
-    }
-  }
-
-  readStdlib(path).also { code ->
+  File(path).read().utf8Reader().readText().also { code ->
     eval(code)
 
     if (debug) {

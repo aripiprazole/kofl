@@ -9,8 +9,8 @@ actual object Platform {
 
       return "$homePath/kofl/stdlib/lib.kofl"
     }
-}
 
-actual fun exit(code: Int) {
-  exitProcess(code)
+  actual fun exit(code: Int) {
+    exitProcess(code)
+  }
 }

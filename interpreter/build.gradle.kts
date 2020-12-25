@@ -60,6 +60,10 @@ kotlin {
 
     val nativeMain by getting {
       kotlin.srcDir("native")
+
+      dependencies {
+        implementation("com.github.ajalt.clikt:clikt:3.1.0")
+      }
     }
     val nativeTest by getting {
       kotlin.srcDir("nativeTest")

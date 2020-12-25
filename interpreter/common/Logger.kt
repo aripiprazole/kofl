@@ -65,7 +65,7 @@ class ReplLogger : Logger {
     println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
 
     if (error is MainNotFoundException || error is MainReturnedNotInt) {
-      exit(1)
+      Platform.exit(1)
     } else {
       println(ERROR_COLOR + error.stackTraceToString())
     }
