@@ -6,10 +6,11 @@ import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
-  internal val globalEnvironment = Environment()
+  internal val globalEnvironment = Environment(isGlobal = true)
 
   private var isInitialized = false
   private val nativeEnvironment = NativeEnvironment()
+  private val modules = mutableMapOf<String, Environment>()
 
   fun evaluate(
     descriptors: Collection<Descriptor>,
@@ -207,10 +208,18 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   }
 
   private fun evaluateModuleDescriptor(descriptor: ModuleDescriptor, environment: Environment): KoflObject {
+    if(!environment.isGlobal) error("Should not exist modules in scopes that isn't the global")
+
+    modules[descriptor.moduleName] = environment.child(descriptor)
+
     return KoflObject.Unit
   }
 
   private fun evaluateUseDescriptor(descriptor: UseDescriptor, environment: Environment): KoflObject {
+    val module = modules[descriptor.moduleName] ?: error("Module ${descriptor.moduleName} does not exist")
+
+    environment.expand(module)
+
     return KoflObject.Unit
   }
 
