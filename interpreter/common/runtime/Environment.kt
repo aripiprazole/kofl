@@ -10,9 +10,18 @@ sealed class Value {
   class Mutable(override var data: KoflObject) : Value()
 }
 
-data class Environment(val callSite: Descriptor? = null, val enclosing: Environment? = null) {
+data class Environment(
+  val callSite: Descriptor? = null,
+  val enclosing: Environment? = null,
+  val isGlobal: Boolean = false
+) {
+  private val expanded = mutableListOf<Environment>()
   private val variables = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, KoflObject.Callable>()
+
+  fun expand(module: Environment) {
+    expanded += module
+  }
 
   fun child(callSite: Descriptor, builder: Environment.() -> Unit = {}): Environment = copy(
     callSite = callSite,
@@ -33,16 +42,28 @@ data class Environment(val callSite: Descriptor? = null, val enclosing: Environm
     variables[name] = value
   }
 
-  fun lookup(name: String): KoflObject {
+  private fun lookupOrNull(name: String): KoflObject? {
     return variables[name]?.data
       ?: enclosing?.lookup(name)
-      ?: throw KoflRuntimeException.UndefinedVar(name, this)
+      ?: expanded.fold(null as KoflObject?) { acc, environment ->
+        acc ?: environment.lookupOrNull(name)
+      }
+  }
+
+  fun lookup(name: String): KoflObject {
+    return lookupOrNull(name) ?: throw KoflRuntimeException.UndefinedFunction(name, this)
+  }
+
+  private fun lookupFunctionOrNull(name: String): KoflObject.Callable? {
+    return functions[name]
+      ?: enclosing?.lookupFunction(name)
+      ?: expanded.fold(null as KoflObject.Callable?) { acc, environment ->
+        acc ?: environment.lookupFunctionOrNull(name)
+      }
   }
 
   fun lookupFunction(name: String): KoflObject.Callable {
-    return functions[name]
-      ?: enclosing?.lookupFunction(name)
-      ?: throw KoflRuntimeException.UndefinedFunction(name, this)
+    return lookupFunctionOrNull(name) ?: throw KoflRuntimeException.UndefinedFunction(name, this)
   }
 
   fun assign(name: String, reassigned: KoflObject): Unit = when (val value = variables[name]) {
@@ -61,5 +82,6 @@ data class Environment(val callSite: Descriptor? = null, val enclosing: Environm
     return environment
   }
 
-  override fun toString(): String = "Environment(callSite=$callSite, enclosing=$enclosing, functions=$functions, variables=$variables)"
+  override fun toString(): String =
+    "Environment(callSite=$callSite, enclosing=$enclosing, functions=$functions, variables=$variables)"
 }
