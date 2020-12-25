@@ -5,6 +5,7 @@ import com.lorenzoog.kofl.compiler.common.backend.Descriptor
 import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
 import com.lorenzoog.kofl.frontend.*
+import com.lorenzoog.kofl.interpreter.module.SourceCode
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
 import com.lorenzoog.kofl.interpreter.runtime.KoflObject
 
@@ -27,16 +28,19 @@ interface Interpreter {
   fun parse(tokens: Collection<Token>): Collection<Stmt>
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor>
   fun evaluate(descriptor: Descriptor): KoflObject
-  fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject>
+  fun evaluate(descriptors: Collection<Descriptor>): SourceCode
 
   companion object : Interpreter by Interpreter() {
-    override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
-      return Evaluator(mutableMapOf()).evaluate(descriptors)
+    override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
+      return SourceCode(
+        evaluator = Evaluator(mutableMapOf()),
+        descriptors = descriptors
+      )
     }
   }
 }
 
-inline fun Interpreter.execute(code: String): Collection<KoflObject> {
+inline fun Interpreter.execute(code: String): SourceCode {
   val tokens = lex(code)
   val stmts = parse(tokens)
   val descriptors = compile(stmts)
@@ -81,7 +85,7 @@ private class InterpreterImpl(
     return evaluator.evaluate(descriptor)
   }
 
-  override fun evaluate(descriptors: Collection<Descriptor>): Collection<KoflObject> {
-    return evaluator.evaluate(descriptors)
+  override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
+    return SourceCode(evaluator, descriptors)
   }
 }

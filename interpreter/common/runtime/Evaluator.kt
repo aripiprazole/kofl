@@ -6,10 +6,10 @@ import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
 class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
-  private var isInitialized = false
+  internal val globalEnvironment = Environment()
 
+  private var isInitialized = false
   private val nativeEnvironment = NativeEnvironment()
-  private val globalEnvironment = Environment()
 
   fun evaluate(
     descriptors: Collection<Descriptor>,

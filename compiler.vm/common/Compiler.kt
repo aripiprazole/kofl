@@ -219,4 +219,8 @@ class Compiler(private val verbose: Boolean, private val code: List<Descriptor>)
   override fun visitModuleDescriptor(descriptor: ModuleDescriptor): IrComponent {
     TODO("Not yet implemented")
   }
+
+  override fun visitNativeDescriptor(descriptor: NativeDescriptor): IrComponent {
+    TODO("Not yet implemented")
+  }
 }

@@ -56,7 +56,7 @@ internal fun startRepl(logger: Logger, debug: Boolean, path: String): Unit = mem
       val stmts = parse(tokens)
       val descriptors = compile(stmts)
 
-      evaluate(descriptors)
+      evaluate(descriptors).main(arrayOf())
     }
   }
 
