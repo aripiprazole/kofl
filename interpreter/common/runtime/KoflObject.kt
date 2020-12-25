@@ -149,6 +149,8 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
     val Unit = KoflObject(kotlin.Unit, KoflType.Unit)
 
     operator fun invoke(value: Any, type: KoflType = KoflType.Any): KoflObject {
+      if(value is Unit) return Unit
+
       return NativeObject(value, type)
     }
   }
