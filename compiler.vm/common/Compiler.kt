@@ -7,6 +7,7 @@ import com.lorenzoog.kofl.compiler.vm.ir.*
 import pw.binom.ByteBuffer
 import pw.binom.io.use
 import pw.binom.writeInt
+import pw.binom.writeUtf8Char
 
 class Compiler(private val verbose: Boolean, private val code: List<Descriptor>) : Descriptor.Visitor<IrComponent> {
   @OptIn(ExperimentalUnsignedTypes::class)
@@ -60,6 +61,10 @@ class Compiler(private val verbose: Boolean, private val code: List<Descriptor>)
     val totalSize = chunk.capacity + constPoolCapacity + chunk.lines.size + 100
 
     return ByteBuffer.alloc(totalSize).use { buffer ->
+      "kofl".forEach {
+        buffer.writeUtf8Char(ByteBuffer.alloc(Char.SIZE_BITS), it)
+      }
+
       buffer.writeChunkInfo(ChunkOp.Chunk) {
         buffer.writeChunkInfo(ChunkOp.Info) {
           buffer.writeInt(ByteBuffer.alloc(Int.SIZE_BITS), chunk.count)
