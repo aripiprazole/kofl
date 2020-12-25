@@ -20,7 +20,7 @@ enum class TokenType {
 
   // keywords tokens
   If, Else, This, False, True, While,
-  Func, Val, Var, Return, Class,
+  Func, Val, Var, Return, Record,
   Type, External, Do, Module, Use,
 
   // special tokens

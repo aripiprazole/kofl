@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.frontend
 
 val RESERVED_KEYWORDS = mapOf(
-  "class" to TokenType.Class,
+  "record" to TokenType.Record,
   "type" to TokenType.Type,
   "func" to TokenType.Func,
   "this" to TokenType.This,
