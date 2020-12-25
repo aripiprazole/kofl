@@ -298,4 +298,16 @@ class AstConverter(
 
     return value
   }
+
+  override fun visitUseStmt(stmt: Stmt.UseDecl): Descriptor {
+    validator.visitUseStmt(stmt)
+
+    return UseDescriptor(stmt.module.lexeme, stmt.line)
+  }
+
+  override fun visitModuleStmt(stmt: Stmt.ModuleDecl): Descriptor {
+    validator.visitModuleStmt(stmt)
+
+    return ModuleDescriptor(stmt.module.lexeme, stmt.line)
+  }
 }

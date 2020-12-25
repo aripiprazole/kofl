@@ -27,6 +27,8 @@ sealed class Descriptor {
     fun visitIfDescriptor(descriptor: IfDescriptor): T
     fun visitLogicalDescriptor(descriptor: LogicalDescriptor): T
     fun visitBinaryDescriptor(descriptor: BinaryDescriptor): T
+    fun visitUseDescriptor(descriptor: UseDescriptor): T
+    fun visitModuleDescriptor(descriptor: ModuleDescriptor): T
     fun visitLocalFunctionDescriptor(descriptor: LocalFunctionDescriptor): T
     fun visitNativeFunctionDescriptor(descriptor: NativeFunctionDescriptor): T
     fun visitFunctionDescriptor(descriptor: FunctionDescriptor): T
@@ -252,6 +254,18 @@ data class BinaryDescriptor(
   }
 
   override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryDescriptor(this)
+}
+
+data class UseDescriptor(val moduleName: String, override val line: Int) : Descriptor() {
+  override val type: KoflType = KoflType.Unit
+
+  override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUseDescriptor(this)
+}
+
+data class ModuleDescriptor(val moduleName: String, override val line: Int) : Descriptor() {
+  override val type: KoflType = KoflType.Unit
+
+  override fun <T> accept(visitor: Visitor<T>): T = visitor.visitModuleDescriptor(this)
 }
 
 sealed class CallableDescriptor : Descriptor() {

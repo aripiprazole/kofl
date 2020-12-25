@@ -43,6 +43,8 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     when {
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
+      match(TokenType.Use) -> useDeclaration()
+      match(TokenType.Module) -> moduleDeclaration()
       match(TokenType.Type) -> classDeclaration()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
       match(TokenType.External) -> attributedStatement(mutableListOf(TokenType.External))
@@ -56,6 +58,22 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
     exception.report()
 
     null
+  }
+
+  private fun moduleDeclaration(): Stmt.ModuleDecl {
+    val name = consume(TokenType.Identifier) ?: throw error(expecting("module name"))
+
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
+
+    return Stmt.ModuleDecl(name, line())
+  }
+
+  private fun useDeclaration(): Stmt.UseDecl {
+    val name = consume(TokenType.Identifier) ?: throw error(expecting("module name"))
+
+    consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
+
+    return Stmt.UseDecl(name, line())
   }
 
   private fun block(scopeType: ScopeType = ScopeType.Global): MutableList<Stmt> {
