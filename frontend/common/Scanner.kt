@@ -14,7 +14,9 @@ val RESERVED_KEYWORDS = mapOf(
   "return" to TokenType.Return,
   "while" to TokenType.While,
   "external" to TokenType.External,
-  "do" to TokenType.Do
+  "do" to TokenType.Do,
+  "module" to TokenType.Module,
+  "use" to TokenType.Use,
 )
 
 class Scanner(private val source: String) {

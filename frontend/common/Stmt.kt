@@ -11,12 +11,22 @@ sealed class Stmt {
     fun visitReturnStmt(stmt: ReturnStmt): T
     fun visitValDeclStmt(stmt: ValDecl): T
     fun visitVarDeclStmt(stmt: VarDecl): T
+    fun visitUseStmt(stmt: UseDecl): T
+    fun visitModuleStmt(stmt: ModuleDecl): T
     fun visitClassTypeStmt(stmt: Type.Class): T
   }
 
   abstract val line: Int
 
   abstract fun <T> accept(visitor: Visitor<T>): T
+
+  data class ModuleDecl(val module: Token, override val line: Int) : Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitModuleStmt(this)
+  }
+
+  data class UseDecl(val module: Token, override val line: Int) : Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T = visitor.visitUseStmt(this)
+  }
 
   data class ExprStmt(val expr: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitExprStmt(this)

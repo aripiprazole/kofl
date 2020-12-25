@@ -386,4 +386,12 @@ class TypeValidator(
 
     return value
   }
+
+  override fun visitUseStmt(stmt: Stmt.UseDecl): KoflType {
+    return KoflType.Unit
+  }
+
+  override fun visitModuleStmt(stmt: Stmt.ModuleDecl): KoflType {
+    return KoflType.Unit
+  }
 }
