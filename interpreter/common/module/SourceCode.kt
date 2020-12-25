@@ -10,7 +10,11 @@ import com.lorenzoog.kofl.interpreter.runtime.KoflObject
 class MainNotFoundException internal constructor() : Error("Main not found in programing, exiting 1")
 class MainReturnedNotInt internal constructor() : Error("Main returned other thing that isn't Int")
 
-class SourceCode(private val evaluator: Evaluator, private val descriptors: Collection<Descriptor>) {
+class SourceCode(
+  private val repl: Boolean,
+  private val evaluator: Evaluator,
+  private val descriptors: Collection<Descriptor>
+) {
   private var objects = mutableListOf<KoflObject>()
 
   private fun initRuntime() {
@@ -24,6 +28,8 @@ class SourceCode(private val evaluator: Evaluator, private val descriptors: Coll
     // TODO handle args
 
     initRuntime()
+
+    if(repl) return 0
 
     val mainFunc = objects
       .filterIsInstance<KoflObject.Callable.Function>()

@@ -11,6 +11,8 @@ expect object Platform {
   val stdlibPath: String
 }
 
+expect fun exit(code: Int)
+
 internal fun readStdlib(path: String): String {
   return ByteBufferPool(10).use { buffer ->
     val file = File(path)
