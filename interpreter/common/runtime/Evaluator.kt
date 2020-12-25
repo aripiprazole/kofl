@@ -48,6 +48,9 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
     is NativeFunctionDescriptor -> evaluateNativeFunctionDescriptor(descriptor, environment)
     is FunctionDescriptor -> evaluateFunctionDescriptor(descriptor, environment)
     is ClassDescriptor -> evaluateClassDescriptor(descriptor, environment)
+    is NativeDescriptor -> evaluateNativeDescriptor()
+    is UseDescriptor -> evaluateUseDescriptor(descriptor, environment)
+    is ModuleDescriptor -> evaluateModuleDescriptor(descriptor, environment)
   }
 
   private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject = when (val value = descriptor.value) {
@@ -197,6 +200,18 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
 
   private fun evaluateClassDescriptor(descriptor: ClassDescriptor, environment: Environment): KoflObject {
     TODO("class descriptor")
+  }
+
+  private fun evaluateNativeDescriptor(): KoflObject {
+    return KoflObject.Unit
+  }
+
+  private fun evaluateModuleDescriptor(descriptor: ModuleDescriptor, environment: Environment): KoflObject {
+    return KoflObject.Unit
+  }
+
+  private fun evaluateUseDescriptor(descriptor: ModuleDescriptor, environment: Environment): KoflObject {
+    return KoflObject.Unit
   }
 
   private fun assign(descriptor: Descriptor, environment: Environment, name: String, value: KoflObject) {
