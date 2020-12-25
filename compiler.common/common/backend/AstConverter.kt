@@ -256,7 +256,7 @@ class AstConverter(
     return VarDescriptor(name, value, type, stmt.line)
   }
 
-  override fun visitClassTypeStmt(stmt: Stmt.Type.Class): Descriptor {
+  override fun visitTypeRecordStmt(stmt: Stmt.Type.Record): Descriptor {
     val name = stmt.name.lexeme
     val inherits = emptyList<KoflType>()
     val parameters = typedParameters(stmt.parameters)

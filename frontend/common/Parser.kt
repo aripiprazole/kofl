@@ -23,7 +23,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     while (!isAtEnd) {
       when (peek().type) { // TODO: report useless char
-        TokenType.Class, TokenType.Func,
+        TokenType.Record, TokenType.Func,
         TokenType.Val, TokenType.If, TokenType.Else,
         TokenType.Return, TokenType.Var,
         TokenType.Semicolon -> return
@@ -45,7 +45,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       match(TokenType.Var) -> varDeclaration()
       match(TokenType.Use) -> useDeclaration()
       match(TokenType.Module) -> moduleDeclaration()
-      match(TokenType.Type) -> classDeclaration()
+      match(TokenType.Record) -> recordDeclaration()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
       match(TokenType.External) -> attributedStatement(mutableListOf(TokenType.External))
       match(TokenType.Func) -> Stmt.ExprStmt(funcExpr(FuncType.Func), line())
@@ -99,8 +99,8 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  private fun classDeclaration(): Stmt {
-    consume(TokenType.Class) ?: throw error(expecting(TokenType.Class))
+  private fun recordDeclaration(): Stmt {
+    consume(TokenType.Record) ?: throw error(expecting(TokenType.Record))
 
     val name = consume(TokenType.Identifier) ?: throw error(expecting("struct name"))
     val parameters: Map<Token, Token> = when {
@@ -110,7 +110,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     consume(TokenType.Semicolon) ?: throw error(expecting(TokenType.Semicolon))
 
-    return Stmt.Type.Class(name, parameters, line())
+    return Stmt.Type.Record(name, parameters, line())
   }
 
   private fun valDeclaration(): Stmt {
@@ -135,7 +135,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       }
       match(TokenType.Val) -> valDeclaration()
       match(TokenType.Var) -> varDeclaration()
-      match(TokenType.Type) -> classDeclaration()
+      match(TokenType.Type) -> recordDeclaration()
       match(TokenType.While) -> whileStatement()
       match(TokenType.LeftBrace) -> Stmt.Block(block(), line())
       match(TokenType.If) -> Stmt.ExprStmt(ifExpr(IfType.If), line())
@@ -147,7 +147,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   }
 
   private fun attributedStatement(attributes: MutableList<TokenType>): Stmt {
-    while (!check(TokenType.Func) && !check(TokenType.Class) && !check(TokenType.Identifier)) {
+    while (!check(TokenType.Func) && !check(TokenType.Record) && !check(TokenType.Identifier)) {
       attributes.add(advance().type)
     }
 
@@ -155,7 +155,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
       match(TokenType.Func) -> funcExpr(FuncType.Func, attributes).let {
         Stmt.ExprStmt(it, it.line)
       }
-      match(TokenType.Class, TokenType.Identifier) -> classDeclaration()
+      match(TokenType.Record, TokenType.Identifier) -> recordDeclaration()
       else -> throw error(expecting("declaration"))
     }
   }

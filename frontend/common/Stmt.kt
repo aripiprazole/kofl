@@ -13,7 +13,7 @@ sealed class Stmt {
     fun visitVarDeclStmt(stmt: VarDecl): T
     fun visitUseStmt(stmt: UseDecl): T
     fun visitModuleStmt(stmt: ModuleDecl): T
-    fun visitClassTypeStmt(stmt: Type.Class): T
+    fun visitTypeRecordStmt(stmt: Type.Record): T
   }
 
   abstract val line: Int
@@ -53,8 +53,8 @@ sealed class Stmt {
   }
 
   sealed class Type : Stmt() {
-    data class Class(val name: Token, val parameters: Map<Token, Token>, override val line: Int) : Type() {
-      override fun <T> accept(visitor: Visitor<T>): T = visitor.visitClassTypeStmt(this)
+    data class Record(val name: Token, val parameters: Map<Token, Token>, override val line: Int) : Type() {
+      override fun <T> accept(visitor: Visitor<T>): T = visitor.visitTypeRecordStmt(this)
     }
   }
 }

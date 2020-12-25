@@ -278,7 +278,7 @@ class TypeValidator(
     return typedVarDeclaration(stmt.name.lexeme, stmt.type?.lexeme, stmt.value)
   }
 
-  override fun visitClassTypeStmt(stmt: Stmt.Type.Class): KoflType {
+  override fun visitTypeRecordStmt(stmt: Stmt.Type.Record): KoflType {
     val name = stmt.name.lexeme
     val parameters = typedParameters(stmt.parameters)
     val functions = mutableMapOf<String, List<KoflType.Function>>()
