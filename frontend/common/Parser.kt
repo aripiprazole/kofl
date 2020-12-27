@@ -5,6 +5,8 @@ private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS argum
 private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
 
 class Parser(private val tokens: List<Token>, private val repl: Boolean = false) {
+  constructor(code: String, repl: Boolean = false) : this(Scanner(code).scan(), repl)
+
   private val isAtEnd get() = peek().type == TokenType.Eof
   private var current = 0
 
