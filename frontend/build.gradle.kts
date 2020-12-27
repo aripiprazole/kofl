@@ -41,6 +41,10 @@ kotlin {
         implementation(kotlin("test-annotations-common"))
       }
     }
+
+    val jvmMain by getting {
+      kotlin.srcDir("jvm")
+    }
   }
 }
 
