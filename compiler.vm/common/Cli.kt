@@ -47,8 +47,7 @@ class Koflc : CliktCommand() {
       defineType("Unit", KoflType.Unit)
     }
 
-    val lexer = Scanner(file.readContents().decodeToString())
-    val parser = Parser(lexer.scan(), repl = true)
+    val parser = Parser(file.readContents().decodeToString(), repl = true)
     val converter = AstConverter(locals, Stack<TypeContainer>(maxStack).also { stack ->
       stack.push(container)
     })

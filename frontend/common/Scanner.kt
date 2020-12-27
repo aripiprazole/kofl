@@ -19,7 +19,7 @@ val RESERVED_KEYWORDS = mapOf(
   "use" to TokenType.Use,
 )
 
-class Scanner(private val source: String) {
+class Scanner internal constructor(private val source: String) {
   private val tokens = mutableListOf<Token>()
   private val isAtEnd get() = current >= source.length
 
