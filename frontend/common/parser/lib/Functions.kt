@@ -2,13 +2,18 @@
 
 package com.lorenzoog.kofl.frontend.parser.lib
 
+import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.TokenType
+import com.lorenzoog.kofl.frontend.parser.grammar.line
+import kotlin.jvm.JvmName
+
 /**
  * Maps a parse function to other
  *
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T, R> ParseFunc<T>.map(map: (T) -> R): ParseFunc<R> = { input ->
+infix fun <T, R> ParseFunc<T>.mapWith(map: (T) -> R): ParseFunc<R> = { input ->
   when (val result = this(input)) {
     is ParseResult.Error -> result.fix()
     is ParseResult.Success -> ParseResult.Success(map(result.data), result.rest)
@@ -53,6 +58,7 @@ private class EnumParseFunc<T>(val parsers: List<ParseFunc<out T>>) : ParseFunc<
 /**
  * Tries to match a text with regex [regex]
  *
+ * @param regex
  * @return matched result
  */
 fun regex(regex: Regex): ParseFunc<String> = { input ->
@@ -68,6 +74,7 @@ fun regex(regex: Regex): ParseFunc<String> = { input ->
 /**
  * Tries to match a text with any [match]
  *
+ * @param match
  * @return matched result
  */
 fun text(match: Any) = text(match.toString())
@@ -75,11 +82,37 @@ fun text(match: Any) = text(match.toString())
 /**
  * Tries to match a text with text [match]
  *
+ * @param match
  * @return matched result
  */
 fun text(match: String): ParseFunc<String> = { input ->
   if (input.startsWith(match))
     ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("'$match'", input).fix()
+}
+
+/**
+ * Tries to match a token with any [match]
+ *
+ * @see Token
+ * @param type
+ * @param match
+ * @return matched result
+ */
+fun token(type: TokenType, match: Any) = token(type, match.toString())
+
+/**
+ * Tries to match a token with text [match]
+ *
+ * @see Token
+ * @param type
+ * @param match
+ * @return matched result
+ */
+fun token(type: TokenType, match: String): ParseFunc<Token> = { input ->
+  if (input.startsWith(match))
+    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
   else
     ParseResult.Error("'$match'", input).fix()
 }
@@ -113,6 +146,31 @@ inline fun <reified T> many(noinline parser: ParseFunc<T>): ParseFunc<List<T>> {
 
   return self
 }
+
+/**
+ * Combines [this] with [second] into a pair of both
+ *
+ * @see combine
+ * @param second
+ * @return parse func of pair
+ */
+@JvmName("withAnother")
+infix fun <A, B> ParseFunc<A>.with(second: ParseFunc<B>): ParseFunc<Pair<A, B>> = combine(this, second) { a, b ->
+  a to b
+}
+
+/**
+ * Combines [this] with [third] into a triple of both
+ *
+ * @see combine
+ * @param third
+ * @return parse func of triple
+ */
+@JvmName("withPair")
+infix fun <A, B, C> ParseFunc<Pair<A, B>>.with(third: ParseFunc<C>): ParseFunc<Triple<A, B, C>> =
+  combine(this, third) { (a, b), c ->
+    Triple(a, b, c)
+  }
 
 /**
  * Gets lazied a parse function
