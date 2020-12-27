@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.frontend.parser.lib
 
-typealias ParseFunc<T> = (input: String) -> ParseResult<T>
+typealias Parser<T> = (input: String) -> ParseResult<T>
 
 sealed class ParseResult<T> {
   data class Success<T>(

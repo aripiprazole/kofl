@@ -4,9 +4,13 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
 internal object Math : Grammar<Expr>() {
-  override val rule get() = Term
+  override val rule = lazied { Term }
 
-  private val Factor = combine(Token.Primary, many(Token.Star or Token.Slash with Token.Primary)) { lhs, rest ->
+  private val Unary = Token.Primary or combine(Token.Plus or Token.Minus, Token.Primary) { op, rhs ->
+    Expr.Unary(op, rhs, line)
+  }
+
+  private val Factor = combine(Unary, many(Token.Star or Token.Slash with Unary)) { lhs, rest ->
     rest.fold(lhs) { acc, (op, expr) ->
       Expr.Binary(acc, op, expr, line)
     }

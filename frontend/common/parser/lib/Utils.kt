@@ -26,6 +26,10 @@ inline fun <T, R> ParseResult<T>.flatMap(fn: (T) -> ParseResult<R>): ParseResult
   }
 }
 
+inline fun <T> ParseResult<T>.nullable(): ParseResult<T?> {
+  return map { it }
+}
+
 inline fun <T, R> ParseResult<T>.map(fn: (T) -> R): ParseResult<R> {
   return when (this) {
     is Error -> fix()
@@ -43,4 +47,8 @@ inline fun <T> ParseResult<T>.unwrapOr(def: (error: Error) -> T): Success<T> {
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 inline fun <T> Error.fix(): ParseResult<T> {
   return this as ParseResult<T>
+}
+
+fun <T> identity(t: T): () -> T {
+  return { t }
 }
