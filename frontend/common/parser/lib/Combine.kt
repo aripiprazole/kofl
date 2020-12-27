@@ -2,10 +2,10 @@
 
 package com.lorenzoog.kofl.frontend.parser.lib
 
-inline fun <reified T, R> combine(vararg functions: ParseFunc<T>, crossinline map: (List<T>) -> R): ParseFunc<R> =
+inline fun <reified T, R> combine(vararg functions: Parser<T>, crossinline map: (List<T>) -> R): Parser<R> =
   functions.toList().combineWith(map)
 
-inline fun <reified T, R> List<ParseFunc<T>>.combineWith(crossinline map: (List<T>) -> R): ParseFunc<R> {
+inline fun <reified T, R> List<Parser<T>>.combineWith(crossinline map: (List<T>) -> R): Parser<R> {
   require(isNotEmpty())
 
   return func@{ input ->
@@ -22,10 +22,10 @@ inline fun <reified T, R> List<ParseFunc<T>>.combineWith(crossinline map: (List<
 }
 
 fun <T1, T2, R> combine(
-  func1: ParseFunc<T1>,
-  func2: ParseFunc<T2>,
+  func1: Parser<T1>,
+  func2: Parser<T2>,
   map: (T1, T2) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
 
@@ -33,11 +33,11 @@ fun <T1, T2, R> combine(
 }
 
 fun <T1, T2, T3, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
   map: (T1, T2, T3) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -46,12 +46,12 @@ fun <T1, T2, T3, R> combine(
 }
 
 fun <T1, T2, T3, T4, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
   map: (T1, T2, T3, T4) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -61,13 +61,13 @@ fun <T1, T2, T3, T4, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
   map: (T1, T2, T3, T4, T5) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -78,14 +78,14 @@ fun <T1, T2, T3, T4, T5, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
   map: (T1, T2, T3, T4, T5, T6) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -100,15 +100,15 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
   map: (T1, T2, T3, T4, T5, T6, T7) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -124,16 +124,16 @@ fun <T1, T2, T3, T4, T5, T6, T7, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
-  func8: ParseFunc<out T8>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
+  func8: Parser<out T8>,
   map: (T1, T2, T3, T4, T5, T6, T7, T8) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -159,17 +159,17 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
-  func8: ParseFunc<out T8>,
-  func9: ParseFunc<out T9>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
+  func8: Parser<out T8>,
+  func9: Parser<out T9>,
   map: (T1, T2, T3, T4, T5, T6, T7, T8, T9) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -197,18 +197,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
-  func8: ParseFunc<out T8>,
-  func9: ParseFunc<out T9>,
-  func10: ParseFunc<out T10>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
+  func8: Parser<out T8>,
+  func9: Parser<out T9>,
+  func10: Parser<out T10>,
   map: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -238,19 +238,19 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
-  func8: ParseFunc<out T8>,
-  func9: ParseFunc<out T9>,
-  func10: ParseFunc<out T10>,
-  func11: ParseFunc<out T11>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
+  func8: Parser<out T8>,
+  func9: Parser<out T9>,
+  func10: Parser<out T10>,
+  func11: Parser<out T11>,
   map: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
@@ -282,20 +282,20 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, R> combine(
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R> combine(
-  func1: ParseFunc<out T1>,
-  func2: ParseFunc<out T2>,
-  func3: ParseFunc<out T3>,
-  func4: ParseFunc<out T4>,
-  func5: ParseFunc<out T5>,
-  func6: ParseFunc<out T6>,
-  func7: ParseFunc<out T7>,
-  func8: ParseFunc<out T8>,
-  func9: ParseFunc<out T9>,
-  func10: ParseFunc<out T10>,
-  func11: ParseFunc<out T11>,
-  func12: ParseFunc<out T12>,
+  func1: Parser<out T1>,
+  func2: Parser<out T2>,
+  func3: Parser<out T3>,
+  func4: Parser<out T4>,
+  func5: Parser<out T5>,
+  func6: Parser<out T6>,
+  func7: Parser<out T7>,
+  func8: Parser<out T8>,
+  func9: Parser<out T9>,
+  func10: Parser<out T10>,
+  func11: Parser<out T11>,
+  func12: Parser<out T12>,
   map: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) -> R
-): ParseFunc<R> = func@{ input ->
+): Parser<R> = func@{ input ->
   val result1 = func1(input).unwrapOr { return@func it.fix() }
   val result2 = func2(result1.rest).unwrapOr { return@func it.fix() }
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }

@@ -13,10 +13,52 @@ import kotlin.jvm.JvmName
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T, R> ParseFunc<T>.mapWith(map: (T) -> R): ParseFunc<R> = { input ->
+infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { input ->
   when (val result = this(input)) {
     is ParseResult.Error -> result.fix()
     is ParseResult.Success -> ParseResult.Success(map(result.data), result.rest)
+  }
+}
+
+/**
+ * Will map the func and return null if has error
+ *
+ * @return mapped parse func
+ */
+fun <T> Parser<T>.optional(): Parser<T?> = { input ->
+  when (val result = this(input)) {
+    is ParseResult.Success -> result.nullable()
+    is ParseResult.Error -> ParseResult.Success(null as T?)
+  }
+}
+
+/**
+ * Will fold the function and return another parse func of [R]
+ *
+ * @param onSuccess functor that will map success [this]
+ * @param onError functor that will map error [this]
+ * @return mapped parse func
+ */
+fun <T, R> Parser<T>.fold(
+  onSuccess: (ParseResult.Success<T>) -> ParseResult<R>,
+  onError: (ParseResult.Error) -> ParseResult<R>
+): Parser<R> = { input ->
+  when (val result = this(input)) {
+    is ParseResult.Error -> onError(result)
+    is ParseResult.Success -> onSuccess(result)
+  }
+}
+
+/**
+ * Maps a parse function to other when result is [ParseResult.Error]
+ *
+ * @param map functor that will map [this]
+ * @return mapped parse func
+ */
+infix fun <T> Parser<T>.mapErr(map: (ParseResult.Error) -> ParseResult.Error): Parser<T> = { input ->
+  when (val result = this(input)) {
+    is ParseResult.Error -> map(result).fix()
+    is ParseResult.Success -> result
   }
 }
 
@@ -28,7 +70,7 @@ infix fun <T, R> ParseFunc<T>.mapWith(map: (T) -> R): ParseFunc<R> = { input ->
  * @param another
  * @return the combined result
  */
-infix fun <T> ParseFunc<out T>.or(another: ParseFunc<out T>): ParseFunc<T> {
+infix fun <T> Parser<out T>.or(another: Parser<out T>): Parser<T> {
   if (this is EnumParseFunc) {
     return enum(*parsers.toTypedArray(), another)
   }
@@ -43,9 +85,9 @@ infix fun <T> ParseFunc<out T>.or(another: ParseFunc<out T>): ParseFunc<T> {
  * @param [parsers]
  * @return a parse func with [parsers]
  */
-fun <T> enum(vararg parsers: ParseFunc<out T>): ParseFunc<T> = EnumParseFunc(parsers.toList())
+fun <T> enum(vararg parsers: Parser<out T>): Parser<T> = EnumParseFunc(parsers.toList())
 
-private class EnumParseFunc<T>(val parsers: List<ParseFunc<out T>>) : ParseFunc<T> {
+private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
   override fun invoke(input: String): ParseResult<T> {
     return parsers
       .map { it(input) }
@@ -61,14 +103,30 @@ private class EnumParseFunc<T>(val parsers: List<ParseFunc<out T>>) : ParseFunc<
  * @param regex
  * @return matched result
  */
-fun regex(regex: Regex): ParseFunc<String> = { input ->
+fun regex(regex: Regex): Parser<String> = { input ->
   val match = regex.find(input)?.value
 
-  if (match != null) {
+  if (match != null)
     ParseResult.Success(match, input.substring(match.length))
-  } else {
+  else
     ParseResult.Error(regex.toString(), input).fix()
-  }
+}
+
+/**
+ * Tries to match a token with regex [regex]
+ *
+ * @see Token
+ * @param type
+ * @param regex
+ * @return matched result
+ */
+fun regex(type: TokenType, regex: Regex): Parser<Token> = { input ->
+  val match = regex.find(input)?.value
+
+  if (match != null)
+    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+  else
+    ParseResult.Error(regex.toString(), input).fix()
 }
 
 /**
@@ -85,7 +143,7 @@ fun text(match: Any) = text(match.toString())
  * @param match
  * @return matched result
  */
-fun text(match: String): ParseFunc<String> = { input ->
+fun text(match: String): Parser<String> = { input ->
   if (input.startsWith(match))
     ParseResult.Success(match, input.substring(match.length))
   else
@@ -100,7 +158,7 @@ fun text(match: String): ParseFunc<String> = { input ->
  * @param match
  * @return matched result
  */
-fun token(type: TokenType, match: Any) = token(type, match.toString())
+fun text(type: TokenType, match: Any) = text(type, match.toString())
 
 /**
  * Tries to match a token with text [match]
@@ -110,7 +168,7 @@ fun token(type: TokenType, match: Any) = token(type, match.toString())
  * @param match
  * @return matched result
  */
-fun token(type: TokenType, match: String): ParseFunc<Token> = { input ->
+fun text(type: TokenType, match: String): Parser<Token> = { input ->
   if (input.startsWith(match))
     ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
   else
@@ -123,7 +181,7 @@ fun token(type: TokenType, match: String): ParseFunc<Token> = { input ->
  * @param success mock function
  * @return mocked parse function
  */
-fun <T> pure(success: () -> T): ParseFunc<T> = { input ->
+fun <T> pure(success: () -> T): Parser<T> = { input ->
   ParseResult.Success(success(), input)
 }
 
@@ -134,8 +192,8 @@ fun <T> pure(success: () -> T): ParseFunc<T> = { input ->
  * @param [parser] pattern that will try to match
  * @return parse function
  */
-inline fun <reified T> many(noinline parser: ParseFunc<T>): ParseFunc<List<T>> {
-  var self: ParseFunc<List<T>>? = null
+inline fun <reified T> many(noinline parser: Parser<T>): Parser<List<T>> {
+  var self: Parser<List<T>>? = null
 
   self = enum(
     combine(parser, lazied { self ?: error("MANY: self is null") }) { head: T, tail: List<T> ->
@@ -155,7 +213,7 @@ inline fun <reified T> many(noinline parser: ParseFunc<T>): ParseFunc<List<T>> {
  * @return parse func of pair
  */
 @JvmName("withAnother")
-infix fun <A, B> ParseFunc<A>.with(second: ParseFunc<B>): ParseFunc<Pair<A, B>> = combine(this, second) { a, b ->
+infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = combine(this, second) { a, b ->
   a to b
 }
 
@@ -167,7 +225,7 @@ infix fun <A, B> ParseFunc<A>.with(second: ParseFunc<B>): ParseFunc<Pair<A, B>> 
  * @return parse func of triple
  */
 @JvmName("withPair")
-infix fun <A, B, C> ParseFunc<Pair<A, B>>.with(third: ParseFunc<C>): ParseFunc<Triple<A, B, C>> =
+infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> =
   combine(this, third) { (a, b), c ->
     Triple(a, b, c)
   }
@@ -178,7 +236,7 @@ infix fun <A, B, C> ParseFunc<Pair<A, B>>.with(third: ParseFunc<C>): ParseFunc<T
  * @param f lazy parse function getter
  * @return lazied parse function
  */
-fun <T> lazied(f: () -> ParseFunc<T>): ParseFunc<T> = { input ->
+fun <T> lazied(f: () -> Parser<T>): Parser<T> = { input ->
   f()(input)
 }
 
@@ -190,12 +248,12 @@ fun <T> lazied(f: () -> ParseFunc<T>): ParseFunc<T> = { input ->
  * @param junk
  * @return create token parser
  */
-fun <T> lexeme(junk: ParseFunc<T>): CreateTokenParser<T> {
+fun <T> lexeme(junk: Parser<T>): CreateTokenParser<T> {
   return CreateTokenParser(junk)
 }
 
-class CreateTokenParser<T>(private val junk: ParseFunc<T>) {
-  operator fun <R> invoke(parser: ParseFunc<R>): ParseFunc<R> {
+class CreateTokenParser<T>(private val junk: Parser<T>) {
+  operator fun <R> invoke(parser: Parser<R>): Parser<R> {
     return combine(junk, parser, junk) { _, first, _ ->
       first
     }
@@ -215,7 +273,7 @@ fun label(label: String): CreateLabelParser {
 }
 
 class CreateLabelParser(private val label: String) {
-  operator fun <T> invoke(func: ParseFunc<T>): ParseFunc<T> = func@{ input ->
+  operator fun <T> invoke(func: Parser<T>): Parser<T> = func@{ input ->
     func(input).unwrapOr {
       return@func ParseResult.Error(label, it.actual).fix()
     }
