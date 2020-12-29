@@ -1,9 +1,11 @@
-import com.lorenzoog.kofl.frontend.parser.grammar.Math
-import com.lorenzoog.kofl.frontend.parser.lib.unwrap
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.parser.ParserImpl
 
 /**
  * TODO: remove me
  */
 fun main() {
-  println(Math.parse("""10.0 + (5.0 + 4.0)""").unwrap())
+  val parser = ParserImpl("""(record.call)()""".trimIndent())
+
+  println(parser.parseImpl())
 }

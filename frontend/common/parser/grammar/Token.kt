@@ -7,33 +7,29 @@ import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
 internal object Token {
-  val token = lexeme(regex("""\s*""".toRegex()))
+  val token = lexeme(label("junk")(regex("""\s*""".toRegex())))
 
-  val Expression: Parser<Expr> = Math.rule
+  val Expression: Parser<Expr> = Access
 
   val Plus = text(TokenType.Plus, "+")
   val Minus = text(TokenType.Minus, "-")
   val Star = text(TokenType.Star, "*")
   val Slash = text(TokenType.Slash, "/")
+  val Dot = text(TokenType.Dot, ".")
+  val Comma = text(TokenType.Comma, ",")
+
+  val EOF = eof(TokenType.Eof)
 
   val LeftParen = text(TokenType.LeftParen, "(")
   val RightParen = text(TokenType.RightParen, ")")
 
-  val Decimal = label("decimal")(predicate(Matchers.number) map {
-    it.toDouble()
-  })
+  val Decimal = label("decimal")(numeric() map { it.toDouble() })
 
-  val Numeric = token(Decimal).mapToLiteral()
-
-  val Text = label("text")(
-    token(regex(TokenType.String, """^"[a-zA-Z0-9]*"$""".toRegex())).mapToLiteral()
-  )
-
-  val Identifier = label("identifier")(
-    token(regex(TokenType.Identifier, """[a-zA-Z][a-zA-Z0-9_]*""".toRegex())) map {
-      Expr.Var(it, line)
-    }
-  )
+  val Numeric = label("numeric")(token(Decimal).mapToLiteral())
+  val Text = label("text")(token(string(TokenType.String)).mapToLiteral())
+  val Identifier = label("identifier")(token(identifier(TokenType.Identifier))) map {
+    Expr.Var(it, line)
+  }
 
   val Group = label("group")(
     combine(LeftParen, token(Expression), RightParen) { _, value, _ ->

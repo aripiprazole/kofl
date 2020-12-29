@@ -167,6 +167,99 @@ fun predicate(predicate: StringMatcher): Parser<String> = { input ->
 }
 
 /**
+ * Tries to match a string string
+ *
+ * @see Token
+ * @return matched result
+ */
+fun string(): Parser<String> = { input ->
+  val match = input.matchString()
+
+  if (match != null)
+    ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("string", input).fix()
+}
+
+/**
+ * Tries to match a identifier string
+ *
+ * @see Token
+ * @return matched result
+ */
+fun identifier(): Parser<String> = { input ->
+  val match = input.matchIdentifier()
+
+  if (match != null)
+    ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("identifier", input).fix()
+}
+
+/**
+ * Tries to match a numeric string
+ *
+ * @see Token
+ * @return matched result
+ */
+fun numeric(): Parser<String> = { input ->
+  val match = input.matchNumeric()
+
+  if (match.isNotEmpty())
+    ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("identifier", input).fix()
+}
+
+/**
+ * Tries to match a string token
+ *
+ * @see Token
+ * @param type
+ * @return matched result
+ */
+fun string(type: TokenType): Parser<Token> = { input ->
+  val match = input.matchString()
+
+  if (match != null)
+    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+  else
+    ParseResult.Error("string", input).fix()
+}
+
+/**
+ * Tries to match a identifier token
+ *
+ * @see Token
+ * @param type
+ * @return matched result
+ */
+fun identifier(type: TokenType): Parser<Token> = { input ->
+  val match = input.matchIdentifier()
+
+  if (match != null)
+    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+  else
+    ParseResult.Error("identifier", input).fix()
+}
+
+/**
+ * Tries to match a numeric token
+ *
+ * @see Token
+ * @param type
+ * @return matched result
+ */
+fun numeric(type: TokenType): Parser<Token> = { input ->
+  val match = input.matchNumeric()
+
+  if (match.isNotEmpty())
+    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+  else
+    ParseResult.Error("identifier", input).fix()
+}
+
+/**
  * Tries to match a text by predicate [predicate]
  *
  * @see Token
@@ -206,6 +299,33 @@ fun text(type: TokenType, match: String): Parser<Token> = { input ->
     ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
   else
     ParseResult.Error("'$match'", input).fix()
+}
+
+/**
+ * Tries to match the EOF
+ *
+ * @see Token
+ * @return matched result
+ */
+fun eof(): Parser<String> = { input ->
+  if (input == "")
+    ParseResult.Success("", "")
+  else
+    ParseResult.Error("''", input).fix()
+}
+
+/**
+ * Tries to match the EOF token
+ *
+ * @see Token
+ * @param type
+ * @return matched result
+ */
+fun eof(type: TokenType): Parser<Token> = { input ->
+  if (input == "")
+    ParseResult.Success(Token(type, "", "", line = line), input)
+  else
+    ParseResult.Error("''", input).fix()
 }
 
 /**
@@ -269,8 +389,9 @@ infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, 
  * @param f lazy parse function getter
  * @return lazied parse function
  */
-fun <T> lazied(f: () -> Parser<T>): Parser<T> = { input ->
-  f()(input)
+fun <T> lazied(f: () -> Parser<out T>): Parser<T> = { input ->
+  @Suppress("UNCHECKED_CAST")
+  f()(input) as ParseResult<T>
 }
 
 /**

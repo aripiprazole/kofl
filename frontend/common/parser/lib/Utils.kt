@@ -2,6 +2,9 @@
 
 package com.lorenzoog.kofl.frontend.parser.lib
 
+import com.lorenzoog.kofl.frontend.parser.grammar.isAlpha
+import com.lorenzoog.kofl.frontend.parser.grammar.isAlphaNumeric
+import com.lorenzoog.kofl.frontend.parser.grammar.isDigit
 import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Error
 import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Success
 
@@ -15,6 +18,40 @@ inline fun String.match(predicate: StringMatcher): String {
   }
 
   return this
+}
+
+inline fun String.matchString(): String? {
+  if (length < 2) return null
+
+  if (!startsWith('"')) return null
+
+  for (index in 1 until length) {
+    if (get(index) != '"') {
+      return substring(0, index )
+    }
+  }
+
+  return this
+}
+
+inline fun String.matchIdentifier(): String? {
+  if (isEmpty()) return null
+  if (!get(0).isAlpha()) return null
+
+  for (index in 1 until length) {
+    val value = get(index)
+    if (!value.isAlphaNumeric()) {
+      return substring(0, index)
+    }
+  }
+
+  return this
+}
+
+inline fun String.matchNumeric(): String {
+  return match { input, index, current ->
+    current.isDigit() || (current == '.' && input.getOrNull(index + 1)?.isDigit() == true)
+  }
 }
 
 inline fun <T> ParseResult<T>.expect(lazyMessage: () -> String): T {
