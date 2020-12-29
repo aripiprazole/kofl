@@ -14,7 +14,7 @@ import com.lorenzoog.kofl.frontend.parser.lib.with
 // TODO: support left recursion in the lib
 internal class ParserImpl(private val code: String) : Parser {
   fun parseImpl(): ParseResult<Expr> {
-    return Math.parse(code)
+    return (Math with Token.EOF)(code).map { it.first }
   }
 
   override fun parse(): List<Stmt> {
