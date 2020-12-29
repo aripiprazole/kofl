@@ -17,13 +17,3 @@ fun <T> Parser<T>.mapToLiteral(): Parser<Expr.Literal> = { input ->
 fun Char.isDigit(): Boolean = this in '0'..'9'
 fun Char.isAlpha(): Boolean = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
 fun Char.isAlphaNumeric(): Boolean = isAlpha() || isDigit()
-
-fun String.isNumeric(): Boolean {
-  return filter { it.isDigit() }.length == length
-}
-
-object Matchers {
-  val number: StringMatcher = { input, index, char ->
-    char.isDigit() || (char == '.' && input.getOrNull(index + 1)?.isDigit() == true)
-  }
-}

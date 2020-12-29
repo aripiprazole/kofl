@@ -7,7 +7,7 @@ internal object Math : Grammar<Expr>() {
   override val rule = lazied { Term }
 
   private val Unary = label("unary")(
-    Token.Primary or combine(Token(Token.Plus or Token.Minus), Token.Primary) { op, rhs ->
+    Access or combine(Token(Token.Plus or Token.Minus), Access) { op, rhs ->
       Expr.Unary(op, rhs, line)
     }
   )
