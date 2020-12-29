@@ -93,7 +93,7 @@ private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
       .map { it(input) }
       .filterIsInstance<ParseResult.Success<T>>()
       .firstOrNull()
-      ?: ParseResult.Error("ENUM", input).fix() // TODO: dump parsers correctly
+      ?: ParseResult.Error(parsers.joinToString(), input).fix() // TODO: dump parsers correctly
   }
 }
 
@@ -306,9 +306,13 @@ fun label(label: String): CreateLabelParser {
 }
 
 class CreateLabelParser(private val label: String) {
-  operator fun <T> invoke(func: Parser<T>): Parser<T> = func@{ input ->
-    func(input).unwrapOr {
-      return@func ParseResult.Error(label, it.actual).fix()
+  operator fun <T> invoke(func: Parser<T>): Parser<T> = object : Parser<T> {
+    override fun invoke(input: String): ParseResult<T> {
+      return func(input).unwrapOr {
+        return ParseResult.Error(label, it.actual).fix()
+      }
     }
+
+    override fun toString(): String = label
   }
 }
