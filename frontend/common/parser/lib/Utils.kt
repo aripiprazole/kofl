@@ -5,6 +5,18 @@ package com.lorenzoog.kofl.frontend.parser.lib
 import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Error
 import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Success
 
+typealias StringMatcher = (input: String, index: Int, current: Char) -> Boolean
+
+inline fun String.match(predicate: StringMatcher): String {
+  for (index in 0 until length) {
+    if (!predicate(this, index, get(index))) {
+      return substring(0, index)
+    }
+  }
+
+  return this
+}
+
 inline fun <T> ParseResult<T>.expect(lazyMessage: () -> String): T {
   return when (this) {
     is Error -> error(lazyMessage())

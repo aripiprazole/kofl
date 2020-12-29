@@ -93,7 +93,7 @@ private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
       .map { it(input) }
       .filterIsInstance<ParseResult.Success<T>>()
       .firstOrNull()
-      ?: ParseResult.Error("$parsers", input).fix()
+      ?: ParseResult.Error("ENUM", input).fix() // TODO: dump parsers correctly
   }
 }
 
@@ -121,7 +121,7 @@ fun regex(regex: Regex): Parser<String> = { input ->
  * @return matched result
  */
 fun regex(type: TokenType, regex: Regex): Parser<Token> = { input ->
-  val match = regex.find(input)?.value
+  val match = regex.findAll(input).firstOrNull()?.value
 
   if (match != null)
     ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
@@ -146,6 +146,39 @@ fun text(match: Any) = text(match.toString())
 fun text(match: String): Parser<String> = { input ->
   if (input.startsWith(match))
     ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("'$match'", input).fix()
+}
+
+/**
+ * Tries to match a token by predicate [predicate]
+ *
+ * @see Token
+ * @param predicate
+ * @return matched result
+ */
+fun predicate(predicate: StringMatcher): Parser<String> = { input ->
+  val match = input.match(predicate)
+
+  if (match.isNotEmpty())
+    ParseResult.Success(match, input.substring(match.length))
+  else
+    ParseResult.Error("'$predicate'", input).fix()
+}
+
+/**
+ * Tries to match a text by predicate [predicate]
+ *
+ * @see Token
+ * @param type
+ * @param predicate
+ * @return matched result
+ */
+fun predicate(type: TokenType, predicate: StringMatcher): Parser<Token> = { input ->
+  val match = input.match(predicate)
+
+  if (match.isNotEmpty())
+    ParseResult.Success(Token(type, input, input, line = line), input.substring(match.length))
   else
     ParseResult.Error("'$match'", input).fix()
 }
