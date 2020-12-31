@@ -4,7 +4,7 @@ import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.frontend.TokenType
 
 @Target(AnnotationTarget.CLASS)
-private annotation class DescriptorBuilder
+annotation class DescriptorBuilder
 
 sealed class Descriptor {
   interface Visitor<T> {
