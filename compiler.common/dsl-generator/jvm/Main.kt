@@ -20,11 +20,9 @@ import java.io.File
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main() {
-  val builderAnnotationName = "DescriptorBuilder"
   val currentPackage = "com.lorenzoog.kofl.compiler.common.backend"
   val file = File("compiler.common/common/backend/Descriptor.kt")
   val target = File("compiler.common/common/backend/Builders.kt")
-  // todo only get annotated elements
   val excluded = listOf("MutableDescriptor", "NativeDescriptor", "CallableDescriptor")
 
   if (target.isDirectory) target.delete()
@@ -74,34 +72,24 @@ fun main() {
               val parameterName = parameter.name ?: error("$parameter should have a name!")
 
               addParameter(parameterName, parameter.text
-                .also { println("TEXT: $it") }
                 .split(":").getOrNull(1).let { it ?: error("parameter $parameterName should have a type!") }
                 .let mapping@{ typeName ->
-                  fun findTypeRecursive(name: String, recursive: Boolean = false): TypeName {
+                  fun findTypeRecursive(name: String): TypeName {
                     val realName = if ("<" in name) {
                       name.substringBefore("<")
                     } else {
                       name
                     }
 
-                    println("RECURSIVE: $recursive")
-                    println("NAME: $name")
-                    println("REAL NAME: $realName")
-
                     val type = ClassName(findImportPackage(realName), realName)
 
                     if ("<" in name) {
                       val parameters = name.substringAfter("<").substringBefore(">").split(",").map { it.trim() }
 
-                      println("PARAMETERS: $parameters")
-                      println()
-
                       return type.parameterizedBy(parameters.map {
-                        findTypeRecursive(it, true)
+                        findTypeRecursive(it)
                       })
                     }
-
-                    println()
 
                     return type
                   }
