@@ -116,6 +116,12 @@ fun main() {
   }
 
   target.writeText(FileSpec.builder(currentPackage, "Builders").apply {
+    addType(
+      TypeSpec.annotationBuilder("DescriptorDsl")
+        .addAnnotation(ClassName("kotlin", "DslMarker"))
+        .build()
+    )
+
     addAnnotation(
       AnnotationSpec.builder(Suppress::class)
         .addMember("%S, %S", "unused", "MemberVisibilityCanBePrivate")
@@ -153,6 +159,9 @@ fun main() {
 
       addType(builderClass)
       addFunction(FunSpec.builder(name.decapitalize()).apply {
+        addModifiers(KModifier.INLINE)
+        addAnnotation(ClassName(currentPackage, "DescriptorDsl"))
+
         returns(returnType)
 
         addParameter("builder", LambdaTypeName.get(builderType, returnType = UNIT))

@@ -4,8 +4,12 @@ package com.lorenzoog.kofl.compiler.common.backend
 
 import com.lorenzoog.kofl.compiler.common.typing.KoflType
 import com.lorenzoog.kofl.frontend.TokenType
+import kotlin.DslMarker
 import kotlin.Suppress
 import kotlin.Unit
+
+@DslMarker
+annotation class DescriptorDsl
 
 class ConstDescriptorBuilder {
   var value: Any? = null
@@ -17,7 +21,8 @@ class ConstDescriptorBuilder {
   fun build(): ConstDescriptor = ConstDescriptor(value!!, type!!, line!!, )
 }
 
-fun constDescriptor(builder: ConstDescriptorBuilder.() -> Unit): ConstDescriptor =
+@DescriptorDsl
+inline fun constDescriptor(builder: ConstDescriptorBuilder.() -> Unit): ConstDescriptor =
     ConstDescriptorBuilder().apply(builder).build()
 
 class ThisDescriptorBuilder {
@@ -28,7 +33,8 @@ class ThisDescriptorBuilder {
   fun build(): ThisDescriptor = ThisDescriptor(line!!, type!!, )
 }
 
-fun thisDescriptor(builder: ThisDescriptorBuilder.() -> Unit): ThisDescriptor =
+@DescriptorDsl
+inline fun thisDescriptor(builder: ThisDescriptorBuilder.() -> Unit): ThisDescriptor =
     ThisDescriptorBuilder().apply(builder).build()
 
 class SetDescriptorBuilder {
@@ -45,7 +51,8 @@ class SetDescriptorBuilder {
   fun build(): SetDescriptor = SetDescriptor(receiver!!, name!!, value!!, type!!, line!!, )
 }
 
-fun setDescriptor(builder: SetDescriptorBuilder.() -> Unit): SetDescriptor =
+@DescriptorDsl
+inline fun setDescriptor(builder: SetDescriptorBuilder.() -> Unit): SetDescriptor =
     SetDescriptorBuilder().apply(builder).build()
 
 class GetDescriptorBuilder {
@@ -60,7 +67,8 @@ class GetDescriptorBuilder {
   fun build(): GetDescriptor = GetDescriptor(receiver!!, name!!, type!!, line!!, )
 }
 
-fun getDescriptor(builder: GetDescriptorBuilder.() -> Unit): GetDescriptor =
+@DescriptorDsl
+inline fun getDescriptor(builder: GetDescriptorBuilder.() -> Unit): GetDescriptor =
     GetDescriptorBuilder().apply(builder).build()
 
 class CallDescriptorBuilder {
@@ -75,7 +83,8 @@ class CallDescriptorBuilder {
   fun build(): CallDescriptor = CallDescriptor(callee!!, arguments!!, type!!, line!!, )
 }
 
-fun callDescriptor(builder: CallDescriptorBuilder.() -> Unit): CallDescriptor =
+@DescriptorDsl
+inline fun callDescriptor(builder: CallDescriptorBuilder.() -> Unit): CallDescriptor =
     CallDescriptorBuilder().apply(builder).build()
 
 class AccessVarDescriptorBuilder {
@@ -88,8 +97,9 @@ class AccessVarDescriptorBuilder {
   fun build(): AccessVarDescriptor = AccessVarDescriptor(name!!, type!!, line!!, )
 }
 
-fun accessVarDescriptor(builder: AccessVarDescriptorBuilder.() -> Unit): AccessVarDescriptor =
-    AccessVarDescriptorBuilder().apply(builder).build()
+@DescriptorDsl
+inline fun accessVarDescriptor(builder: AccessVarDescriptorBuilder.() -> Unit): AccessVarDescriptor
+    = AccessVarDescriptorBuilder().apply(builder).build()
 
 class AccessFunctionDescriptorBuilder {
   var name: String? = null
@@ -101,7 +111,8 @@ class AccessFunctionDescriptorBuilder {
   fun build(): AccessFunctionDescriptor = AccessFunctionDescriptor(name!!, type!!, line!!, )
 }
 
-fun accessFunctionDescriptor(builder: AccessFunctionDescriptorBuilder.() -> Unit):
+@DescriptorDsl
+inline fun accessFunctionDescriptor(builder: AccessFunctionDescriptorBuilder.() -> Unit):
     AccessFunctionDescriptor = AccessFunctionDescriptorBuilder().apply(builder).build()
 
 class UnaryDescriptorBuilder {
@@ -116,7 +127,8 @@ class UnaryDescriptorBuilder {
   fun build(): UnaryDescriptor = UnaryDescriptor(op!!, right!!, type!!, line!!, )
 }
 
-fun unaryDescriptor(builder: UnaryDescriptorBuilder.() -> Unit): UnaryDescriptor =
+@DescriptorDsl
+inline fun unaryDescriptor(builder: UnaryDescriptorBuilder.() -> Unit): UnaryDescriptor =
     UnaryDescriptorBuilder().apply(builder).build()
 
 class ValDescriptorBuilder {
@@ -131,7 +143,8 @@ class ValDescriptorBuilder {
   fun build(): ValDescriptor = ValDescriptor(name!!, value!!, type!!, line!!, )
 }
 
-fun valDescriptor(builder: ValDescriptorBuilder.() -> Unit): ValDescriptor =
+@DescriptorDsl
+inline fun valDescriptor(builder: ValDescriptorBuilder.() -> Unit): ValDescriptor =
     ValDescriptorBuilder().apply(builder).build()
 
 class VarDescriptorBuilder {
@@ -146,7 +159,8 @@ class VarDescriptorBuilder {
   fun build(): VarDescriptor = VarDescriptor(name!!, value!!, type!!, line!!, )
 }
 
-fun varDescriptor(builder: VarDescriptorBuilder.() -> Unit): VarDescriptor =
+@DescriptorDsl
+inline fun varDescriptor(builder: VarDescriptorBuilder.() -> Unit): VarDescriptor =
     VarDescriptorBuilder().apply(builder).build()
 
 class AssignDescriptorBuilder {
@@ -161,7 +175,8 @@ class AssignDescriptorBuilder {
   fun build(): AssignDescriptor = AssignDescriptor(name!!, value!!, type!!, line!!, )
 }
 
-fun assignDescriptor(builder: AssignDescriptorBuilder.() -> Unit): AssignDescriptor =
+@DescriptorDsl
+inline fun assignDescriptor(builder: AssignDescriptorBuilder.() -> Unit): AssignDescriptor =
     AssignDescriptorBuilder().apply(builder).build()
 
 class ReturnDescriptorBuilder {
@@ -174,7 +189,8 @@ class ReturnDescriptorBuilder {
   fun build(): ReturnDescriptor = ReturnDescriptor(value!!, type!!, line!!, )
 }
 
-fun returnDescriptor(builder: ReturnDescriptorBuilder.() -> Unit): ReturnDescriptor =
+@DescriptorDsl
+inline fun returnDescriptor(builder: ReturnDescriptorBuilder.() -> Unit): ReturnDescriptor =
     ReturnDescriptorBuilder().apply(builder).build()
 
 class BlockDescriptorBuilder {
@@ -185,7 +201,8 @@ class BlockDescriptorBuilder {
   fun build(): BlockDescriptor = BlockDescriptor(body!!, line!!, )
 }
 
-fun blockDescriptor(builder: BlockDescriptorBuilder.() -> Unit): BlockDescriptor =
+@DescriptorDsl
+inline fun blockDescriptor(builder: BlockDescriptorBuilder.() -> Unit): BlockDescriptor =
     BlockDescriptorBuilder().apply(builder).build()
 
 class WhileDescriptorBuilder {
@@ -198,7 +215,8 @@ class WhileDescriptorBuilder {
   fun build(): WhileDescriptor = WhileDescriptor(condition!!, body!!, line!!, )
 }
 
-fun whileDescriptor(builder: WhileDescriptorBuilder.() -> Unit): WhileDescriptor =
+@DescriptorDsl
+inline fun whileDescriptor(builder: WhileDescriptorBuilder.() -> Unit): WhileDescriptor =
     WhileDescriptorBuilder().apply(builder).build()
 
 class IfDescriptorBuilder {
@@ -215,7 +233,8 @@ class IfDescriptorBuilder {
   fun build(): IfDescriptor = IfDescriptor(condition!!, then!!, orElse!!, type!!, line!!, )
 }
 
-fun ifDescriptor(builder: IfDescriptorBuilder.() -> Unit): IfDescriptor =
+@DescriptorDsl
+inline fun ifDescriptor(builder: IfDescriptorBuilder.() -> Unit): IfDescriptor =
     IfDescriptorBuilder().apply(builder).build()
 
 class LogicalDescriptorBuilder {
@@ -232,7 +251,8 @@ class LogicalDescriptorBuilder {
   fun build(): LogicalDescriptor = LogicalDescriptor(left!!, op!!, right!!, type!!, line!!, )
 }
 
-fun logicalDescriptor(builder: LogicalDescriptorBuilder.() -> Unit): LogicalDescriptor =
+@DescriptorDsl
+inline fun logicalDescriptor(builder: LogicalDescriptorBuilder.() -> Unit): LogicalDescriptor =
     LogicalDescriptorBuilder().apply(builder).build()
 
 class BinaryDescriptorBuilder {
@@ -249,7 +269,8 @@ class BinaryDescriptorBuilder {
   fun build(): BinaryDescriptor = BinaryDescriptor(left!!, op!!, right!!, type!!, line!!, )
 }
 
-fun binaryDescriptor(builder: BinaryDescriptorBuilder.() -> Unit): BinaryDescriptor =
+@DescriptorDsl
+inline fun binaryDescriptor(builder: BinaryDescriptorBuilder.() -> Unit): BinaryDescriptor =
     BinaryDescriptorBuilder().apply(builder).build()
 
 class UseDescriptorBuilder {
@@ -260,7 +281,8 @@ class UseDescriptorBuilder {
   fun build(): UseDescriptor = UseDescriptor(moduleName!!, line!!, )
 }
 
-fun useDescriptor(builder: UseDescriptorBuilder.() -> Unit): UseDescriptor =
+@DescriptorDsl
+inline fun useDescriptor(builder: UseDescriptorBuilder.() -> Unit): UseDescriptor =
     UseDescriptorBuilder().apply(builder).build()
 
 class ModuleDescriptorBuilder {
@@ -271,7 +293,8 @@ class ModuleDescriptorBuilder {
   fun build(): ModuleDescriptor = ModuleDescriptor(moduleName!!, line!!, )
 }
 
-fun moduleDescriptor(builder: ModuleDescriptorBuilder.() -> Unit): ModuleDescriptor =
+@DescriptorDsl
+inline fun moduleDescriptor(builder: ModuleDescriptorBuilder.() -> Unit): ModuleDescriptor =
     ModuleDescriptorBuilder().apply(builder).build()
 
 class LocalFunctionDescriptorBuilder {
@@ -287,7 +310,8 @@ class LocalFunctionDescriptorBuilder {
       line!!, )
 }
 
-fun localFunctionDescriptor(builder: LocalFunctionDescriptorBuilder.() -> Unit):
+@DescriptorDsl
+inline fun localFunctionDescriptor(builder: LocalFunctionDescriptorBuilder.() -> Unit):
     LocalFunctionDescriptor = LocalFunctionDescriptorBuilder().apply(builder).build()
 
 class NativeFunctionDescriptorBuilder {
@@ -305,7 +329,8 @@ class NativeFunctionDescriptorBuilder {
       returnType!!, nativeCall!!, line!!, )
 }
 
-fun nativeFunctionDescriptor(builder: NativeFunctionDescriptorBuilder.() -> Unit):
+@DescriptorDsl
+inline fun nativeFunctionDescriptor(builder: NativeFunctionDescriptorBuilder.() -> Unit):
     NativeFunctionDescriptor = NativeFunctionDescriptorBuilder().apply(builder).build()
 
 class FunctionDescriptorBuilder {
@@ -323,7 +348,8 @@ class FunctionDescriptorBuilder {
       line!!, )
 }
 
-fun functionDescriptor(builder: FunctionDescriptorBuilder.() -> Unit): FunctionDescriptor =
+@DescriptorDsl
+inline fun functionDescriptor(builder: FunctionDescriptorBuilder.() -> Unit): FunctionDescriptor =
     FunctionDescriptorBuilder().apply(builder).build()
 
 class ClassDescriptorBuilder {
@@ -338,5 +364,6 @@ class ClassDescriptorBuilder {
   fun build(): ClassDescriptor = ClassDescriptor(name!!, inherits!!, fields!!, line!!, )
 }
 
-fun classDescriptor(builder: ClassDescriptorBuilder.() -> Unit): ClassDescriptor =
+@DescriptorDsl
+inline fun classDescriptor(builder: ClassDescriptorBuilder.() -> Unit): ClassDescriptor =
     ClassDescriptorBuilder().apply(builder).build()
