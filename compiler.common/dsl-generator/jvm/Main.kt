@@ -116,6 +116,10 @@ fun main() {
         .build()
     )
 
+    addComment(
+      "Generated code. Please don't edit."
+    )
+
     descriptors.forEach { (name, type) ->
       val returnType = ClassName(currentPackage, type.name ?: error("$type should have a name!"))
       val builderClass = TypeSpec.classBuilder(name + "Builder").apply {
