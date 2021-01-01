@@ -1,3 +1,4 @@
+// Generated code. Please don't edit.
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package com.lorenzoog.kofl.compiler.common.backend
