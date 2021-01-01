@@ -2,12 +2,8 @@
 
 package com.lorenzoog.kofl.compiler.common.backend
 
-import Any
-import Descriptor
-import Int
-import KoflType
-import String
-import TokenType
+import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.frontend.TokenType
 import kotlin.Suppress
 import kotlin.Unit
 
@@ -70,11 +66,13 @@ fun getDescriptor(builder: GetDescriptorBuilder.() -> Unit): GetDescriptor =
 class CallDescriptorBuilder {
   var callee: Descriptor? = null
 
+  var arguments: Map<String, Descriptor>? = null
+
   var type: KoflType? = null
 
   var line: Int? = null
 
-  fun build(): CallDescriptor = CallDescriptor(callee!!, type!!, line!!, )
+  fun build(): CallDescriptor = CallDescriptor(callee!!, arguments!!, type!!, line!!, )
 }
 
 fun callDescriptor(builder: CallDescriptorBuilder.() -> Unit): CallDescriptor =
@@ -180,9 +178,11 @@ fun returnDescriptor(builder: ReturnDescriptorBuilder.() -> Unit): ReturnDescrip
     ReturnDescriptorBuilder().apply(builder).build()
 
 class BlockDescriptorBuilder {
+  var body: Collection<Descriptor>? = null
+
   var line: Int? = null
 
-  fun build(): BlockDescriptor = BlockDescriptor(line!!, )
+  fun build(): BlockDescriptor = BlockDescriptor(body!!, line!!, )
 }
 
 fun blockDescriptor(builder: BlockDescriptorBuilder.() -> Unit): BlockDescriptor =
@@ -191,9 +191,11 @@ fun blockDescriptor(builder: BlockDescriptorBuilder.() -> Unit): BlockDescriptor
 class WhileDescriptorBuilder {
   var condition: Descriptor? = null
 
+  var body: Collection<Descriptor>? = null
+
   var line: Int? = null
 
-  fun build(): WhileDescriptor = WhileDescriptor(condition!!, line!!, )
+  fun build(): WhileDescriptor = WhileDescriptor(condition!!, body!!, line!!, )
 }
 
 fun whileDescriptor(builder: WhileDescriptorBuilder.() -> Unit): WhileDescriptor =
@@ -202,11 +204,15 @@ fun whileDescriptor(builder: WhileDescriptorBuilder.() -> Unit): WhileDescriptor
 class IfDescriptorBuilder {
   var condition: Descriptor? = null
 
+  var then: Collection<Descriptor>? = null
+
+  var orElse: Collection<Descriptor>? = null
+
   var type: KoflType? = null
 
   var line: Int? = null
 
-  fun build(): IfDescriptor = IfDescriptor(condition!!, type!!, line!!, )
+  fun build(): IfDescriptor = IfDescriptor(condition!!, then!!, orElse!!, type!!, line!!, )
 }
 
 fun ifDescriptor(builder: IfDescriptorBuilder.() -> Unit): IfDescriptor =
@@ -269,11 +275,16 @@ fun moduleDescriptor(builder: ModuleDescriptorBuilder.() -> Unit): ModuleDescrip
     ModuleDescriptorBuilder().apply(builder).build()
 
 class LocalFunctionDescriptorBuilder {
+  var parameters: Map<String, KoflType>? = null
+
   var returnType: KoflType? = null
+
+  var body: Collection<Descriptor>? = null
 
   var line: Int? = null
 
-  fun build(): LocalFunctionDescriptor = LocalFunctionDescriptor(returnType!!, line!!, )
+  fun build(): LocalFunctionDescriptor = LocalFunctionDescriptor(parameters!!, returnType!!, body!!,
+      line!!, )
 }
 
 fun localFunctionDescriptor(builder: LocalFunctionDescriptorBuilder.() -> Unit):
@@ -282,14 +293,16 @@ fun localFunctionDescriptor(builder: LocalFunctionDescriptorBuilder.() -> Unit):
 class NativeFunctionDescriptorBuilder {
   var name: String? = null
 
+  var parameters: Map<String, KoflType>? = null
+
   var returnType: KoflType? = null
 
   var nativeCall: String? = null
 
   var line: Int? = null
 
-  fun build(): NativeFunctionDescriptor = NativeFunctionDescriptor(name!!, returnType!!,
-      nativeCall!!, line!!, )
+  fun build(): NativeFunctionDescriptor = NativeFunctionDescriptor(name!!, parameters!!,
+      returnType!!, nativeCall!!, line!!, )
 }
 
 fun nativeFunctionDescriptor(builder: NativeFunctionDescriptorBuilder.() -> Unit):
@@ -298,11 +311,16 @@ fun nativeFunctionDescriptor(builder: NativeFunctionDescriptorBuilder.() -> Unit
 class FunctionDescriptorBuilder {
   var name: String? = null
 
+  var parameters: Map<String, KoflType>? = null
+
   var returnType: KoflType? = null
+
+  var body: Collection<Descriptor>? = null
 
   var line: Int? = null
 
-  fun build(): FunctionDescriptor = FunctionDescriptor(name!!, returnType!!, line!!, )
+  fun build(): FunctionDescriptor = FunctionDescriptor(name!!, parameters!!, returnType!!, body!!,
+      line!!, )
 }
 
 fun functionDescriptor(builder: FunctionDescriptorBuilder.() -> Unit): FunctionDescriptor =
@@ -311,9 +329,13 @@ fun functionDescriptor(builder: FunctionDescriptorBuilder.() -> Unit): FunctionD
 class ClassDescriptorBuilder {
   var name: String? = null
 
+  var inherits: Collection<KoflType>? = null
+
+  var fields: Map<String, KoflType>? = null
+
   var line: Int? = null
 
-  fun build(): ClassDescriptor = ClassDescriptor(name!!, line!!, )
+  fun build(): ClassDescriptor = ClassDescriptor(name!!, inherits!!, fields!!, line!!, )
 }
 
 fun classDescriptor(builder: ClassDescriptorBuilder.() -> Unit): ClassDescriptor =

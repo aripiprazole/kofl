@@ -1,5 +1,6 @@
 plugins {
   idea
+  id("io.gitlab.arturbosch.detekt") version "1.15.0"
   kotlin("multiplatform")
 }
 
@@ -9,6 +10,22 @@ version = "1.0-SNAPSHOT"
 repositories {
   mavenCentral()
   maven("https://jitpack.io")
+}
+
+detekt {
+  failFast = true // fail build on any finding
+  buildUponDefaultConfig = true // preconfigure defaults
+
+  reports {
+    html.enabled = false
+    xml.enabled = false
+    txt.enabled = false
+    sarif.enabled = false
+  }
+}
+
+tasks.detekt {
+  jvmTarget = "1.8"
 }
 
 kotlin {
