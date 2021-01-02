@@ -1,32 +1,32 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
 import com.lorenzoog.kofl.compiler.common.backend.*
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
 sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
-  abstract val definition: KoflType
+  abstract val definition: KfType
 
   protected abstract val value: Any
 
-  class NativeObject(override val value: Any, override val definition: KoflType) : KoflObject()
+  class NativeObject(override val value: Any, override val definition: KfType) : KoflObject()
 
-  class Instance(override val definition: KoflType) : KoflObject() {
+  class Instance(override val definition: KfType) : KoflObject() {
     override val value: Instance get() = this
   }
 
   data class Class(
-    override val definition: KoflType.Class,
+    override val definition: KfType.Class,
     val constructors: List<Callable>,
     val functions: Map<String, List<Callable>>,
-    val inherits: Collection<KoflType> = listOf()
+    val inherits: Collection<KfType> = listOf()
   ) : KoflObject() {
     override val value: Any get() = definition
   }
 
   sealed class Callable : KoflObject() {
     override val value get() = ::call
-    override val definition: KoflType get() = KoflType.Function(descriptor.parameters, descriptor.returnType)
+    override val definition: KfType get() = KfType.Function(descriptor.parameters, descriptor.returnType)
 
     @PublishedApi
     internal abstract val descriptor: CallableDescriptor
@@ -129,7 +129,7 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
     return KoflObject(fmap(value), definition)
   }
 
-  fun tmap(definition: KoflType, fmap: (Any) -> Any): KoflObject {
+  fun tmap(definition: KfType, fmap: (Any) -> Any): KoflObject {
     return KoflObject(fmap(value), definition)
   }
 
@@ -146,9 +146,9 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
   }
 
   companion object {
-    val Unit = KoflObject(kotlin.Unit, KoflType.Unit)
+    val Unit = KoflObject(kotlin.Unit, KfType.Unit)
 
-    operator fun invoke(value: Any, type: KoflType = KoflType.Any): KoflObject {
+    operator fun invoke(value: Any, type: KfType = KfType.Any): KoflObject {
       if(value is Unit) return Unit
 
       return NativeObject(value, type)

@@ -3,7 +3,7 @@
 
 package com.lorenzoog.kofl.compiler.common.backend
 
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.frontend.TokenType
 import kotlin.DslMarker
 import kotlin.Suppress
@@ -15,7 +15,7 @@ annotation class DescriptorDsl
 class ConstDescriptorBuilder {
   var value: Any? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -29,7 +29,7 @@ inline fun constDescriptor(builder: ConstDescriptorBuilder.() -> Unit): ConstDes
 class ThisDescriptorBuilder {
   var line: Int? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   fun build(): ThisDescriptor = ThisDescriptor(line!!, type!!, )
 }
@@ -45,7 +45,7 @@ class SetDescriptorBuilder {
 
   var value: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -61,7 +61,7 @@ class GetDescriptorBuilder {
 
   var name: String? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -77,7 +77,7 @@ class CallDescriptorBuilder {
 
   var arguments: Map<String, Descriptor>? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -91,7 +91,7 @@ inline fun callDescriptor(builder: CallDescriptorBuilder.() -> Unit): CallDescri
 class AccessVarDescriptorBuilder {
   var name: String? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -105,7 +105,7 @@ inline fun accessVarDescriptor(builder: AccessVarDescriptorBuilder.() -> Unit): 
 class AccessFunctionDescriptorBuilder {
   var name: String? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -121,7 +121,7 @@ class UnaryDescriptorBuilder {
 
   var right: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -137,7 +137,7 @@ class ValDescriptorBuilder {
 
   var value: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -153,7 +153,7 @@ class VarDescriptorBuilder {
 
   var value: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -169,7 +169,7 @@ class AssignDescriptorBuilder {
 
   var value: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -183,7 +183,7 @@ inline fun assignDescriptor(builder: AssignDescriptorBuilder.() -> Unit): Assign
 class ReturnDescriptorBuilder {
   var value: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -227,7 +227,7 @@ class IfDescriptorBuilder {
 
   var orElse: Collection<Descriptor>? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -245,7 +245,7 @@ class LogicalDescriptorBuilder {
 
   var right: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -263,7 +263,7 @@ class BinaryDescriptorBuilder {
 
   var right: Descriptor? = null
 
-  var type: KoflType? = null
+  var type: KfType? = null
 
   var line: Int? = null
 
@@ -299,9 +299,9 @@ inline fun moduleDescriptor(builder: ModuleDescriptorBuilder.() -> Unit): Module
     ModuleDescriptorBuilder().apply(builder).build()
 
 class LocalFunctionDescriptorBuilder {
-  var parameters: Map<String, KoflType>? = null
+  var parameters: Map<String, KfType>? = null
 
-  var returnType: KoflType? = null
+  var returnType: KfType? = null
 
   var body: Collection<Descriptor>? = null
 
@@ -318,9 +318,9 @@ inline fun localFunctionDescriptor(builder: LocalFunctionDescriptorBuilder.() ->
 class NativeFunctionDescriptorBuilder {
   var name: String? = null
 
-  var parameters: Map<String, KoflType>? = null
+  var parameters: Map<String, KfType>? = null
 
-  var returnType: KoflType? = null
+  var returnType: KfType? = null
 
   var nativeCall: String? = null
 
@@ -337,9 +337,9 @@ inline fun nativeFunctionDescriptor(builder: NativeFunctionDescriptorBuilder.() 
 class FunctionDescriptorBuilder {
   var name: String? = null
 
-  var parameters: Map<String, KoflType>? = null
+  var parameters: Map<String, KfType>? = null
 
-  var returnType: KoflType? = null
+  var returnType: KfType? = null
 
   var body: Collection<Descriptor>? = null
 
@@ -356,9 +356,9 @@ inline fun functionDescriptor(builder: FunctionDescriptorBuilder.() -> Unit): Fu
 class ClassDescriptorBuilder {
   var name: String? = null
 
-  var inherits: Collection<KoflType>? = null
+  var inherits: Collection<KfType>? = null
 
-  var fields: Map<String, KoflType>? = null
+  var fields: Map<String, KfType>? = null
 
   var line: Int? = null
 

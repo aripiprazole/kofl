@@ -18,11 +18,14 @@ fun main(args: Array<String>) {
 }
 
 class Kofl : CliktCommand() {
-  private val consoleLogger: Logger = ReplLogger()
+  private val consoleLogger: Logger by lazy {
+    ReplLogger(debug)
+  }
 
   private val file
     by argument().help("The file that will be interpreted")
       .optional()
+
   private val stdlib
     by option().help("The stdlib target")
       .default(Platform.stdlibPath)
@@ -52,7 +55,7 @@ class Kofl : CliktCommand() {
 
   private fun runRepl() {
     try {
-      startRepl(consoleLogger, debug, path = stdlib ?: Platform.stdlibPath)
+      startRepl(consoleLogger, debug, path = stdlib)
     } catch (error: Throwable) {
       consoleLogger.handleError(error)
     }

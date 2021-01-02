@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.compiler.common.backend.*
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 
 internal fun Descriptor?.dump(): String = when (this) {
   is ConstDescriptor -> dump()
@@ -34,7 +34,7 @@ private inline fun ConstDescriptor.dump(): String = when (value) {
 }
 
 private inline fun SetDescriptor.dump(): String {
-  return "set ${receiver.dump()}.$name ${value.dump()}: ${KoflType.Unit}"
+  return "set ${receiver.dump()}.$name ${value.dump()}: ${KfType.Unit}"
 }
 
 private inline fun GetDescriptor.dump(): String {
