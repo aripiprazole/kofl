@@ -43,11 +43,14 @@ class Kofl : CliktCommand() {
   }
 
   private fun runFile(path: String) {
-    val eval = createEval(Interpreter(debug, repl = true, consoleLogger))
+    val eval = createEval(Interpreter(debug, repl = false, consoleLogger))
 
     try {
-      eval(File(stdlib).read().utf8Reader().readText())
-      eval(File(path).read().utf8Reader().readText())
+      Platform.exit(
+        (eval(File(stdlib).read().utf8Reader().readText()) ?: return Platform.exit(1))
+          .merge(eval(File(path).read().utf8Reader().readText()) ?: return Platform.exit(1))
+          .main(arrayOf())
+      )
     } catch (error: Throwable) {
       consoleLogger.handleError(error)
     }

@@ -157,7 +157,7 @@ class TreeDescriptorMapper(
       }
 
       visitStmts(expr.body)
-    }, expr.line)
+    }, expr.line, name)
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): Descriptor {
@@ -190,7 +190,7 @@ class TreeDescriptorMapper(
           }
         else body
       }
-    }, expr.line)
+    }, expr.line, name)
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): Descriptor {
@@ -220,7 +220,7 @@ class TreeDescriptorMapper(
 
     container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
-    return NativeFunctionDescriptor(indexedName, parameters, returnType, name, expr.line)
+    return NativeFunctionDescriptor(indexedName, parameters, returnType, name, expr.line, name)
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): Descriptor {

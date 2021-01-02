@@ -67,7 +67,5 @@ fun Environment.createSingleton(definition: KfType.Class, builder: ClassBuilder.
 
   return createInstance(createInstance.descriptor, mapOf(), this).also { instance ->
     declare(name, Value.Immutable(instance))
-
-    println("$this")
   }
 }
