@@ -1,20 +1,20 @@
 package com.lorenzoog.kofl.compiler.common.typing
 
-sealed class KoflType {
-  open val fields: Map<String, KoflType> = mapOf()
+sealed class KfType {
+  open val fields: Map<String, KfType> = mapOf()
   open val functions: MutableMap<String, List<Function>> = mutableMapOf()
 
-  operator fun get(name: String): KoflType? = fields[name]
+  operator fun get(name: String): KfType? = fields[name]
 
-  abstract class Callable internal constructor() : KoflType() {
-    abstract val parameters: Map<String, KoflType>
-    abstract val returnType: KoflType
+  abstract class Callable internal constructor() : KfType() {
+    abstract val parameters: Map<String, KfType>
+    abstract val returnType: KfType
   }
 
   data class Function(
-    override val parameters: Map<String, KoflType>,
-    override val returnType: KoflType,
-    val receiver: KoflType? = null
+    override val parameters: Map<String, KfType>,
+    override val returnType: KfType,
+    val receiver: KfType? = null
   ) : Callable() {
 
     override fun hashCode(): Int {
@@ -36,11 +36,11 @@ sealed class KoflType {
   data class Class(
     val name: String?,
     val constructors: List<Function>,
-    override val fields: Map<String, KoflType>,
+    override val fields: Map<String, KfType>,
     override val functions: MutableMap<String, List<Function>>
   ) : Callable() {
-    override val parameters: Map<String, KoflType> get() = fields
-    override val returnType: KoflType = this
+    override val parameters: Map<String, KfType> get() = fields
+    override val returnType: KfType = this
 
     override fun toString(): String = "$name"
 

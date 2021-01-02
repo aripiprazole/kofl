@@ -33,7 +33,7 @@ interface Logger {
   }
 }
 
-class ReplLogger : Logger {
+class ReplLogger(private val debug: Boolean) : Logger {
   override fun print(message: Any) {
     kotlin.io.print(RESET_COLOR + message)
   }
@@ -48,6 +48,8 @@ class ReplLogger : Logger {
 
   override fun reportCompileError(error: KoflCompileException) {
     println(ERROR_COLOR + "[compile error] ${error.message}")
+
+    if(debug) reportNativeError(error)
   }
 
   override fun reportRuntimeError(error: KoflRuntimeException) {
@@ -59,12 +61,18 @@ class ReplLogger : Logger {
 
   override fun reportError(error: KoflException) {
     println(ERROR_COLOR + "[unexpected error] ${error.message}")
+
+    if(debug) reportNativeError(error)
   }
 
   override fun reportNativeError(error: Throwable) {
     println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
 
     if (error is MainNotFoundException || error is MainReturnedNotInt) {
+      if(debug) {
+        println(ERROR_COLOR + error.stackTraceToString())
+      }
+
       Platform.exit(1)
     } else {
       println(ERROR_COLOR + error.stackTraceToString())
