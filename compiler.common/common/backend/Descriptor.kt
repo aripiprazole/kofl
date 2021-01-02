@@ -322,7 +322,8 @@ data class NativeFunctionDescriptor(
   override val parameters: Map<String, KfType>,
   override val returnType: KfType,
   val nativeCall: String,
-  override val line: Int
+  override val line: Int,
+  val simpleName: String = nativeCall
 ) : CallableDescriptor() {
   override val type: KfType
     get() = TODO("Add type to NATIVE FUNCTION DESCRIPTOR")
@@ -336,7 +337,8 @@ data class FunctionDescriptor(
   override val parameters: Map<String, KfType>,
   override val returnType: KfType,
   val body: Collection<Descriptor>,
-  override val line: Int
+  override val line: Int,
+  val simpleName: String = name
 ) : CallableDescriptor() {
   override val type: KfType
     get() = TODO("Add type to FUNCTION DESCRIPTOR")
@@ -349,7 +351,8 @@ data class ClassDescriptor(
   val name: String,
   val inherits: Collection<KfType>,
   val fields: Map<String, KfType>,
-  override val line: Int
+  override val line: Int,
+  val simpleName: String = name
 ) : Descriptor() {
   override val type: KfType
     get() = TODO("Add type to CLASS DESCRIPTOR")

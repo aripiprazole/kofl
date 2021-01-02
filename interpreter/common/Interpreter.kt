@@ -87,6 +87,6 @@ private class InterpreterImpl(
   }
 
   override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
-    return SourceCode(repl, evaluator, descriptors)
+    return SourceCode(repl, evaluator, descriptors, debug)
   }
 }
