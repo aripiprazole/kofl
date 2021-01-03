@@ -13,8 +13,8 @@ import kotlin.jvm.JvmName
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { input ->
-  when (val result = this(input)) {
+infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { ctx ->
+  when (val result = this(ctx)) {
     is ParseResult.Error -> result.fix()
     is ParseResult.Success -> ParseResult.Success(map(result.data), result.rest)
   }
@@ -25,8 +25,8 @@ infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { input ->
  *
  * @return mapped parse func
  */
-fun <T> Parser<T>.optional(): Parser<T?> = { input ->
-  when (val result = this(input)) {
+fun <T> Parser<T>.optional(): Parser<T?> = { ctx ->
+  when (val result = this(ctx)) {
     is ParseResult.Success -> result.nullable()
     is ParseResult.Error -> ParseResult.Success(null as T?)
   }
@@ -42,8 +42,8 @@ fun <T> Parser<T>.optional(): Parser<T?> = { input ->
 fun <T, R> Parser<T>.fold(
   onSuccess: (ParseResult.Success<T>) -> ParseResult<R>,
   onError: (ParseResult.Error) -> ParseResult<R>
-): Parser<R> = { input ->
-  when (val result = this(input)) {
+): Parser<R> = { ctx ->
+  when (val result = this(ctx)) {
     is ParseResult.Error -> onError(result)
     is ParseResult.Success -> onSuccess(result)
   }
@@ -55,8 +55,8 @@ fun <T, R> Parser<T>.fold(
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T> Parser<T>.mapErr(map: (ParseResult.Error) -> ParseResult.Error): Parser<T> = { input ->
-  when (val result = this(input)) {
+infix fun <T> Parser<T>.mapErr(map: (ParseResult.Error) -> ParseResult.Error): Parser<T> = { ctx ->
+  when (val result = this(ctx)) {
     is ParseResult.Error -> map(result).fix()
     is ParseResult.Success -> result
   }
@@ -88,12 +88,12 @@ infix fun <T> Parser<out T>.or(another: Parser<out T>): Parser<T> {
 fun <T> enum(vararg parsers: Parser<out T>): Parser<T> = EnumParseFunc(parsers.toList())
 
 private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
-  override fun invoke(input: String): ParseResult<T> {
+  override fun invoke(ctx: Context): ParseResult<T> {
     return parsers
-      .map { it(input) }
+      .map { it(ctx) }
       .filterIsInstance<ParseResult.Success<T>>()
       .firstOrNull()
-      ?: ParseResult.Error(parsers.joinToString(), input).fix() // TODO: dump parsers correctly
+      ?: ParseResult.Error(parsers.joinToString(), ctx).fix() // TODO: dump parsers correctly
   }
 }
 
@@ -103,13 +103,13 @@ private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
  * @param regex
  * @return matched result
  */
-fun regex(regex: Regex): Parser<String> = { input ->
-  val match = regex.find(input)?.value
+fun regex(regex: Regex): Parser<String> = { ctx ->
+  val match = regex.find(ctx.input)?.value
 
   if (match != null)
-    ParseResult.Success(match, input.substring(match.length))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error(regex.toString(), input).fix()
+    ParseResult.Error(regex.toString(), ctx).fix()
 }
 
 /**
@@ -120,13 +120,15 @@ fun regex(regex: Regex): Parser<String> = { input ->
  * @param regex
  * @return matched result
  */
-fun regex(type: TokenType, regex: Regex): Parser<Token> = { input ->
-  val match = regex.findAll(input).firstOrNull()?.value
+fun regex(type: TokenType, regex: Regex): Parser<Token> = { ctx ->
+  val match = regex.findAll(ctx.input).firstOrNull()?.value
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error(regex.toString(), input).fix()
+    ParseResult.Error(regex.toString(), ctx).fix()
 }
 
 /**
@@ -143,11 +145,11 @@ fun text(match: Any) = text(match.toString())
  * @param match
  * @return matched result
  */
-fun text(match: String): Parser<String> = { input ->
-  if (input.startsWith(match))
-    ParseResult.Success(match, input.substring(match.length))
+fun text(match: String): Parser<String> = { ctx ->
+  if (ctx.input.startsWith(match))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error("'$match'", input).fix()
+    ParseResult.Error("'$match'", ctx).fix()
 }
 
 /**
@@ -157,13 +159,13 @@ fun text(match: String): Parser<String> = { input ->
  * @param predicate
  * @return matched result
  */
-fun predicate(predicate: StringMatcher): Parser<String> = { input ->
-  val match = input.match(predicate)
+fun predicate(predicate: StringMatcher): Parser<String> = { ctx ->
+  val match = ctx.input.match(predicate)
 
   if (match.isNotEmpty())
-    ParseResult.Success(match, input.substring(match.length))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error("'$predicate'", input).fix()
+    ParseResult.Error("'$predicate'", ctx).fix()
 }
 
 /**
@@ -172,13 +174,13 @@ fun predicate(predicate: StringMatcher): Parser<String> = { input ->
  * @see Token
  * @return matched result
  */
-fun string(): Parser<String> = { input ->
-  val match = input.matchString()
+fun string(): Parser<String> = { ctx ->
+  val match = ctx.input.matchString()
 
   if (match != null)
-    ParseResult.Success(match, input.substring(match.length))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error("string", input).fix()
+    ParseResult.Error("string", ctx).fix()
 }
 
 /**
@@ -187,13 +189,13 @@ fun string(): Parser<String> = { input ->
  * @see Token
  * @return matched result
  */
-fun identifier(): Parser<String> = { input ->
-  val match = input.matchIdentifier()
+fun identifier(): Parser<String> = { ctx ->
+  val match = ctx.input.matchIdentifier()
 
   if (match != null)
-    ParseResult.Success(match, input.substring(match.length))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error("identifier", input).fix()
+    ParseResult.Error("identifier", ctx).fix()
 }
 
 /**
@@ -202,13 +204,13 @@ fun identifier(): Parser<String> = { input ->
  * @see Token
  * @return matched result
  */
-fun numeric(): Parser<String> = { input ->
-  val match = input.matchNumeric()
+fun numeric(): Parser<String> = { ctx ->
+  val match = ctx.input.matchNumeric()
 
   if (match.isNotEmpty())
-    ParseResult.Success(match, input.substring(match.length))
+    ParseResult.Success(match, ctx.map { it.substring(match.length) })
   else
-    ParseResult.Error("identifier", input).fix()
+    ParseResult.Error("identifier", ctx).fix()
 }
 
 /**
@@ -218,13 +220,15 @@ fun numeric(): Parser<String> = { input ->
  * @param type
  * @return matched result
  */
-fun string(type: TokenType): Parser<Token> = { input ->
-  val match = input.matchString()
+fun string(type: TokenType): Parser<Token> = { ctx ->
+  val match = ctx.input.matchString()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error("string", input).fix()
+    ParseResult.Error(type.toString(), ctx).fix()
 }
 
 /**
@@ -234,13 +238,15 @@ fun string(type: TokenType): Parser<Token> = { input ->
  * @param type
  * @return matched result
  */
-fun identifier(type: TokenType): Parser<Token> = { input ->
-  val match = input.matchIdentifier()
+fun identifier(type: TokenType): Parser<Token> = { ctx ->
+  val match = ctx.input.matchIdentifier()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error("identifier", input).fix()
+    ParseResult.Error(type.toString(), ctx).fix()
 }
 
 /**
@@ -250,13 +256,15 @@ fun identifier(type: TokenType): Parser<Token> = { input ->
  * @param type
  * @return matched result
  */
-fun numeric(type: TokenType): Parser<Token> = { input ->
-  val match = input.matchNumeric()
+fun numeric(type: TokenType): Parser<Token> = { ctx ->
+  val match = ctx.input.matchNumeric()
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error("identifier", input).fix()
+    ParseResult.Error("identifier", ctx).fix()
 }
 
 /**
@@ -267,13 +275,15 @@ fun numeric(type: TokenType): Parser<Token> = { input ->
  * @param predicate
  * @return matched result
  */
-fun predicate(type: TokenType, predicate: StringMatcher): Parser<Token> = { input ->
-  val match = input.match(predicate)
+fun predicate(type: TokenType, predicate: StringMatcher): Parser<Token> = { ctx ->
+  val match = ctx.input.match(predicate)
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, input, input, line = line), input.substring(match.length))
+    ParseResult.Success(Token(type, ctx.input, ctx.input, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error("'$match'", input).fix()
+    ParseResult.Error("'$match'", ctx).fix()
 }
 
 /**
@@ -294,11 +304,13 @@ fun text(type: TokenType, match: Any) = text(type, match.toString())
  * @param match
  * @return matched result
  */
-fun text(type: TokenType, match: String): Parser<Token> = { input ->
-  if (input.startsWith(match))
-    ParseResult.Success(Token(type, match, match, line = line), input.substring(match.length))
+fun text(type: TokenType, match: String): Parser<Token> = { ctx ->
+  if (ctx.input.startsWith(match))
+    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+      it.substring(match.length)
+    })
   else
-    ParseResult.Error("'$match'", input).fix()
+    ParseResult.Error("'$match'", ctx).fix()
 }
 
 /**
@@ -307,11 +319,11 @@ fun text(type: TokenType, match: String): Parser<Token> = { input ->
  * @see Token
  * @return matched result
  */
-fun eof(): Parser<String> = { input ->
-  if (input == "")
-    ParseResult.Success("", "")
+fun eof(): Parser<String> = { ctx ->
+  if (ctx.input.isEmpty())
+    ParseResult.Success("", ctx)
   else
-    ParseResult.Error("''", input).fix()
+    ParseResult.Error("''", ctx).fix()
 }
 
 /**
@@ -321,21 +333,21 @@ fun eof(): Parser<String> = { input ->
  * @param type
  * @return matched result
  */
-fun eof(type: TokenType): Parser<Token> = { input ->
-  if (input == "")
-    ParseResult.Success(Token(type, "", "", line = line), input)
+fun eof(type: TokenType): Parser<Token> = { ctx ->
+  if (ctx.input.isEmpty())
+    ParseResult.Success(Token(type, "", "", line = line), ctx)
   else
-    ParseResult.Error("''", input).fix()
+    ParseResult.Error("''", ctx).fix()
 }
 
 /**
- * Mocks a result in [success] and return it not mattering the input
+ * Mocks a result in [success] and return it not mattering the ctx
  *
  * @param success mock function
  * @return mocked parse function
  */
-fun <T> pure(success: () -> T): Parser<T> = { input ->
-  ParseResult.Success(success(), input)
+fun <T> pure(success: () -> T): Parser<T> = { ctx ->
+  ParseResult.Success(success(), ctx)
 }
 
 /**
@@ -389,9 +401,9 @@ infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, 
  * @param f lazy parse function getter
  * @return lazied parse function
  */
-fun <T> lazied(f: () -> Parser<out T>): Parser<T> = { input ->
+fun <T> lazied(f: () -> Parser<out T>): Parser<T> = { ctx ->
   @Suppress("UNCHECKED_CAST")
-  f()(input) as ParseResult<T>
+  f()(ctx) as ParseResult<T>
 }
 
 /**
@@ -428,8 +440,8 @@ fun label(label: String): CreateLabelParser {
 
 class CreateLabelParser(private val label: String) {
   operator fun <T> invoke(func: Parser<T>): Parser<T> = object : Parser<T> {
-    override fun invoke(input: String): ParseResult<T> {
-      return func(input).unwrapOr {
+    override fun invoke(ctx: Context): ParseResult<T> {
+      return func(ctx).unwrapOr {
         return ParseResult.Error(label, it.actual).fix()
       }
     }

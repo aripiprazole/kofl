@@ -6,10 +6,15 @@ package com.lorenzoog.kofl.frontend.parser.lib
  * @see Location.Code
  * @see Location.Labeled
  * @see Location.Native
+ * @see Location.Offset
  */
 sealed class Location {
   data class Code(val line: Int, val column: Int) : Location() {
     override fun toString(): String = "($line, $column)"
+  }
+
+  data class Offset(val index: Int) : Location() {
+    override fun toString(): String = "(offset ($index))"
   }
 
   data class Labeled(val label: String) {

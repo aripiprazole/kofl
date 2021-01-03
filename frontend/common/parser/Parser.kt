@@ -6,15 +6,12 @@ import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.parser.grammar.Math
 import com.lorenzoog.kofl.frontend.parser.grammar.Token
 import com.lorenzoog.kofl.frontend.parser.grammar.line
-import com.lorenzoog.kofl.frontend.parser.lib.ParseResult
-import com.lorenzoog.kofl.frontend.parser.lib.map
-import com.lorenzoog.kofl.frontend.parser.lib.unwrap
-import com.lorenzoog.kofl.frontend.parser.lib.with
+import com.lorenzoog.kofl.frontend.parser.lib.*
 
 // TODO: support left recursion in the lib
 internal class ParserImpl(private val code: String) : Parser {
   fun parseImpl(): ParseResult<Expr> {
-    return (Math with Token.EOF)(code).map { it.first }
+    return (Math with Token.EOF)(Context(code)).map { it.first }
   }
 
   override fun parse(): List<Stmt> {
