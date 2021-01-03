@@ -15,12 +15,24 @@ val Slash = token(text(TokenType.Slash, "/"))
 val Dot = token(text(TokenType.Dot, "."))
 val Colon = token(text(TokenType.Colon, ":"))
 val Comma = token(text(TokenType.Comma, ","))
+val And = token(text(TokenType.And, "&"))
+val Or = token(text(TokenType.Or, "|"))
 val LeftParen = token(text(TokenType.LeftParen, "("))
 val RightParen = token(text(TokenType.RightParen, ")"))
 val LeftBrace = token(text(TokenType.LeftBrace, "{"))
 val RightBrace = token(text(TokenType.RightBrace, "}"))
 val Equal = token(text(TokenType.Comma, "="))
 val Semicolon = token(text(TokenType.Semicolon, ";"))
+
+val Greater = token(text(TokenType.Greater, ">"))
+val Less = token(text(TokenType.Less, "<"))
+
+val AndAnd = token(text(TokenType.And, "&&"))
+val OrOr = token(text(TokenType.Or, "||"))
+val GreaterEqual = token(text(TokenType.GreaterEqual, ">="))
+val LessEqual = token(text(TokenType.LessEqual, "<="))
+val BangEqual = token(text(TokenType.LeftBrace, "!="))
+val EqualEqual = token(text(TokenType.RightBrace, "=="))
 
 val EOF = eof(TokenType.Eof)
 
@@ -33,7 +45,7 @@ val Identifier = label("identifier")(token(identifier(TokenType.Identifier))) ma
 }
 
 val Group = label("group")(
-  combine(LeftParen, token(lazied { Expression }), RightParen) { _, value, _ ->
+  combine(LeftParen, token(lazied { Func }), RightParen) { _, value, _ ->
     Expr.Grouping(value, line)
   }
 )

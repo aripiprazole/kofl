@@ -24,7 +24,7 @@ internal object Func : Grammar<Expr>() {
   )
 
   private val ExpressionBody = label("expression-body")(
-    combine(Equal, token(Expression)) { _, expr ->
+    combine(Equal, token(this)) { _, expr ->
       listOf(Stmt.ExprStmt(expr, line))
     }
   )
@@ -65,5 +65,5 @@ internal object Func : Grammar<Expr>() {
     }
   )
 
-  override val rule: Parser<Expr> = NativeFunc or CommonFunc
+  override val rule: Parser<Expr> = NativeFunc or CommonFunc or Logical
 }

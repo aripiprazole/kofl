@@ -1,15 +1,15 @@
 package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.parser.lib.*
 import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.parser.lib.*
 
 typealias ArgT = Triple<Expr.Var?, Token, Expr>
 typealias ArgsT = Pair<ArgT, List<Pair<Token, ArgT>>>
 typealias ParenthesisT = Triple<Token, ArgsT?, Token>
 typealias CurlingArgsT = Pair<ParenthesisT, List<ParenthesisT>>
 
-internal object Expression : Grammar<Expr>() {
+internal object Access : Grammar<Expr>() {
   override val rule: Parser<Expr> = lazied { Access }
 
   private val Get = label("get")(
@@ -23,7 +23,7 @@ internal object Expression : Grammar<Expr>() {
   private val Callee = label("callee")(Get or Primary)
 
   private val Arg: Parser<ArgT> = label("argument")(
-    Identifier.optional() with token(Equal) with Expression
+    Identifier.optional() with token(Equal) with rule
   )
 
   private val Args: Parser<ArgsT> = label("arguments")(
