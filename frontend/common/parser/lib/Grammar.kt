@@ -4,10 +4,10 @@ abstract class Grammar<T> : Parser<T> {
   protected abstract val rule: Parser<T>
 
   fun parse(input: String): ParseResult<T> {
-    return rule(input)
+    return rule(Context(input))
   }
 
-  override fun invoke(input: String): ParseResult<T> {
-    return parse(input)
+  override fun invoke(input: Context): ParseResult<T> {
+    return rule(input)
   }
 }
