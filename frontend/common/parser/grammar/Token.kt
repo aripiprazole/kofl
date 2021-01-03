@@ -17,6 +17,7 @@ internal object Token {
   val Slash = text(TokenType.Slash, "/")
   val Dot = text(TokenType.Dot, ".")
   val Comma = text(TokenType.Comma, ",")
+  val Equal = text(TokenType.Comma, "=")
 
   val EOF = eof(TokenType.Eof)
 
