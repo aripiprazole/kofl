@@ -10,6 +10,8 @@ import com.lorenzoog.kofl.frontend.parser.lib.map
  */
 val line get() = 0
 
+fun <T> T.asNullable(): T? = this
+
 fun <T> Parser<T>.mapToLiteral(): Parser<Expr.Literal> = { input ->
   map { Expr.Literal(it ?: error("$it should not be converted to Expr.Literal if it is null"), line) }.invoke(input)
 }
