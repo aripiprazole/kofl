@@ -1,10 +1,15 @@
-import com.lorenzoog.kofl.frontend.parser.ParserImpl
+import com.lorenzoog.kofl.frontend.parser.grammar.Func
+import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
 
 /**
  * TODO: remove me
  */
 fun main() {
-  val parser = ParserImpl("""record.call ( name = 1, another = "" ) ( anotherOne = 4 )""".trimIndent())
+  val input = """func main(): Int { return 0; }""".trimIndent()
 
-  println(parser.parseImpl())
+  println(Func.parse(input).unwrapOr { result ->
+    println("Expected: ${result.expected}; Actual: ${result.actual}; Char: ${input.getOrNull(result.actual.index)}")
+
+    return
+  })
 }

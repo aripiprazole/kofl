@@ -9,7 +9,7 @@ typealias ArgsT = Pair<ArgT, List<Pair<Token, ArgT>>>
 typealias ParenthesisT = Triple<Token, ArgsT?, Token>
 typealias CurlingArgsT = Pair<ParenthesisT, List<ParenthesisT>>
 
-internal object Access : Grammar<Expr>() {
+internal object Expression : Grammar<Expr>() {
   override val rule: Parser<Expr> = lazied { Access }
 
   private val Get = label("get")(
