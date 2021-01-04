@@ -7,19 +7,17 @@ import com.lorenzoog.kofl.frontend.parser.lib.*
 
 internal object Statement : Grammar<Stmt>() {
   val IfStmt = label("if-stmt")(
-    If.If map { Stmt.ExprStmt(it, line) }
+    optionalSemicolon(If.If map { Stmt.ExprStmt(it, line) })
   )
 
   val ExprStmt = label("expr-stmt")(
-    combine(Func, Semicolon) { stmt, _ ->
-      Stmt.ExprStmt(stmt, line)
-    }
+    semicolon(Func map { expr -> Stmt.ExprStmt(expr, line) })
   )
 
   val ReturnStmt = label("return-stmt")(
-    combine(Keywords.Return, Func, Semicolon) { _, value, _ ->
+    semicolon(combine(Keywords.Return, Func) { _, value ->
       Stmt.ReturnStmt(value, line)
-    }
+    })
   )
 
   override val rule: Parser<Stmt> = Declaration or IfStmt or ReturnStmt or ExprStmt

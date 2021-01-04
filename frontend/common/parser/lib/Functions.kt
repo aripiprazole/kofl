@@ -29,7 +29,7 @@ infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { ctx ->
 fun <T> Parser<T>.optional(): Parser<T?> = { ctx ->
   when (val result = this(ctx)) {
     is ParseResult.Success -> result.nullable()
-    is ParseResult.Error -> ParseResult.Success(null as T?)
+    is ParseResult.Error -> ParseResult.Success(null as T?, result.actual)
   }
 }
 
@@ -95,6 +95,23 @@ private class EnumParseFunc<T>(val parsers: List<Parser<out T>>) : Parser<T> {
       .filterIsInstance<ParseResult.Success<T>>()
       .firstOrNull()
       ?: ParseResult.Error(parsers.joinToString(), ctx).fix() // TODO: dump parsers correctly
+  }
+}
+
+/**
+ * Tries to match ANYTHING till the end of the line
+ *
+ * @param stopIn will stop when match with it
+ * @return matched result
+ */
+fun anything(stopIn: Parser<*>): Parser<Char> = { ctx ->
+  val match = ctx.input.firstOrNull()
+  val result = stopIn(ctx)
+
+  if (match != null && result is ParseResult.Error) {
+    ParseResult.Success(match, ctx.map { it.substring(1) })
+  } else {
+    ParseResult.Error("anything with 1+ char", (result as ParseResult.Success).rest).fix()
   }
 }
 
