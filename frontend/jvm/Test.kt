@@ -7,9 +7,9 @@ import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
  * TODO: remove me
  */
 fun main() {
-  val input = """main(f)""".trimIndent()
+  val input = """func main() = call(4)""".trimIndent()
 
-  println(Access.parse(input).unwrapOr { result ->
+  println(Func.parse(input).unwrapOr { result ->
     println("Expected: ${result.expected}; Actual: ${result.actual}; Char: ${input.getOrNull(result.actual.index)}")
 
     return
