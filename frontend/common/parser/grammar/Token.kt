@@ -23,6 +23,7 @@ val LeftBrace = token(text(TokenType.LeftBrace, "{"))
 val RightBrace = token(text(TokenType.RightBrace, "}"))
 val Equal = token(text(TokenType.Comma, "="))
 val Semicolon = token(text(TokenType.Semicolon, ";"))
+val Enter = text(TokenType.Enter, "\n")
 
 val Greater = token(text(TokenType.Greater, ">"))
 val Less = token(text(TokenType.Less, "<"))
@@ -33,6 +34,9 @@ val GreaterEqual = token(text(TokenType.GreaterEqual, ">="))
 val LessEqual = token(text(TokenType.LessEqual, "<="))
 val BangEqual = token(text(TokenType.LeftBrace, "!="))
 val EqualEqual = token(text(TokenType.RightBrace, "=="))
+val SlashSlash = token(text(TokenType.SlashSlash, "//"))
+val CommentStart = token(text(TokenType.CommentStart, "/*"))
+val CommentEnd = text(TokenType.CommentEnd, "*/")
 
 val EOF = eof(TokenType.Eof)
 

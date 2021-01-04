@@ -1,4 +1,7 @@
-import com.lorenzoog.kofl.frontend.parser.grammar.Statement
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.parser.grammar.Declaration
+import com.lorenzoog.kofl.frontend.parser.lib.many
+import com.lorenzoog.kofl.frontend.parser.lib.parse
 import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
 
 /**
@@ -7,7 +10,9 @@ import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
 fun main() {
   val input =
     """
-    func main(): Unit {
+    // main func
+    /** AAAAA */
+    func main(args: StringArray): Unit {
       type class Person(name: String);
       
       val s = "";
@@ -15,8 +20,9 @@ fun main() {
     
       println("");
       
-      if 40 then println("") else 
-        println()
+      if 40 
+        then println("")
+        else println();
     
       func subFunction() {
     
@@ -26,7 +32,8 @@ fun main() {
     }
     """.trimIndent()
 
-  println(Statement.parse(input).unwrapOr { result ->
+
+  println("RESULT: " + Declaration.Program.parse(input).unwrapOr { result ->
     println("Expected: ${result.expected};")
     println("Actual: ${result.actual};")
     println("Char: ${input.getOrNull(result.actual.index)}")

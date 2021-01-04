@@ -4,13 +4,14 @@ enum class TokenType {
   // single-character tokens
   LeftParen, RightParen, LeftBrace,
   RightBrace, Comma, Dot, Minus, Plus,
-  Semicolon, Slash, Star, At, Colon,
+  Semicolon, Slash, Star, At, Colon, Enter,
 
   // one-or-double-character tokens
   Bang, BangEqual,
   Equal, EqualEqual,
   Greater, GreaterEqual,
   Less, LessEqual,
+  SlashSlash, CommentStart, CommentEnd,
 
   // comparison tokens
   And, Or,
