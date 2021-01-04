@@ -9,7 +9,7 @@ import kotlin.native.concurrent.ThreadLocal
 @ThreadLocal
 internal object Math : Grammar<Expr>() {
   val Unary = label("unary")(
-    Access or combine((Plus or Minus), Access) { op, rhs ->
+    Access or combine((Plus or Minus or Bang), Access) { op, rhs ->
       Expr.Unary(op, rhs, line)
     }
   )

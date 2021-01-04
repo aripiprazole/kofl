@@ -1,6 +1,7 @@
 package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
@@ -9,22 +10,24 @@ import com.lorenzoog.kofl.frontend.parser.lib.*
  */
 val line get() = 0
 
+val Block = label("block")(
+  combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->
+    body
+  }
+)
+
+val Body = label("body")(
+  Block or label("expression-body")(
+    combine(Keywords.Then, Func) { _, expr -> listOf(Stmt.ExprStmt(expr, line)) }
+  )
+)
+
 fun <T> semicolon(parser: Parser<T>): Parser<T> {
   return combine(parser, (Semicolon + many(Semicolon))) { a, _ -> a }
 }
 
 fun <T> optionalSemicolon(parser: Parser<T>): Parser<T> {
   return combine(parser, many(Semicolon)) { a, _ -> a }
-}
-
-fun <T> T.asNullable(): T? = this
-
-fun <T> Parser<T>.mapToLiteral(): Parser<Expr.Literal> = { input ->
-  map {
-    val value = if (it is Token) it.literal else it
-
-    Expr.Literal(value ?: error("$it should not be converted to Expr.Literal if it is null"), line)
-  }.invoke(input)
 }
 
 fun Char.isDigit(): Boolean = this in '0'..'9'

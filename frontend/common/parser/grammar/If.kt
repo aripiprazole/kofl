@@ -9,22 +9,14 @@ import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
 internal object If : Grammar<Expr>() {
-  val Block = combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->
-    body
-  }
-
-  val IfBody = label("if-body")(
-    Block or combine(Keywords.Then, Func) { _, expr -> listOf(Stmt.ExprStmt(expr, line)) }
-  )
-
-  val ElseBody = label("else-body")(
+  val ElseBody = label("else-branch")(
     combine(Keywords.Else, (Block or (Func.map { listOf<Stmt>(Stmt.ExprStmt(it, line)) }))) { _, body ->
       body
     }
   )
 
   val If: Parser<Expr> = label("if")(
-    combine(Keywords.If, Func, IfBody, ElseBody.optional()) { _, condition, thenBranch, elseBranch ->
+    combine(Keywords.If, Func, Body, ElseBody.optional()) { _, condition, thenBranch, elseBranch ->
       Expr.IfExpr(condition, thenBranch, elseBranch, line)
     }
   )

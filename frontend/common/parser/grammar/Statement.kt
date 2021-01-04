@@ -22,7 +22,13 @@ internal object Statement : Grammar<Stmt>() {
     })
   )
 
+  val WhileStmt = label("while-stmt")(
+    optionalSemicolon(combine(Keywords.While, Func, Body) { _, condition, body ->
+      Stmt.WhileStmt(condition, body, line)
+    })
+  )
+
   val REPL = many(this) + EOF
 
-  override val rule: Parser<Stmt> = Declaration or IfStmt or ReturnStmt or ExprStmt
+  override val rule: Parser<Stmt> = Declaration or WhileStmt or IfStmt or ReturnStmt or ExprStmt
 }

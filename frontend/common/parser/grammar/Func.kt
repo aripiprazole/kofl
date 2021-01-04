@@ -42,24 +42,56 @@ internal object Func : Grammar<Expr>() {
     }
   )
 
-  val UntypedCommonFunc = label("untyped-common-func")(
-    combine(Keywords.Func, Identifier, Parameters, nullable<Token>(), Body) { _, (name), parameters, _, body ->
-      Expr.CommonFunc(name, parameters, body, null, line)
-    }
-  )
+  val ExtensionFunc = label("extension-func")(run {
+    val untypedExtensionFunc = label("untyped-extension-func")(
+      combine(
+        Keywords.Func, Identifier, Spaces, Identifier, Parameters, nullable<Token>(), Body
+      ) { _, (receiverName), _, (funcName), parameters, _, body ->
+        Expr.ExtensionFunc(receiverName, funcName, parameters, body, null, line)
+      }
+    )
 
-  val TypedCommonFunc = label("common-func")(
-    UntypedCommonFunc or
+    untypedExtensionFunc or
+      combine(
+        Keywords.Func, Identifier, Spaces, Identifier, Parameters, ReturnType, Body
+      ) { _, (receiverName), _, (funcName), parameters, returnType, body ->
+        Expr.ExtensionFunc(receiverName, funcName, parameters, body, returnType, line)
+      }
+  })
+
+  val AnonymousFunc = label("anonymous-func")(run {
+    val untypedAnonymousFunc = label("untyped-anonymous-func")(
+      combine(Keywords.Func, Parameters, nullable<Token>(), Body) { _, parameters, _, body ->
+        Expr.AnonymousFunc(parameters, body, null, line)
+      }
+    )
+
+    untypedAnonymousFunc or
+      combine(Keywords.Func, Parameters, ReturnType, Body) { _, parameters, returnType, body ->
+        Expr.AnonymousFunc(parameters, body, returnType, line)
+      }
+  })
+
+  val TypedCommonFunc = label("common-func")(run {
+    val untypedCommonFunc = label("untyped-common-func")(
+      combine(Keywords.Func, Identifier, Parameters, nullable<Token>(), Body) { _, (name), parameters, _, body ->
+        Expr.CommonFunc(name, parameters, body, null, line)
+      }
+    )
+
+    untypedCommonFunc or
       combine(Keywords.Func, Identifier, Parameters, ReturnType, Body) { _, (name), parameters, returnType, body ->
         Expr.CommonFunc(name, parameters, body, returnType, line)
       }
+  })
+
+  val NamedFunc = label("named-func")(
+    ExtensionFunc or NativeFunc or TypedCommonFunc
   )
 
-  val Func = NativeFunc or TypedCommonFunc
-
   override val rule = (
-    NativeFunc
-      or TypedCommonFunc
+    NamedFunc
+      or AnonymousFunc
       or lazied { If }
       or lazied { Assignment }
       or Logical)
