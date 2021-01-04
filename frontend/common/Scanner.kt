@@ -14,7 +14,7 @@ val RESERVED_KEYWORDS = mapOf(
   "return" to TokenType.Return,
   "while" to TokenType.While,
   "external" to TokenType.External,
-  "do" to TokenType.Do,
+  "do" to TokenType.Then,
   "module" to TokenType.Module,
   "use" to TokenType.Use,
 )

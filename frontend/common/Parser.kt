@@ -193,7 +193,7 @@ private class ParserImpl(private val tokens: List<Token>, private val repl: Bool
 
     val body = when {
       match(TokenType.LeftBrace) -> block()
-      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
       else -> throw error(expecting(start("while body")))
     }
 
@@ -243,13 +243,13 @@ private class ParserImpl(private val tokens: List<Token>, private val repl: Bool
 
     val mainBranch = when {
       match(TokenType.LeftBrace) -> block()
-      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
       else -> throw error(expecting(start("if body")))
     }
     val elseBranch = if (match(TokenType.Else))
       when {
         match(TokenType.LeftBrace) -> block()
-        match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+        match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
         else -> throw error(expecting(start("else body")))
       }
     else null
