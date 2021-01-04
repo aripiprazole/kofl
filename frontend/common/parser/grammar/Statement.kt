@@ -18,5 +18,5 @@ internal object Statement : Grammar<Stmt>() {
 
   override val rule: Parser<Stmt> = ReturnStmt or ExprStmt
 
-  val Program = many(Statement) with EOF
+  val Program = many(Statement) + EOF
 }

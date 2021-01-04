@@ -378,11 +378,37 @@ inline fun <reified T> many(noinline parser: Parser<T>): Parser<List<T>> {
  * @param second
  * @return parse func of pair
  */
-@JsName("withAnother")
-@JvmName("withAnother")
-infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = combine(this, second) { a, b ->
+@JsName("withAnotherPlus")
+@JvmName("withAnotherPlus")
+infix operator fun <A, B> Parser<A>.plus(second: Parser<B>): Parser<Pair<A, B>> = combine(this, second) { a, b ->
   a to b
 }
+
+/**
+ * Combines [this] with [second] into a pair of both
+ *
+ * @see combine
+ * @param second
+ * @return parse func of pair
+ */
+@JsName("withAnother")
+@JvmName("withAnother")
+@Deprecated("Use plus syntax instead", ReplaceWith("this + second"))
+infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = this + second
+
+/**
+ * Combines [this] with [third] into a triple of both
+ *
+ * @see combine
+ * @param third
+ * @return parse func of triple
+ */
+@JsName("withPairToTriplePlus")
+@JvmName("withPairToTriplePlus")
+infix operator fun <A, B, C> Parser<Pair<A, B>>.plus(third: Parser<C>): Parser<Triple<A, B, C>> =
+  combine(this, third) { (a, b), c ->
+    Triple(a, b, c)
+  }
 
 /**
  * Combines [this] with [third] into a triple of both
@@ -393,10 +419,8 @@ infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = combine
  */
 @JsName("withPairToTriple")
 @JvmName("withPairToTriple")
-infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> =
-  combine(this, third) { (a, b), c ->
-    Triple(a, b, c)
-  }
+@Deprecated("Use plus syntax instead", ReplaceWith("this + third"))
+infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> = this + third
 
 /**
  * Combines [this] with [third] into a tuple of both

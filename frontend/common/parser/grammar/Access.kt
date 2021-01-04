@@ -13,29 +13,29 @@ internal object Access : Grammar<Expr>() {
   override val rule: Parser<Expr> = lazied { Access }
 
   private val Get = label("get")(
-    combine(Primary, many(Dot with Identifier)) { receiver, calls ->
+    combine(Primary, many(Dot + Identifier)) { receiver, calls ->
       calls.fold(receiver) { acc, (_, expr) ->
         Expr.Get(acc, expr.name, line)
       }
     }
   )
 
-  private val NamedArg: Parser<ArgT> = label("named-arg")((Identifier with Colon).optional() with Func)
-  private val UnnamedArg: Parser<ArgT> = label("unnamed-arg")(nullable<Pair<Expr.Var, Token>?>() with Func)
+  private val NamedArg: Parser<ArgT> = label("named-arg")((Identifier + Colon).optional() + Func)
+  private val UnnamedArg: Parser<ArgT> = label("unnamed-arg")(nullable<Pair<Expr.Var, Token>?>() + Func)
 
   private val Arg = label("arg")(NamedArg or UnnamedArg)
-  private val Args: Parser<ArgsT> = label("args")(Arg withPair many(Comma with Arg))
+  private val Args: Parser<ArgsT> = label("args")(Arg withPair many(Comma + Arg))
 
   private val ArgsParenthesis: Parser<ParenthesisT> = label("args-parenthesis")(
-    LeftParen with Args.optional() with RightParen
+    LeftParen + Args.optional() + RightParen
   )
 
   private val EmptyParenthesis: Parser<ParenthesisT> = label("empty-parenthesis")(
-    LeftParen with nullable<ArgsT>() with RightParen
+    LeftParen + nullable<ArgsT>() + RightParen
   )
 
   private val Parenthesis: Parser<ParenthesisT> = label("parenthesis")(ArgsParenthesis or EmptyParenthesis)
-  private val CurlingArgs: Parser<CurlingArgsT> = label("curling-args")(Parenthesis with many(Parenthesis))
+  private val CurlingArgs: Parser<CurlingArgsT> = label("curling-args")(Parenthesis + many(Parenthesis))
 
   private val Call = label("call")(
     combine(label("callee")(Get or Primary), CurlingArgs) { name, args ->
