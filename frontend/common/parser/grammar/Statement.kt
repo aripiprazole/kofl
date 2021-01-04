@@ -20,5 +20,7 @@ internal object Statement : Grammar<Stmt>() {
     })
   )
 
+  val REPL = many(this) + EOF
+
   override val rule: Parser<Stmt> = Declaration or IfStmt or ReturnStmt or ExprStmt
 }

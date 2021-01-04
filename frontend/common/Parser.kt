@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.frontend
 
+import com.lorenzoog.kofl.frontend.parser.ParserImpl
+
 private const val MAX_ARGS = 32  // the limit is really 31 'cause the this is passed as a arg
 private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"
 private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
@@ -13,14 +15,14 @@ interface Parser {
   replaceWith = ReplaceWith("Parser(code, repl)")
 )
 fun Parser(tokens: List<Token>, repl: Boolean = false): Parser {
-  return ParserImpl(tokens, repl)
+  error("'Parser(tokens: List<Token>, repl: Boolean = false)' NOT IMPLEMENTED. SHOULD NOT BE CALLED.")
 }
 
 fun Parser(code: String, repl: Boolean = false): Parser {
   return ParserImpl(code, repl)
 }
 
-private class ParserImpl(private val tokens: List<Token>, private val repl: Boolean) : Parser {
+private class OldParserImpl(private val tokens: List<Token>, private val repl: Boolean) : Parser {
   constructor(code: String, repl: Boolean) : this(Scanner(code).scan(), repl)
 
   private val isAtEnd get() = peek().type == TokenType.Eof
