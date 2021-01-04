@@ -26,8 +26,20 @@ internal object Declaration : Grammar<Stmt>() {
 
   val Type = label("type")(combine(Colon, Identifier) { _, (name) -> name })
 
+  val UseDecl = label("use-decl")(
+    semicolon(combine(Keywords.Use, Identifier) { _, (moduleName) ->
+      Stmt.UseDecl(moduleName, line)
+    })
+  )
+
+  val ModuleDecl = label("module-decl")(
+    semicolon(combine(Keywords.Module, Identifier) { _, (moduleName) ->
+      Stmt.ModuleDecl(moduleName, line)
+    })
+  )
+
   val FuncDecl = label("func-decl")(
-    optionalSemicolon(Func.Func map { Stmt.ExprStmt(it, line) })
+    optionalSemicolon(Func.NamedFunc map { Stmt.ExprStmt(it, line) })
   )
 
   val ClassDecl = label("class-decl")(
@@ -59,6 +71,12 @@ internal object Declaration : Grammar<Stmt>() {
   val Program = many(this) + EOF
 
   override val rule: Parser<Stmt> = label("decl")(
-    CommentDecl or FuncDecl or ValDecl or VarDecl or ClassDecl
+    CommentDecl
+      or UseDecl
+      or ModuleDecl
+      or FuncDecl
+      or ValDecl
+      or VarDecl
+      or ClassDecl
   )
 }
