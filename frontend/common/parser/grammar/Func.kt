@@ -58,5 +58,7 @@ internal object Func : Grammar<Expr>() {
       }
   )
 
-  override val rule: Parser<Expr> = NativeFunc or TypedCommonFunc or Logical
+  val Func = NativeFunc or TypedCommonFunc
+
+  override val rule = NativeFunc or TypedCommonFunc or lazied{If} or Logical
 }

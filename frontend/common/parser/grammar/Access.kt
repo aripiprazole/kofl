@@ -23,7 +23,7 @@ internal object Access : Grammar<Expr>() {
   private val NamedArg: Parser<ArgT> = label("named-arg")((Identifier + Colon).optional() + Func)
   private val UnnamedArg: Parser<ArgT> = label("unnamed-arg")(nullable<Pair<Expr.Var, Token>?>() + Func)
 
-  private val Arg = label("arg")(NamedArg or UnnamedArg)
+  private val Arg: Parser<ArgT> = label("arg")(NamedArg or UnnamedArg)
   private val Args: Parser<ArgsT> = label("args")(Arg withPair many(Comma + Arg))
 
   private val ArgsParenthesis: Parser<ParenthesisT> = label("args-parenthesis")(
