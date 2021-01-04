@@ -4,7 +4,9 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Logical : Grammar<Expr>() {
   val Comparison = label("and")(
     combine(Math, many((Greater or GreaterEqual or Less or LessEqual) + Math)) { lhs, rest ->

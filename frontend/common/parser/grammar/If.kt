@@ -5,7 +5,9 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object If : Grammar<Expr>() {
   val Block = combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->
     body

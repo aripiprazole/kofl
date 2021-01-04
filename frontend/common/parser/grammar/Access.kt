@@ -5,12 +5,14 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
 typealias ArgT = Pair<Pair<Expr.Var, Token>?, Expr>
 typealias ArgsT = Pair<ArgT, List<Pair<Token, ArgT>>>
 typealias ParenthesisT = Triple<Token, ArgsT?, Token>
 typealias CurlingArgsT = Pair<ParenthesisT, List<ParenthesisT>>
 
+@ThreadLocal
 internal object Access : Grammar<Expr>() {
   fun handleArgs(list: ArgsT?): Map<Token?, Expr> {
     val (head, tail) = list ?: return mapOf()

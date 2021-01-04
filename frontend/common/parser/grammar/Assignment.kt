@@ -4,7 +4,9 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Assignment : Grammar<Expr>() {
   val Set = label("set")(
     combine(Access, Dot, Identifier, Equal, Func) { receiver, _, (name), _, value ->
