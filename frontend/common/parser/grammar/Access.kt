@@ -4,7 +4,7 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
-typealias ArgT = Triple<Expr.Var?, Token, Expr>
+typealias ArgT = Pair<Pair<Expr.Var, Token>?, Expr>
 typealias ArgsT = Pair<ArgT, List<Pair<Token, ArgT>>>
 typealias ParenthesisT = Triple<Token, ArgsT?, Token>
 typealias CurlingArgsT = Pair<ParenthesisT, List<ParenthesisT>>
@@ -20,26 +20,25 @@ internal object Access : Grammar<Expr>() {
     }
   )
 
-  private val Callee = label("callee")(Get or Primary)
+  private val NamedArg: Parser<ArgT> = label("named-arg")((Identifier with Colon).optional() with Func)
+  private val UnnamedArg: Parser<ArgT> = label("unnamed-arg")(nullable<Pair<Expr.Var, Token>?>() with Func)
 
-  private val Arg: Parser<ArgT> = label("argument")(
-    Identifier.optional() with token(Equal) with rule
-  )
+  private val Arg = label("arg")(NamedArg or UnnamedArg)
+  private val Args: Parser<ArgsT> = label("args")(Arg withPair many(Comma with Arg))
 
-  private val Args: Parser<ArgsT> = label("arguments")(
-    Arg with many(token(Comma) with Arg)
-  )
-
-  private val Parenthesis: Parser<ParenthesisT> = label("parenthesis")(
+  private val ArgsParenthesis: Parser<ParenthesisT> = label("args-parenthesis")(
     LeftParen with Args.optional() with RightParen
   )
 
-  private val CurlingArgs: Parser<CurlingArgsT> = label("curling-args")(
-    Parenthesis with many(Parenthesis)
+  private val EmptyParenthesis: Parser<ParenthesisT> = label("empty-parenthesis")(
+    LeftParen with nullable<ArgsT>() with RightParen
   )
 
+  private val Parenthesis: Parser<ParenthesisT> = label("parenthesis")(ArgsParenthesis or EmptyParenthesis)
+  private val CurlingArgs: Parser<CurlingArgsT> = label("curling-args")(Parenthesis with many(Parenthesis))
+
   private val Call = label("call")(
-    combine(Callee, CurlingArgs) { name, args ->
+    combine(label("callee")(Get or Primary), CurlingArgs) { name, args ->
       val (headArgs, tailArgs) = args
       val (_, firstArgs) = headArgs
 
@@ -48,8 +47,12 @@ internal object Access : Grammar<Expr>() {
 
         return (listOf((null as Token?) to head) + tail)
           .groupBy(
-            keySelector = { (_, argument) -> argument.first?.name },
-            valueTransform = { (_, argument) -> argument.third }
+            keySelector = { (_, argument) ->
+              argument.first?.first?.name // argumentName
+            },
+            valueTransform = { (_, argument) ->
+              argument.second // argumentValue
+            }
           )
           .mapValues { it.value.last() }
       }
