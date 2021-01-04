@@ -1,6 +1,4 @@
-import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.parser.grammar.Declaration
-import com.lorenzoog.kofl.frontend.parser.lib.many
 import com.lorenzoog.kofl.frontend.parser.lib.parse
 import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
 
@@ -18,7 +16,7 @@ fun main() {
       val s = "";
       val s: String = 4;
     
-      println("");
+      println(s = a =  4);
       
       if 40 
         then println("")
@@ -36,7 +34,7 @@ fun main() {
   println("RESULT: " + Declaration.Program.parse(input).unwrapOr { result ->
     println("Expected: ${result.expected};")
     println("Actual: ${result.actual};")
-    println("Char: ${input.getOrNull(result.actual.index)}")
+    println("Char: '${input.getOrNull(result.actual.index)}'")
 
     return
   })
