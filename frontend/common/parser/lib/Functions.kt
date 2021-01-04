@@ -5,6 +5,7 @@ package com.lorenzoog.kofl.frontend.parser.lib
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.frontend.parser.grammar.line
+import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
 /**
@@ -377,6 +378,7 @@ inline fun <reified T> many(noinline parser: Parser<T>): Parser<List<T>> {
  * @param second
  * @return parse func of pair
  */
+@JsName("withAnother")
 @JvmName("withAnother")
 infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = combine(this, second) { a, b ->
   a to b
@@ -389,11 +391,35 @@ infix fun <A, B> Parser<A>.with(second: Parser<B>): Parser<Pair<A, B>> = combine
  * @param third
  * @return parse func of triple
  */
-@JvmName("withPair")
+@JsName("withPairToTriple")
+@JvmName("withPairToTriple")
 infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> =
   combine(this, third) { (a, b), c ->
     Triple(a, b, c)
   }
+
+/**
+ * Combines [this] with [third] into a tuple of both
+ *
+ * @see combine
+ * @param third
+ * @return parse func of triple
+ */
+@JsName("withPairToPair")
+@JvmName("withPairToPair")
+infix fun <A, B, C> Parser<Pair<A, B>>.withPair(third: Parser<C>): Parser<Pair<Pair<A, B>, C>> =
+  combine(this, third) { a, b ->
+    Pair(a, b)
+  }
+
+/**
+ * Returns a nullable parser of [T]
+ *
+ * @return a null success
+ */
+fun <T> nullable(): Parser<T?> = {
+  ParseResult.Success(null, it)
+}
 
 /**
  * Gets lazied a parse function
