@@ -6,7 +6,7 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
-val token = lexeme(label("junk")(regex("\\s*".toRegex())) or regex("\\t*".toRegex()))
+val token = lexeme(label("junk")(regex("\\s*\\r*\\t*".toRegex())))
 
 val Plus = token(text(TokenType.Plus, "+"))
 val Minus = token(text(TokenType.Minus, "-"))

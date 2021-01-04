@@ -10,4 +10,8 @@ abstract class Grammar<T> : Parser<T> {
   override fun invoke(input: Context): ParseResult<T> {
     return rule(input)
   }
+
+  override fun toString(): String {
+    return rule.toString()
+  }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
@@ -5,15 +7,15 @@ import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.parser.lib.*
 
 internal object If : Grammar<Expr>() {
-  private val Block = combine(LeftBrace, lazied { Statement.Block }, RightBrace) { _, body, _ ->
+  val Block = combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->
     body
   }
 
-  private val IfBody = label("if-body")(
+  val IfBody = label("if-body")(
     Block or combine(Keywords.Then, Func) { _, expr -> listOf(Stmt.ExprStmt(expr, line)) }
   )
 
-  private val ElseBody = label("else-body")(
+  val ElseBody = label("else-body")(
     combine(Keywords.Else, (Block or (Func.map { listOf<Stmt>(Stmt.ExprStmt(it, line)) }))) { _, body ->
       body
     }
