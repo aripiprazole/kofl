@@ -27,6 +27,8 @@ inline fun <T> ParseResult<T>.expect(lazyMessage: () -> String): T {
   }
 }
 
+fun <T> Parser<T>.parse(input: String) = this(EmptyContext.copy(input = input))
+
 fun <T> ParseResult<T>.unwrap(): T {
   return when (this) {
     is Error -> error("Expected: '$expected'. Actual: '$actual'")
