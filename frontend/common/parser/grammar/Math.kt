@@ -4,7 +4,9 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Math : Grammar<Expr>() {
   val Unary = label("unary")(
     Access or combine((Plus or Minus), Access) { op, rhs ->

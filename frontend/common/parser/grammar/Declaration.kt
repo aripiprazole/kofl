@@ -6,7 +6,9 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Declaration : Grammar<Stmt>() {
   fun handleVar(keyword: Parser<Token>): Parser<Triple<Token, Token?, Expr>> {
     val untypedVar =

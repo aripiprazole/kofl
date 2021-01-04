@@ -6,7 +6,9 @@ import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Func : Grammar<Expr>() {
   fun handleParameters(parameterList: List<Pair<Expr.Var, Expr.Var>>): Map<Token, Token> {
     return parameterList

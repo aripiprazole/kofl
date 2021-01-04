@@ -21,5 +21,6 @@ internal class ParserImpl(private val code: String, private val repl: Boolean) :
 
   override fun parse(): List<Stmt> {
     return parseImpl().unwrap()
+      .filter { it !is Stmt.CommentDecl }
   }
 }

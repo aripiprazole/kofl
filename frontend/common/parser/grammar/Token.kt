@@ -54,6 +54,10 @@ val Group = label("group")(
   }
 )
 
+val Boolean = label("boolean")(
+  (Keywords.True or Keywords.False).mapToLiteral()
+)
+
 val Primary = label("primary")(
-  Identifier or Text or Numeric or Group
+  Boolean or Identifier or Text or Numeric or Group
 )

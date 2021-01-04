@@ -4,7 +4,9 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Statement : Grammar<Stmt>() {
   val IfStmt = label("if-stmt")(
     optionalSemicolon(If.If map { Stmt.ExprStmt(it, line) })

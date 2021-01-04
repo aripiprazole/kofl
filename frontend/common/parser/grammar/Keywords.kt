@@ -2,9 +2,13 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.frontend.parser.lib.text
+import kotlin.native.concurrent.ThreadLocal
 
+@ThreadLocal
 internal object Keywords {
   val Func = token(text(TokenType.Func, "func"))
+  val True = token(text(TokenType.True, "true"))
+  val False = token(text(TokenType.True, "false"))
   val If = token(text(TokenType.If, "if"))
   val Else = token(text(TokenType.Else, "else"))
   val Type = token(text(TokenType.Type, "type"))
