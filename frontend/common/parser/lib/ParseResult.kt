@@ -6,18 +6,11 @@ import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Success
 typealias Parser<T> = (Context) -> ParseResult<T>
 
 sealed class ParseResult<T> {
-  data class Success<T>(
-    val data: T,
-    val rest: Context = EmptyContext
-  ) : ParseResult<T>() {
+  data class Success<T>(val data: T, val rest: Context = EmptyContext) : ParseResult<T>() {
     override fun toString(): String = "Success(data=$data, rest=$rest)"
   }
 
-  data class Error(
-    val expected: String,
-    val actual: Context,
-    val location: Location? = null
-  ) : ParseResult<Nothing>()
+  data class Error(val expected: String, val actual: Context) : ParseResult<Nothing>()
 }
 
 inline fun <T> ParseResult<T>.expect(lazyMessage: () -> String): T {
@@ -43,7 +36,7 @@ inline fun <T, R> ParseResult<T>.flatMap(fn: (T) -> ParseResult<R>): ParseResult
   }
 }
 
-inline fun <T> ParseResult<T>.nullable(): ParseResult<T?> {
+fun <T> ParseResult<T>.nullable(): ParseResult<T?> {
   return map { it }
 }
 
