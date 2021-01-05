@@ -1,14 +1,34 @@
 package com.lorenzoog.kofl.frontend
 
+import com.lorenzoog.kofl.frontend.parser.ParserImpl
+
 private const val MAX_ARGS = 32  // the limit is really 31 'cause the this is passed as a arg
 private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"
 private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
 
-class Parser(private val tokens: List<Token>, private val repl: Boolean = false) {
+interface Parser {
+  fun parse(): List<Stmt>
+}
+
+@Deprecated(
+  message = "Use directly the code instead tokenize before",
+  replaceWith = ReplaceWith("Parser(code, repl)")
+)
+fun Parser(tokens: List<Token>, repl: Boolean = false): Parser {
+  error("'Parser(tokens: List<Token>, repl: Boolean = false)' NOT IMPLEMENTED. SHOULD NOT BE CALLED.")
+}
+
+fun Parser(code: String, repl: Boolean = false): Parser {
+  return ParserImpl(code, repl)
+}
+
+private class OldParserImpl(private val tokens: List<Token>, private val repl: Boolean) : Parser {
+  constructor(code: String, repl: Boolean) : this(Scanner(code).scan(), repl)
+
   private val isAtEnd get() = peek().type == TokenType.Eof
   private var current = 0
 
-  fun parse(): List<Stmt> {
+  override fun parse(): List<Stmt> {
     val stmts = mutableListOf<Stmt>()
 
     while (!isAtEnd) {
@@ -52,7 +72,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
       else -> if (repl) statement() else throw error(expecting("declaration"))
     }
-  } catch (exception: ParseException) {
+  } catch (exception: ParseExceptionOld) {
     // panic mode
     synchronize()
     exception.report()
@@ -175,7 +195,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     val body = when {
       match(TokenType.LeftBrace) -> block()
-      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
       else -> throw error(expecting(start("while body")))
     }
 
@@ -225,13 +245,13 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
 
     val mainBranch = when {
       match(TokenType.LeftBrace) -> block()
-      match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+      match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
       else -> throw error(expecting(start("if body")))
     }
     val elseBranch = if (match(TokenType.Else))
       when {
         match(TokenType.LeftBrace) -> block()
-        match(TokenType.Do) -> listOf(Stmt.ExprStmt(expression(), line()))
+        match(TokenType.Then) -> listOf(Stmt.ExprStmt(expression(), line()))
         else -> throw error(expecting(start("else body")))
       }
     else null
@@ -532,7 +552,7 @@ class Parser(private val tokens: List<Token>, private val repl: Boolean = false)
   private inline fun requireSemicolon(): Token = consume(TokenType.Semicolon)
     ?: throw error(expecting(TokenType.Semicolon))
 
-  private inline fun error(message: String = "", token: Token = peek()) = ParseException(token, message)
+  private inline fun error(message: String = "", token: Token = peek()) = ParseExceptionOld(token, message)
 
   private inline fun expecting(type: Any) = "expecting $type"
   private inline fun notExpecting(type: Any) = "not expecting $type"
