@@ -8,10 +8,10 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
-import com.lorenzoog.kofl.compiler.common.backend.AstConverter
+import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
-import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
+import com.lorenzoog.kofl.compiler.common.typing.KfType
+import com.lorenzoog.kofl.compiler.common.typing.TypeScope
 import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Scanner
 import com.lorenzoog.kofl.frontend.Stack
@@ -38,17 +38,18 @@ class Koflc : CliktCommand() {
     val target = File(target)
 
     val locals = mutableMapOf<Descriptor, Int>()
-    val container = TypeContainer().apply {
-      defineType("Any", KoflType.Any)
-      defineType("String", KoflType.String)
-      defineType("Int", KoflType.Int)
-      defineType("Double", KoflType.Double)
-      defineType("Boolean", KoflType.Boolean)
-      defineType("Unit", KoflType.Unit)
+    val container = TypeScope().apply {
+      defineType("Any", KfType.Any)
+      defineType("String", KfType.String)
+      defineType("Int", KfType.Int)
+      defineType("Double", KfType.Double)
+      defineType("Boolean", KfType.Boolean)
+      defineType("Unit", KfType.Unit)
     }
 
-    val parser = Parser(file.readContents().decodeToString(), repl = true)
-    val converter = AstConverter(locals, Stack<TypeContainer>(maxStack).also { stack ->
+    val lexer = Scanner(file.readContents().decodeToString())
+    val parser = Parser(lexer.scan(), repl = true)
+    val converter = TreeDescriptorMapper(locals, Stack<TypeScope>(maxStack).also { stack ->
       stack.push(container)
     })
     val compiler = Compiler(verbose, converter.compile(parser.parse()).toList())

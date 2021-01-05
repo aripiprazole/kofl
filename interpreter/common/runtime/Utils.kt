@@ -3,9 +3,9 @@ package com.lorenzoog.kofl.interpreter.runtime
 import com.lorenzoog.kofl.compiler.common.KoflCompileException
 import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
 import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 
-class ClassBuilder internal constructor(private val definition: KoflType.Class) {
+class ClassBuilder internal constructor(private val definition: KfType.Class) {
   private val constructors = mutableListOf<KoflObject.Callable>()
   private val fields = mutableMapOf<String, Value>()
   private val functions = mutableMapOf<String, List<KoflObject.Callable>>()
@@ -20,11 +20,11 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
     constructors += function
   }
 
-  inline fun constructor(vararg parameters: Pair<String, KoflType>, noinline function: KoflNativeCallable) {
+  inline fun constructor(vararg parameters: Pair<String, KfType>, noinline function: KoflNativeCallable) {
     constructor(mapOf(*parameters), function)
   }
 
-  fun constructor(parameters: Map<String, KoflType>, function: KoflNativeCallable) {
+  fun constructor(parameters: Map<String, KfType>, function: KoflNativeCallable) {
     val descriptor = NativeFunctionDescriptor(
       name = definition.name ?: "<no name provided>",
       parameters = parameters,
@@ -46,7 +46,7 @@ class ClassBuilder internal constructor(private val definition: KoflType.Class) 
 }
 
 fun Environment.createClass(
-  definition: KoflType.Class,
+  definition: KfType.Class,
   builder: ClassBuilder.() -> Unit = {}
 ): KoflObject.Class {
   val name = definition.name ?: throw KoflCompileException.ClassMissingName(definition)
@@ -59,7 +59,7 @@ fun Environment.createClass(
   return koflClass
 }
 
-fun Environment.createSingleton(definition: KoflType.Class, builder: ClassBuilder.() -> Unit = {}): KoflObject {
+fun Environment.createSingleton(definition: KfType.Class, builder: ClassBuilder.() -> Unit = {}): KoflObject {
   val name = definition.name ?: throw KoflCompileException.ClassMissingName(definition)
   val koflClass = createClass(definition, builder)
 
@@ -67,7 +67,5 @@ fun Environment.createSingleton(definition: KoflType.Class, builder: ClassBuilde
 
   return createInstance(createInstance.descriptor, mapOf(), this).also { instance ->
     declare(name, Value.Immutable(instance))
-
-    println("$this")
   }
 }
