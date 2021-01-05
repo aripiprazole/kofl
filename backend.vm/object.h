@@ -5,14 +5,14 @@
 
 typedef enum object_type {
     OBJ_T_STR,
-} object_type_t;
+} ObjectType;
 
-typedef struct object {
+typedef struct {
     struct object* next;
-} object_t;
+} Object;
 
 typedef struct string {
-    object_t holder;
+    Object holder;
     size_t length;
     char *values;
 } string_t;

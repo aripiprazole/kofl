@@ -73,4 +73,3 @@ sealed class KfType {
     val Boolean = createClassDefinition("Boolean")
   }
 }
-

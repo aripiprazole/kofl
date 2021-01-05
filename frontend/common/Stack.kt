@@ -2,7 +2,9 @@ package com.lorenzoog.kofl.frontend
 
 class StackOverflowException : Error()
 class StackUnderflowException : Error()
-class StackOutOfBoundsException(stack: Stack<*>, index: Int) : Error("STACK OUT OF BOUNDS WHEN TRYING $index IN $stack")
+class StackOutOfBoundsException(stack: Stack<*>, index: Int) : Error(
+  "STACK OUT OF BOUNDS WHEN TRYING $index IN $stack"
+)
 
 interface Stack<T> {
   val size: Int
@@ -51,7 +53,7 @@ private class StackImpl<T>(override val size: Int) : Stack<T> {
   }
 
   override fun peek(): T {
-    return get(top - 1) ?: throw StackOutOfBoundsException(this, top -1)
+    return get(top - 1) ?: throw StackOutOfBoundsException(this, top - 1)
   }
 
   override fun toString(): String = items.toList().toString()

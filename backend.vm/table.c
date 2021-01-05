@@ -32,8 +32,8 @@ long table_hash(const char *key, int length) {
     return hash;
 }
 
-table_t *table_create(size_t capacity) {
-    table_t *table = malloc(sizeof(table_t));
+Table *table_create(size_t capacity) {
+    Table *table = malloc(sizeof(Table));
 
     table->capacity = capacity;
     table->count = 0;
@@ -57,7 +57,7 @@ table_t *table_create(size_t capacity) {
  * @param key the string key
  * @return the table node
  */
-table_node_t *table_find_entry(table_t *table, string_t *key) {
+table_node_t *table_find_entry(Table *table, string_t *key) {
     uint32_t index = table_hash(key->values, key->length) % table->capacity;
     table_node_t *tombstone = NULL;
 
@@ -85,7 +85,7 @@ table_node_t *table_find_entry(table_t *table, string_t *key) {
     }
 }
 
-void table_adjust(table_t *table, size_t capacity) {
+void table_adjust(Table *table, size_t capacity) {
     table_node_t *nodes = ALLOCATE(table_node_t, capacity);
 
     for (int i = 0; i < capacity; i++) {
@@ -112,7 +112,7 @@ void table_adjust(table_t *table, size_t capacity) {
     table->capacity = capacity;
 }
 
-void *table_get(table_t *table, string_t *key) {
+void *table_get(Table *table, string_t *key) {
     if (table->count == 0) return NULL;
 
     table_node_t *node = table_find_entry(table, key);
@@ -126,7 +126,7 @@ void *table_get(table_t *table, string_t *key) {
  * @param key the string key
  * @return if the operation was successful
  */
-bool table_remove(table_t *table, string_t *key) {
+bool table_remove(Table *table, string_t *key) {
     if (table->count == 0) return false;
 
     table_node_t *node = table_find_entry(table, key);
@@ -145,7 +145,7 @@ bool table_remove(table_t *table, string_t *key) {
  * @param value the value
  * @return if the node is new
  */
-bool table_set(table_t *table, string_t* key, void *value) {
+bool table_set(Table *table, string_t* key, void *value) {
     table_node_t *node = table_find_entry(table, key);
 
     if (table->count + 1 > (table->capacity + 1) * TABLE_MAX_LOAD) { // NOLINT(cppcoreguidelines-narrowing-conversions)
@@ -163,7 +163,7 @@ bool table_set(table_t *table, string_t* key, void *value) {
     return is_new;
 }
 
-void table_dispose(table_t *table) {
+void table_dispose(Table *table) {
     free(table->nodes);
     free(table);
 }

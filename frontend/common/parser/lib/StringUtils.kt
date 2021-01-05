@@ -6,7 +6,7 @@ import com.lorenzoog.kofl.frontend.parser.grammar.isDigit
 
 typealias StringMatcher = (input: String, index: Int, current: Char) -> Boolean
 
-inline fun String.match(predicate: StringMatcher): String {
+fun String.match(predicate: StringMatcher): String {
   for (index in 0 until length) {
     if (!predicate(this, index, get(index))) {
       return substring(0, index)
@@ -16,7 +16,7 @@ inline fun String.match(predicate: StringMatcher): String {
   return this
 }
 
-inline fun String.matchString(): String? {
+fun String.matchString(): String? {
   if (length < 2) return null
 
   if (!startsWith('"')) return null
@@ -30,7 +30,7 @@ inline fun String.matchString(): String? {
   return this
 }
 
-inline fun String.matchIdentifier(): String? {
+fun String.matchIdentifier(): String? {
   if (isEmpty()) return null
   if (!get(0).isAlpha()) return null
 
@@ -44,7 +44,7 @@ inline fun String.matchIdentifier(): String? {
   return this
 }
 
-inline fun String.matchNumeric(): String {
+fun String.matchNumeric(): String {
   return match { input, index, current ->
     current.isDigit() || (current == '.' && input.getOrNull(index + 1)?.isDigit() == true)
   }

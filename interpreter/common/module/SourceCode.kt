@@ -7,7 +7,10 @@ import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
 import com.lorenzoog.kofl.interpreter.runtime.KoflObject
 
-class MainNotFoundException internal constructor() : Error("Main not found in programing, exiting 1")
+class MainNotFoundException internal constructor() : Error(
+  "Main not found in programing, exiting 1"
+)
+
 class MainReturnedNotInt internal constructor() : Error("Main returned other thing that isn't Int")
 
 class SourceCode(
@@ -35,7 +38,7 @@ class SourceCode(
   fun main(args: Array<String>): Int {
     // TODO handle args
 
-    if(debug) println("OBJECTS: $objects")
+    if (debug) println("OBJECTS: $objects")
 
     initRuntime()
 
@@ -51,5 +54,4 @@ class SourceCode(
       if (it !is Int) throw MainReturnedNotInt()
     } as Int
   }
-
 }

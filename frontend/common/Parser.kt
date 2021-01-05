@@ -2,7 +2,7 @@ package com.lorenzoog.kofl.frontend
 
 import com.lorenzoog.kofl.frontend.parser.ParserImpl
 
-private const val MAX_ARGS = 32  // the limit is really 31 'cause the this is passed as a arg
+private const val MAX_ARGS = 32 // the limit is really 31 'cause the this is passed as a arg
 private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"
 private const val INVALID_RIGHT_ASSOCIATIVE_ERROR_MESSAGE = "invalid right-associative assignment"
 
@@ -10,19 +10,14 @@ interface Parser {
   fun parse(): List<Stmt>
 }
 
-@Deprecated(
-  message = "Use directly the code instead tokenize before",
-  replaceWith = ReplaceWith("Parser(code, repl)")
-)
-fun Parser(tokens: List<Token>, repl: Boolean = false): Parser {
-  error("'Parser(tokens: List<Token>, repl: Boolean = false)' NOT IMPLEMENTED. SHOULD NOT BE CALLED.")
-}
-
 fun Parser(code: String, repl: Boolean = false): Parser {
   return ParserImpl(code, repl)
 }
 
-private class OldParserImpl(private val tokens: List<Token>, private val repl: Boolean) : Parser {
+@ExperimentalStdlibApi
+@Deprecated("Use the new parser")
+class PrattParserImpl(private val tokens: List<Token>, private val repl: Boolean) : Parser {
+  @Suppress("unused")
   constructor(code: String, repl: Boolean) : this(Scanner(code).scan(), repl)
 
   private val isAtEnd get() = peek().type == TokenType.Eof
@@ -118,7 +113,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     return initializer
   }
 
-  @OptIn(ExperimentalStdlibApi::class)
   private fun recordDeclaration(): Stmt {
     consume(TokenType.Record) ?: throw error(expecting(TokenType.Record))
 
@@ -211,7 +205,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
   }
 
   // expressions
-  @OptIn(ExperimentalStdlibApi::class)
   private fun expression(): Expr {
     if (match(TokenType.If)) return ifExpr(IfType.Anonymous)
     if (match(TokenType.Func)) return funcExpr(FuncType.Anonymous)
@@ -265,7 +258,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
 
   private enum class FuncType { Anonymous, Func }
 
-  @OptIn(ExperimentalStdlibApi::class)
   private fun funcExpr(type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
     fun Token?.orThrow() = this ?: throw error(expecting("function's name"))
 
@@ -292,7 +284,11 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     }
   }
 
-  private fun extensionFuncExpr(receiver: Token, type: FuncType, modifiers: List<TokenType> = emptyList()): Expr {
+  private fun extensionFuncExpr(
+    receiver: Token,
+    type: FuncType,
+    modifiers: List<TokenType> = emptyList()
+  ): Expr {
     val name = previous()
 
     consume(TokenType.LeftParen) ?: throw error(expecting(start("arguments")))
@@ -318,7 +314,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     }
   }
 
-  @OptIn(ExperimentalStdlibApi::class)
   private fun parameters(): Map<Token, Token> {
     val parameters = buildMap<Token, Token> {
       if (!check(TokenType.RightParen))
@@ -438,7 +433,9 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     while (true) expr = when {
       match(TokenType.LeftParen) -> finishCall(expr)
       match(TokenType.Dot) -> {
-        val name = consume(TokenType.Identifier) ?: throw error(expecting("identifier after ${TokenType.Dot}"))
+        val name = consume(TokenType.Identifier) ?: throw error(
+          expecting("identifier after ${TokenType.Dot}")
+        )
 
         Expr.Get(expr, name, line())
       }
@@ -448,7 +445,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     return expr
   }
 
-  @OptIn(ExperimentalStdlibApi::class)
   private fun arguments(): Map<Token?, Expr> {
     val arguments = buildMap<Token?, Expr> {
       if (!check(TokenType.RightParen)) {
@@ -474,7 +470,6 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     return arguments
   }
 
-  @OptIn(ExperimentalStdlibApi::class)
   private fun finishCall(callee: Expr): Expr {
     return Expr.Call(callee, arguments(), line())
   }
@@ -485,13 +480,19 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
 
     match(TokenType.This) -> Expr.ThisExpr(previous(), line())
 
-    match(TokenType.Double, TokenType.String, TokenType.Int) -> Expr.Literal(previous().let {
-      it.literal ?: ""
-    }, line()) // TODO: fixme
+    match(TokenType.Double, TokenType.String, TokenType.Int) -> Expr.Literal(
+      previous().let {
+        it.literal ?: ""
+      },
+      line()
+    ) // TODO: fixme
 
-    match(TokenType.LeftParen) -> Expr.Grouping(expression().also {
-      consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
-    }, line())
+    match(TokenType.LeftParen) -> Expr.Grouping(
+      expression().also {
+        consume(TokenType.RightParen) ?: throw error(expecting(TokenType.RightParen))
+      },
+      line()
+    )
 
     match(TokenType.Identifier) -> Expr.Var(previous(), line())
 
@@ -537,26 +538,28 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
     return previous()
   }
 
-  private inline fun line(): Int {
+  private fun line(): Int {
     return previous().line
   }
 
-  private inline fun peek(): Token {
+  private fun peek(): Token {
     return tokens[current]
   }
 
-  private inline fun previous(): Token {
+  private fun previous(): Token {
     return tokens[current - 1]
   }
 
-  private inline fun requireSemicolon(): Token = consume(TokenType.Semicolon)
+  private fun requireSemicolon(): Token = consume(TokenType.Semicolon)
     ?: throw error(expecting(TokenType.Semicolon))
 
-  private inline fun error(message: String = "", token: Token = peek()) = ParseExceptionOld(token, message)
+  private fun error(message: String = "", token: Token = peek()) = ParseExceptionOld(
+    token,
+    message
+  )
 
-  private inline fun expecting(type: Any) = "expecting $type"
-  private inline fun notExpecting(type: Any) = "not expecting $type"
-  private inline fun start(type: Any) = "start of $type"
-  private inline fun end(type: Any) = "end of $type"
+  private fun expecting(type: Any) = "expecting $type"
+  private fun notExpecting(type: Any) = "not expecting $type"
+  private fun start(type: Any) = "start of $type"
+  private fun end(type: Any) = "end of $type"
 }
-

@@ -6,7 +6,7 @@ fun main(args: Array<String>) {
   interpreter.execute(
     """
     | external func println(message: String);
-    | 
+    |
     | println();
     """.trimIndent()
   ).main(args)

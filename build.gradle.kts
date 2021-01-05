@@ -1,5 +1,7 @@
 plugins {
   kotlin("multiplatform") version "1.4.30-M1"
+  id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
+  id("composite-build")
 }
 
 group = "com.lorenzoog"
@@ -8,6 +10,15 @@ version = "1.0-SNAPSHOT"
 repositories {
   jcenter()
   mavenCentral()
+}
+
+allprojects {
+  apply(plugin = "composite-build")
+  apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+  ktlint {
+    android.set(true)
+  }
 }
 
 kotlin {
@@ -31,4 +42,3 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
   kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
 }
-

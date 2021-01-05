@@ -1,3 +1,5 @@
+import com.lorenzoog.kofl.build.Dependencies
+
 plugins {
   kotlin("multiplatform")
 }
@@ -36,7 +38,7 @@ kotlin {
       kotlin.srcDir("common")
 
       dependencies {
-        api("pw.binom.io:file:0.1.19")
+        api(Dependencies.Binom.File)
         implementation(project(":frontend"))
         implementation(project(":compiler.common"))
         implementation(kotlin("stdlib-common"))
@@ -62,7 +64,7 @@ kotlin {
       kotlin.srcDir("native")
 
       dependencies {
-        implementation("com.github.ajalt.clikt:clikt:3.1.0")
+        implementation(Dependencies.Clikt.Clikt)
       }
     }
     val nativeTest by getting {

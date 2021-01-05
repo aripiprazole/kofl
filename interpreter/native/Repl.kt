@@ -2,8 +2,27 @@
 
 package com.lorenzoog.kofl.interpreter
 
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.MemScope
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.nativeHeap
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.staticCFunction
+import platform.posix.ECHO
+import platform.posix.ICANON
+import platform.posix.ICRNL
+import platform.posix.IEXTEN
+import platform.posix.ISIG
+import platform.posix.STDIN_FILENO
+import platform.posix.TCSAFLUSH
+import platform.posix.atexit
+import platform.posix.exit
+import platform.posix.getenv
+import platform.posix.system
+import platform.posix.tcgetattr
+import platform.posix.tcsetattr
+import platform.posix.termios
 import pw.binom.io.file.File
 import pw.binom.io.file.read
 import pw.binom.io.readText
@@ -78,11 +97,12 @@ internal fun startRepl(logger: Logger, debug: Boolean, path: String): Unit = mem
     when (val line = readLine().orEmpty()) {
       ":quit" -> exit(0)
       ":clear" -> clearScreen()
-      else -> try {
-        eval(line) // interpret and run the provided code in the line
-      } catch (error: Throwable) {
-        logger.handleError(error)
-      }
+      else ->
+        try {
+          eval(line) // interpret and run the provided code in the line
+        } catch (error: Throwable) {
+          logger.handleError(error)
+        }
     }
 
     logger.println()

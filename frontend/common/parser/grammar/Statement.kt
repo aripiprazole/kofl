@@ -3,7 +3,14 @@
 package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.parser.lib.*
+import com.lorenzoog.kofl.frontend.parser.lib.Grammar
+import com.lorenzoog.kofl.frontend.parser.lib.Parser
+import com.lorenzoog.kofl.frontend.parser.lib.combine
+import com.lorenzoog.kofl.frontend.parser.lib.label
+import com.lorenzoog.kofl.frontend.parser.lib.many
+import com.lorenzoog.kofl.frontend.parser.lib.map
+import com.lorenzoog.kofl.frontend.parser.lib.or
+import com.lorenzoog.kofl.frontend.parser.lib.plus
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
@@ -17,15 +24,19 @@ internal object Statement : Grammar<Stmt>() {
   )
 
   val ReturnStmt = label("return-stmt")(
-    semicolon(combine(Keywords.Return, Func) { _, value ->
-      Stmt.ReturnStmt(value, line)
-    })
+    semicolon(
+      combine(Keywords.Return, Func) { _, value ->
+        Stmt.ReturnStmt(value, line)
+      }
+    )
   )
 
   val WhileStmt = label("while-stmt")(
-    optionalSemicolon(combine(Keywords.While, Func, Body) { _, condition, body ->
-      Stmt.WhileStmt(condition, body, line)
-    })
+    optionalSemicolon(
+      combine(Keywords.While, Func, Body) { _, condition, body ->
+        Stmt.WhileStmt(condition, body, line)
+      }
+    )
   )
 
   val REPL = many(this) + EOF
