@@ -1,9 +1,10 @@
 package com.lorenzoog.kofl.compiler.common.backend
 
 import com.lorenzoog.kofl.compiler.common.KoflCompileException
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
-import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
-import com.lorenzoog.kofl.compiler.common.typing.TypeValidator
+import com.lorenzoog.kofl.compiler.common.typing.KfType
+import com.lorenzoog.kofl.compiler.common.typing.TypeScope
+import com.lorenzoog.kofl.compiler.common.typing.analyzer.DefaultTreeAnalyzer
+import com.lorenzoog.kofl.compiler.common.typing.analyzer.TreeAnalyzer
 import com.lorenzoog.kofl.compiler.common.typing.match
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stack
@@ -13,12 +14,12 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-class AstConverter(
+class TreeDescriptorMapper(
   locals: MutableMap<Descriptor, Int>,
-  private val container: Stack<TypeContainer>
+  private val container: Stack<TypeScope>,
+  private val analyzer: TreeAnalyzer = DefaultTreeAnalyzer(locals, container)
 ) : Expr.Visitor<Descriptor>, Stmt.Visitor<Descriptor> {
   private val emitter = Emitter()
-  private val validator = TypeValidator(locals, container)
 
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
     visitStmts(stmts).map {
@@ -29,7 +30,7 @@ class AstConverter(
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Descriptor {
-    val type = validator.visitAssignExpr(expr)
+    val type = analyzer.analyze(expr)
     val name = expr.name.lexeme
     val value = visitExpr(expr.value)
 
@@ -37,7 +38,7 @@ class AstConverter(
   }
 
   override fun visitBinaryExpr(expr: Expr.Binary): Descriptor {
-    val type = validator.visitBinaryExpr(expr)
+    val type = analyzer.analyze(expr)
     val op = expr.op.type
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
@@ -46,7 +47,7 @@ class AstConverter(
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): Descriptor {
-    val type = validator.visitLogicalExpr(expr)
+    val type = analyzer.analyze(expr)
     val op = expr.op.type
     val left = visitExpr(expr.left)
     val right = visitExpr(expr.right)
@@ -59,13 +60,13 @@ class AstConverter(
   }
 
   override fun visitLiteralExpr(expr: Expr.Literal): Descriptor {
-    val type = validator.visitLiteralExpr(expr)
+    val type = analyzer.analyze(expr)
 
     return ConstDescriptor(expr.value, type, expr.line)
   }
 
   override fun visitUnaryExpr(expr: Expr.Unary): Descriptor {
-    val type = validator.visitUnaryExpr(expr)
+    val type = analyzer.analyze(expr)
     val op = expr.op.type
     val right = visitExpr(expr.right)
 
@@ -73,13 +74,12 @@ class AstConverter(
   }
 
   override fun visitVarExpr(expr: Expr.Var): Descriptor {
-    return AccessVarDescriptor(expr.name.lexeme, validator.visitVarExpr(expr), expr.line)
+    return AccessVarDescriptor(expr.name.lexeme, analyzer.analyze(expr), expr.line)
   }
 
   override fun visitCallExpr(expr: Expr.Call): Descriptor {
-    val overload = validator.findCallOverload(expr.calle)
-    val type = validator.findCallCallee(expr.calle, expr.arguments)
-    val returnType = validator.visitCallExpr(expr)
+    val overload = analyzer.findOverload(expr.calle)
+    val type = analyzer.findCallable(expr.calle, expr.arguments)
 
     val index = overload.indexOf(type)
 
@@ -106,11 +106,11 @@ class AstConverter(
       else -> visitExpr(expr.calle)
     }
 
-    return CallDescriptor(callee, arguments, returnType, expr.line)
+    return CallDescriptor(callee, arguments, type.returnType, expr.line)
   }
 
   override fun visitGetExpr(expr: Expr.Get): Descriptor {
-    val type = validator.visitGetExpr(expr)
+    val type = analyzer.analyze(expr)
     val receiver = visitExpr(expr.receiver)
     val name = expr.name.lexeme
 
@@ -118,7 +118,7 @@ class AstConverter(
   }
 
   override fun visitSetExpr(expr: Expr.Set): Descriptor {
-    val type = validator.visitSetExpr(expr)
+    val type = analyzer.analyze(expr)
     val receiver = visitExpr(expr.receiver)
     val value = visitExpr(expr.value)
     val name = expr.name.lexeme
@@ -127,11 +127,11 @@ class AstConverter(
   }
 
   override fun visitThisExpr(expr: Expr.ThisExpr): Descriptor {
-    return ThisDescriptor(expr.line, KoflType.Any)
+    return ThisDescriptor(expr.line, KfType.Any)
   }
 
   override fun visitIfExpr(expr: Expr.IfExpr): Descriptor {
-    val type = validator.visitIfExpr(expr)
+    val type = analyzer.analyze(expr)
     val condition = visitExpr(expr.condition)
     val then = visitStmts(expr.thenBranch)
     val orElse = visitStmts(expr.elseBranch ?: emptyList())
@@ -140,16 +140,16 @@ class AstConverter(
   }
 
   override fun visitFuncExpr(expr: Expr.CommonFunc): Descriptor {
-    validator.visitFuncExpr(expr)
+    analyzer.analyze(expr)
 
     val name = expr.name.lexeme
-    val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType)
+    val parameters = findParametersTypes(expr.parameters)
+    val returnType = findReturnTypeByToken(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
     val indexedName = name.indexed(index)
 
-    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
+    container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
     return FunctionDescriptor(indexedName, parameters, returnType, scoped { container ->
       parameters.forEach { (name, type) ->
@@ -157,19 +157,19 @@ class AstConverter(
       }
 
       visitStmts(expr.body)
-    }, expr.line)
+    }, expr.line, name)
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): Descriptor {
-    validator.visitExtensionFuncExpr(expr)
+    analyzer.analyze(expr)
 
     val name = expr.name.lexeme
-    val parameters = mapOf("this" to findType(expr.receiver.lexeme)) + typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType)
+    val parameters = mapOf("this" to findTypeByName(expr.receiver.lexeme)) + findParametersTypes(expr.parameters)
+    val returnType = findReturnTypeByToken(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
 
-    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
+    container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
     return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped { container ->
       parameters.forEach { (name, type) ->
@@ -177,19 +177,27 @@ class AstConverter(
       }
 
       visitStmts(expr.body).let { body ->
-        if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KoflType.Unit)
+        if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KfType.Unit)
         // add return if return is missing and return type is unit
-          body + ReturnDescriptor(ConstDescriptor(Unit, KoflType.Unit, expr.line), KoflType.Unit, expr.line)
+          body + returnDescriptor {
+            value = constDescriptor {
+              value = Unit
+              type = KfType.Unit
+              line = expr.line
+            }
+            type = KfType.Unit
+            line = expr.line
+          }
         else body
       }
-    }, expr.line)
+    }, expr.line, name)
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): Descriptor {
-    validator.visitAnonymousFuncExpr(expr)
+    analyzer.analyze(expr)
 
-    val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType)
+    val parameters = findParametersTypes(expr.parameters)
+    val returnType = findReturnTypeByToken(expr.returnType)
 
     return LocalFunctionDescriptor(parameters, returnType, scoped { container ->
       parameters.forEach { (name, type) ->
@@ -201,18 +209,18 @@ class AstConverter(
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): Descriptor {
-    validator.visitNativeFuncExpr(expr)
+    analyzer.analyze(expr)
 
     val name = expr.name.lexeme
-    val parameters = typedParameters(expr.parameters)
-    val returnType = typedReturn(expr.returnType)
+    val parameters = findParametersTypes(expr.parameters)
+    val returnType = findReturnTypeByToken(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
     val indexedName = name.indexed(index)
 
-    container.peek().defineFunction(name, KoflType.Function(parameters, returnType))
+    container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
-    return NativeFunctionDescriptor(indexedName, parameters, returnType, name, expr.line)
+    return NativeFunctionDescriptor(indexedName, parameters, returnType, name, expr.line, name)
   }
 
   override fun visitExprStmt(stmt: Stmt.ExprStmt): Descriptor {
@@ -234,32 +242,35 @@ class AstConverter(
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): Descriptor {
-    val type = validator.visitReturnStmt(stmt)
+    analyzer.validate(stmt)
+
     val value = visitExpr(stmt.expr)
 
-    return ReturnDescriptor(value, type, stmt.line)
+    return ReturnDescriptor(value, analyzer.analyze(stmt.expr), stmt.line)
   }
 
   override fun visitValDeclStmt(stmt: Stmt.ValDecl): Descriptor {
-    val type = validator.visitValDeclStmt(stmt)
+    analyzer.validate(stmt)
+
     val name = stmt.name.lexeme
     val value = visitExpr(stmt.value)
 
-    return ValDescriptor(name, value, type, stmt.line)
+    return ValDescriptor(name, value, analyzer.analyze(stmt.value), stmt.line)
   }
 
   override fun visitVarDeclStmt(stmt: Stmt.VarDecl): Descriptor {
-    val type = validator.visitVarDeclStmt(stmt)
+    analyzer.validate(stmt)
+
     val name = stmt.name.lexeme
     val value = visitExpr(stmt.value)
 
-    return VarDescriptor(name, value, type, stmt.line)
+    return VarDescriptor(name, value, analyzer.analyze(stmt.value), stmt.line)
   }
 
   override fun visitTypeRecordStmt(stmt: Stmt.Type.Record): Descriptor {
     val name = stmt.name.lexeme
-    val inherits = emptyList<KoflType>()
-    val parameters = typedParameters(stmt.parameters)
+    val inherits = emptyList<KfType>()
+    val parameters = findParametersTypes(stmt.parameters)
 
     return ClassDescriptor(name, inherits, parameters, stmt.line)
   }
@@ -270,29 +281,29 @@ class AstConverter(
     return "$this-$realIndex"
   }
 
-  private inline fun typedReturn(name: Token?): KoflType {
+  private inline fun findReturnTypeByToken(name: Token?): KfType {
     return name?.lexeme
-      ?.let { typeName -> findType(typeName) }
-      ?: KoflType.Unit
+      ?.let { typeName -> findTypeByName(typeName) }
+      ?: KfType.Unit
   }
 
-  private inline fun typedParameters(parameters: Map<Token, Token>): Map<String, KoflType> {
+  private inline fun findParametersTypes(parameters: Map<Token, Token>): Map<String, KfType> {
     return parameters.mapKeys { (name) -> name.lexeme }.mapValues { (_, typeName) ->
-      findType(typeName.lexeme)
+      findTypeByName(typeName.lexeme)
     }
   }
 
-  private inline fun findType(name: String): KoflType {
+  private inline fun findTypeByName(name: String): KfType {
     return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
   @OptIn(ExperimentalContracts::class)
-  private inline fun <R> scoped(body: (TypeContainer) -> R): R {
+  private inline fun <R> scoped(body: (TypeScope) -> R): R {
     contract {
       callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
 
-    container.push(TypeContainer(container.peek()))
+    container.push(TypeScope(container.peek()))
     val value = body(container.peek())
     container.pop()
 
@@ -300,13 +311,13 @@ class AstConverter(
   }
 
   override fun visitUseStmt(stmt: Stmt.UseDecl): Descriptor {
-    validator.visitUseStmt(stmt)
+    analyzer.validate(stmt)
 
     return UseDescriptor(stmt.module.lexeme, stmt.line)
   }
 
   override fun visitModuleStmt(stmt: Stmt.ModuleDecl): Descriptor {
-    validator.visitModuleStmt(stmt)
+    analyzer.validate(stmt)
 
     return ModuleDescriptor(stmt.module.lexeme, stmt.line)
   }

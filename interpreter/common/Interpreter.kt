@@ -1,9 +1,9 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.common.backend.AstConverter
+import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
-import com.lorenzoog.kofl.compiler.common.typing.TypeContainer
+import com.lorenzoog.kofl.compiler.common.typing.KfType
+import com.lorenzoog.kofl.compiler.common.typing.TypeScope
 import com.lorenzoog.kofl.frontend.*
 import com.lorenzoog.kofl.interpreter.module.SourceCode
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
@@ -11,13 +11,13 @@ import com.lorenzoog.kofl.interpreter.runtime.KoflObject
 
 const val MAX_STACK = 16
 
-private val builtinTypeContainer = TypeContainer().apply {
-  defineType("Any", KoflType.Any)
-  defineType("String", KoflType.String)
-  defineType("Int", KoflType.Int)
-  defineType("Double", KoflType.Double)
-  defineType("Boolean", KoflType.Boolean)
-  defineType("Unit", KoflType.Unit)
+private val builtinTypeContainer = TypeScope().apply {
+  defineType("Any", KfType.Any)
+  defineType("String", KfType.String)
+  defineType("Int", KfType.Int)
+  defineType("Double", KfType.Double)
+  defineType("Boolean", KfType.Boolean)
+  defineType("Unit", KfType.Unit)
 }
 
 interface Interpreter {
@@ -56,7 +56,7 @@ private class InterpreterImpl(
   override val repl: Boolean,
   private val logger: Logger?
 ) : Interpreter {
-  private val container = Stack<TypeContainer>(MAX_STACK).also { container ->
+  private val container = Stack<TypeScope>(MAX_STACK).also { container ->
     container.push(builtinTypeContainer.copy())
   }
   private val locals = linkedMapOf<Descriptor, Int>()
@@ -69,7 +69,7 @@ private class InterpreterImpl(
   }
 
   override fun compile(stmts: Collection<Stmt>): Collection<Descriptor> {
-    return AstConverter(locals, container).compile(stmts).also {
+    return TreeDescriptorMapper(locals, container).compile(stmts).also {
       if (debug) logger?.trace("COMPILED: $it")
     }
   }
@@ -79,6 +79,6 @@ private class InterpreterImpl(
   }
 
   override fun evaluate(descriptors: Collection<Descriptor>): SourceCode {
-    return SourceCode(repl, evaluator, descriptors)
+    return SourceCode(repl, evaluator, descriptors, debug)
   }
 }

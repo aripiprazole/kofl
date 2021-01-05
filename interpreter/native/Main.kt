@@ -18,11 +18,14 @@ fun main(args: Array<String>) {
 }
 
 class Kofl : CliktCommand() {
-  private val consoleLogger: Logger = ReplLogger()
+  private val consoleLogger: Logger by lazy {
+    ReplLogger(debug)
+  }
 
   private val file
     by argument().help("The file that will be interpreted")
       .optional()
+
   private val stdlib
     by option().help("The stdlib target")
       .default(Platform.stdlibPath)
@@ -40,11 +43,14 @@ class Kofl : CliktCommand() {
   }
 
   private fun runFile(path: String) {
-    val eval = createEval(Interpreter(debug, repl = true, consoleLogger))
+    val eval = createEval(Interpreter(debug, repl = false, consoleLogger))
 
     try {
-      eval(File(stdlib).read().utf8Reader().readText())
-      eval(File(path).read().utf8Reader().readText())
+      Platform.exit(
+        (eval(File(stdlib).read().utf8Reader().readText()) ?: return Platform.exit(1))
+          .merge(eval(File(path).read().utf8Reader().readText()) ?: return Platform.exit(1))
+          .main(arrayOf())
+      )
     } catch (error: Throwable) {
       consoleLogger.handleError(error)
     }
@@ -52,7 +58,7 @@ class Kofl : CliktCommand() {
 
   private fun runRepl() {
     try {
-      startRepl(consoleLogger, debug, path = stdlib ?: Platform.stdlibPath)
+      startRepl(consoleLogger, debug, path = stdlib)
     } catch (error: Throwable) {
       consoleLogger.handleError(error)
     }

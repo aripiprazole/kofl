@@ -2,7 +2,7 @@ package com.lorenzoog.kofl.interpreter.module
 
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
 import com.lorenzoog.kofl.compiler.common.backend.NativeDescriptor
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
 import com.lorenzoog.kofl.interpreter.runtime.Evaluator
 import com.lorenzoog.kofl.interpreter.runtime.KoflObject
@@ -13,7 +13,8 @@ class MainReturnedNotInt internal constructor() : Error("Main returned other thi
 class SourceCode(
   private val repl: Boolean,
   private val evaluator: Evaluator,
-  private val descriptors: Collection<Descriptor>
+  private val descriptors: Collection<Descriptor>,
+  private val debug: Boolean = false
 ) {
   private var objects = mutableListOf<KoflObject>()
 
@@ -22,19 +23,28 @@ class SourceCode(
   }
 
   /**
+   * Creates a new source code with the same config but with new code
+   */
+  infix fun merge(another: SourceCode): SourceCode {
+    return SourceCode(repl, evaluator, descriptors + another.descriptors)
+  }
+
+  /**
    * Will execute the provided KOFL code
    */
   fun main(args: Array<String>): Int {
     // TODO handle args
 
+    if(debug) println("OBJECTS: $objects")
+
     initRuntime()
 
-    if(repl) return 0
+    if (repl) return 0
 
     val mainFunc = objects
       .filterIsInstance<KoflObject.Callable.Function>()
-      .filter { it.descriptor.name == "main" }
-      .firstOrNull { it.descriptor.returnType.isAssignableBy(KoflType.Int) }
+      .filter { it.descriptor.simpleName == "main" }
+      .firstOrNull { it.descriptor.returnType.isAssignableBy(KfType.Int) }
       ?: throw MainNotFoundException()
 
     return mainFunc(NativeDescriptor, mapOf(), evaluator.globalEnvironment).unwrap().also {

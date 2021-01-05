@@ -2,7 +2,7 @@
 
 package com.lorenzoog.kofl.compiler.vm.ir
 
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.compiler.vm.OpCode
 import com.lorenzoog.kofl.frontend.TokenType
 
@@ -68,15 +68,15 @@ class IrBinary(
 
 class IrConst(
   private val value: Any,
-  private val type: KoflType,
+  private val type: KfType,
   private val line: Int
 ) : IrComponent() {
   override fun render(context: IrContext) {
     val const = when (type) {
-      KoflType.Boolean -> return context.write(if (value == true) OpCode.True else OpCode.False, line)
-      KoflType.String -> context.makeConst(value.toString())
-      KoflType.Int -> context.makeConst(value.toString().toInt())
-      KoflType.Double -> context.makeConst(value.toString().toDouble())
+      KfType.Boolean -> return context.write(if (value == true) OpCode.True else OpCode.False, line)
+      KfType.String -> context.makeConst(value.toString())
+      KfType.Int -> context.makeConst(value.toString().toInt())
+      KfType.Double -> context.makeConst(value.toString().toDouble())
       else -> TODO("Unsupported type $type")
     }
 

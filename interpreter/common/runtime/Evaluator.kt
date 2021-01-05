@@ -1,7 +1,7 @@
 package com.lorenzoog.kofl.interpreter.runtime
 
 import com.lorenzoog.kofl.compiler.common.backend.*
-import com.lorenzoog.kofl.compiler.common.typing.KoflType
+import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
@@ -55,10 +55,10 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
   }
 
   private fun evaluateConstDescriptor(descriptor: ConstDescriptor): KoflObject = when (val value = descriptor.value) {
-    is Boolean -> KoflObject(value, KoflType.Boolean)
-    is String -> KoflObject(value, KoflType.String)
-    is Int -> KoflObject(value, KoflType.Int)
-    is Double -> KoflObject(value, KoflType.Double)
+    is Boolean -> KoflObject(value, KfType.Boolean)
+    is String -> KoflObject(value, KfType.String)
+    is Int -> KoflObject(value, KfType.Int)
+    is Double -> KoflObject(value, KfType.Double)
     is Unit -> KoflObject.Unit
     is KoflObject.Instance -> value
     else -> KoflObject(value, descriptor.type)
@@ -93,11 +93,11 @@ class Evaluator(private val locals: MutableMap<Descriptor, Int>) {
 
     return when (op) {
       TokenType.Minus -> when (val value = right.unwrap()) {
-        is Double -> KoflObject(-value, KoflType.Double)
-        is Int -> KoflObject(-value, KoflType.Int)
+        is Double -> KoflObject(-value, KfType.Double)
+        is Int -> KoflObject(-value, KfType.Int)
         else -> right
       }
-      TokenType.Bang -> KoflObject(!right.isTruthy(), KoflType.Boolean)
+      TokenType.Bang -> KoflObject(!right.isTruthy(), KfType.Boolean)
       else -> right
     }
   }
