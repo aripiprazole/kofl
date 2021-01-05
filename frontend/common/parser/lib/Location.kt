@@ -17,7 +17,13 @@ sealed class Location {
   }
 
   data class Offset(val input: String, val index: Int) : Location() {
-    override val line: Int = input.substring(0, index).split(ENTER_CHAR).size - 1
+    override val line: Int = run {
+      if (input.isNotEmpty()) {
+        input.substring(0, index).split(ENTER_CHAR).size - 1
+      } else {
+        0
+      }
+    }
 
     override fun toString(): String = "($line)"
   }
