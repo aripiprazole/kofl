@@ -6,8 +6,7 @@ fun createEval(interpreter: Interpreter) = fun(code: String): SourceCode? {
   if (code.isEmpty()) return null
 
   return interpreter.run {
-    val tokens = lex(code)
-    val stmts = parse(tokens)
+    val stmts = parse(code)
     val descriptors = compile(stmts)
 
     evaluate(descriptors)

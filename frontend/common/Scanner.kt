@@ -14,12 +14,12 @@ val RESERVED_KEYWORDS = mapOf(
   "return" to TokenType.Return,
   "while" to TokenType.While,
   "external" to TokenType.External,
-  "do" to TokenType.Do,
+  "do" to TokenType.Then,
   "module" to TokenType.Module,
   "use" to TokenType.Use,
 )
 
-class Scanner(private val source: String) {
+class Scanner internal constructor(private val source: String) {
   private val tokens = mutableListOf<Token>()
   private val isAtEnd get() = current >= source.length
 

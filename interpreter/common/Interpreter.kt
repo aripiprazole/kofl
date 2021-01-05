@@ -24,8 +24,7 @@ interface Interpreter {
   val debug: Boolean
   val repl: Boolean
 
-  fun lex(code: String): Collection<Token>
-  fun parse(tokens: Collection<Token>): Collection<Stmt>
+  fun parse(code: String): Collection<Stmt>
   fun compile(stmts: Collection<Stmt>): Collection<Descriptor>
   fun evaluate(descriptor: Descriptor): KoflObject
   fun evaluate(descriptors: Collection<Descriptor>): SourceCode
@@ -42,8 +41,7 @@ interface Interpreter {
 }
 
 inline fun Interpreter.execute(code: String): SourceCode {
-  val tokens = lex(code)
-  val stmts = parse(tokens)
+  val stmts = parse(code)
   val descriptors = compile(stmts)
 
   return evaluate(descriptors)
@@ -64,14 +62,8 @@ private class InterpreterImpl(
   private val locals = linkedMapOf<Descriptor, Int>()
   private val evaluator = Evaluator(locals)
 
-  override fun lex(code: String): Collection<Token> {
-    return Scanner(code).scan().also {
-      if (debug) logger?.trace("SCANNED: $it")
-    }
-  }
-
-  override fun parse(tokens: Collection<Token>): Collection<Stmt> {
-    return Parser(tokens.toList(), repl).parse().also {
+  override fun parse(code: String): Collection<Stmt> {
+    return Parser(code, repl).parse().also {
       if (debug) logger?.trace("PARSED: $it")
     }
   }

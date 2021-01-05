@@ -44,6 +44,10 @@ sealed class Stmt {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitReturnStmt(this)
   }
 
+  data class CommentDecl(val content: String, override val line: Int) : Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T = TODO("CommentDecl shouldn't be visited yet!")
+  }
+
   data class ValDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) : Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDeclStmt(this)
   }
