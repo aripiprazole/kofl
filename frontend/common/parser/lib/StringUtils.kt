@@ -22,8 +22,8 @@ inline fun String.matchString(): String? {
   if (!startsWith('"')) return null
 
   for (index in 1 until length) {
-    if (get(index) != '"') {
-      return substring(0, index)
+    if (get(index) == '"') {
+      return substring(1, index)
     }
   }
 

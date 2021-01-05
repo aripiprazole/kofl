@@ -38,6 +38,7 @@ val Expr.fields
     )
     is Expr.Literal -> mapOf(
       "value" to value,
+      "type" to value::class.simpleName,
       "line" to line
     )
     is Expr.Unary -> mapOf(

@@ -3,9 +3,9 @@
 package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.TokenType
 import com.lorenzoog.kofl.frontend.parser.lib.*
+import com.lorenzoog.kofl.frontend.unescape
 
 val Spaces = label("spaces")(regex("\\s+".toRegex()) or regex("\\r+".toRegex()) or regex("\\t+".toRegex()))
 
@@ -44,14 +44,18 @@ val CommentEnd = text(TokenType.CommentEnd, "*/")
 
 val EOF = eof(TokenType.Eof)
 
-val Decimal = label("decimal")(numeric() map { it.toDouble() })
+val Decimal = label("decimal")(numeric())
 
 val Numeric = label("numeric")(token(Decimal) map {
-  Expr.Literal(it, line)
+  val value = it.toIntOrNull() ?: it.toDoubleOrNull() ?: 0
+
+  Expr.Literal(value, line)
 })
 
 val Text = label("text")(token(string(TokenType.String)).map {
-  Expr.Literal(it.literal ?: error("$it should not be converted to Expr.Literal if it is null"), line)
+  Expr.Literal(
+    it.literal?.toString()?.unescape() ?: error("$it should not be converted to Expr.Literal if it is null"), line
+  )
 })
 
 val Identifier = label("identifier")(token(identifier(TokenType.Identifier))) map {
@@ -65,11 +69,13 @@ val Group = label("group")(
 )
 
 val This = label("this")(
-  Keywords.This map { Expr.ThisExpr(it, line) }
+  lazied { Keywords.This } map { Expr.ThisExpr(it, line) }
 )
 
 val Boolean = label("boolean")(
-  (Keywords.True or Keywords.False) map { Expr.Literal(it.literal.toString().toBoolean(), line) }
+  lazied { Keywords.True or Keywords.False } map {
+    Expr.Literal(it.literal.toString().toBoolean(), line)
+  }
 )
 
 val Primary = label("primary")(
