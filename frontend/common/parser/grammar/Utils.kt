@@ -1,14 +1,7 @@
 package com.lorenzoog.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.parser.lib.*
-
-/**
- * TODO: use real line and column
- */
-val line get() = 0
 
 val Block = label("block")(
   combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->

@@ -1,5 +1,7 @@
 package com.lorenzoog.kofl.frontend
 
+import com.lorenzoog.kofl.frontend.parser.lib.Location
+
 abstract class KoflException(private val type: String, message: String) : RuntimeException(message) {
   open fun report() {
     println("[$type error] $message")
@@ -7,7 +9,9 @@ abstract class KoflException(private val type: String, message: String) : Runtim
 }
 
 // parse errors
-open class ParseException(
+class ParseException(location: Location, expected: String, actual: String) : KoflException("parse", "$location: $expected but got $actual")
+
+open class ParseExceptionOld(
   token: Token,
   message: String = "invalid token: `$token`"
 ) : KoflException("parse", "invalid `$token` at ${token.location}: $message")

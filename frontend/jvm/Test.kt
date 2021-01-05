@@ -1,3 +1,5 @@
+import com.lorenzoog.kofl.frontend.debug.printAvlTree
+import com.lorenzoog.kofl.frontend.parser.ParserImpl
 import com.lorenzoog.kofl.frontend.parser.grammar.Declaration
 import com.lorenzoog.kofl.frontend.parser.lib.parse
 import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
@@ -16,7 +18,7 @@ fun main() {
       val s = "";
       val s: String = 4;
     
-      println(s = a =  4);
+      println(s = a = 4);
       
       if 40 
         then println("")
@@ -31,11 +33,6 @@ fun main() {
     """.trimIndent()
 
 
-  println("RESULT: " + Declaration.Program.parse(input).unwrapOr { result ->
-    println("Expected: ${result.expected};")
-    println("Actual: ${result.actual};")
-    println("Char: '${input.getOrNull(result.actual.index)}'")
-
-    return
-  })
+  println("Result:")
+  println(ParserImpl(input, false).parse().printAvlTree())
 }

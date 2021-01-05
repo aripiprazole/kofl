@@ -72,7 +72,7 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
 
       else -> if (repl) statement() else throw error(expecting("declaration"))
     }
-  } catch (exception: ParseException) {
+  } catch (exception: ParseExceptionOld) {
     // panic mode
     synchronize()
     exception.report()
@@ -552,7 +552,7 @@ private class OldParserImpl(private val tokens: List<Token>, private val repl: B
   private inline fun requireSemicolon(): Token = consume(TokenType.Semicolon)
     ?: throw error(expecting(TokenType.Semicolon))
 
-  private inline fun error(message: String = "", token: Token = peek()) = ParseException(token, message)
+  private inline fun error(message: String = "", token: Token = peek()) = ParseExceptionOld(token, message)
 
   private inline fun expecting(type: Any) = "expecting $type"
   private inline fun notExpecting(type: Any) = "not expecting $type"

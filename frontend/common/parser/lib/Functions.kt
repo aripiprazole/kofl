@@ -4,7 +4,6 @@ package com.lorenzoog.kofl.frontend.parser.lib
 
 import com.lorenzoog.kofl.frontend.Token
 import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.frontend.parser.grammar.line
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
@@ -14,10 +13,10 @@ import kotlin.jvm.JvmName
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T, R> Parser<T>.map(map: (T) -> R): Parser<R> = { ctx ->
+infix fun <T, R> Parser<T>.map(map: Context.(T) -> R): Parser<R> = { ctx ->
   when (val result = this(ctx)) {
     is ParseResult.Error -> result.fix()
-    is ParseResult.Success -> ParseResult.Success(map(result.data), result.rest)
+    is ParseResult.Success -> ParseResult.Success(ctx.map(result.data), result.rest)
   }
 }
 
@@ -41,12 +40,12 @@ fun <T> Parser<T>.optional(): Parser<T?> = { ctx ->
  * @return mapped parse func
  */
 fun <T, R> Parser<T>.fold(
-  onSuccess: (ParseResult.Success<T>) -> ParseResult<R>,
-  onError: (ParseResult.Error) -> ParseResult<R>
+  onSuccess: Context.(ParseResult.Success<T>) -> ParseResult<R>,
+  onError: Context.(ParseResult.Error) -> ParseResult<R>
 ): Parser<R> = { ctx ->
   when (val result = this(ctx)) {
-    is ParseResult.Error -> onError(result)
-    is ParseResult.Success -> onSuccess(result)
+    is ParseResult.Error -> ctx.onError(result)
+    is ParseResult.Success -> ctx.onSuccess(result)
   }
 }
 
@@ -56,9 +55,9 @@ fun <T, R> Parser<T>.fold(
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T> Parser<T>.mapErr(map: (ParseResult.Error) -> ParseResult.Error): Parser<T> = { ctx ->
+infix fun <T> Parser<T>.mapErr(map: Context.(ParseResult.Error) -> ParseResult.Error): Parser<T> = { ctx ->
   when (val result = this(ctx)) {
-    is ParseResult.Error -> map(result).fix()
+    is ParseResult.Error -> ctx.map(result).fix()
     is ParseResult.Success -> result
   }
 }
@@ -142,7 +141,7 @@ fun regex(type: TokenType, regex: Regex): Parser<Token> = { ctx ->
   val match = regex.findAll(ctx.input).firstOrNull()?.value
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -242,7 +241,7 @@ fun string(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchString()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -260,7 +259,7 @@ fun identifier(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchIdentifier()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -278,7 +277,7 @@ fun numeric(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchNumeric()
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -297,7 +296,7 @@ fun predicate(type: TokenType, predicate: StringMatcher): Parser<Token> = { ctx 
   val match = ctx.input.match(predicate)
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, ctx.input, ctx.input, line = line), ctx.map {
+    ParseResult.Success(Token(type, ctx.input, ctx.input, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -324,7 +323,7 @@ fun text(type: TokenType, match: Any) = text(type, match.toString())
  */
 fun text(type: TokenType, match: String): Parser<Token> = { ctx ->
   if (ctx.input.startsWith(match))
-    ParseResult.Success(Token(type, match, match, line = line), ctx.map {
+    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
       it.substring(match.length)
     })
   else
@@ -353,7 +352,7 @@ fun eof(): Parser<String> = { ctx ->
  */
 fun eof(type: TokenType): Parser<Token> = { ctx ->
   if (ctx.input.isEmpty())
-    ParseResult.Success(Token(type, "", "", line = line), ctx)
+    ParseResult.Success(Token(type, "", "", line = ctx.line), ctx)
   else
     ParseResult.Error("''", ctx).fix()
 }
