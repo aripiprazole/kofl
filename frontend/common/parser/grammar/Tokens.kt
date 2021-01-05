@@ -44,10 +44,12 @@ val CommentEnd = text(TokenType.CommentEnd, "*/")
 
 val EOF = eof(TokenType.Eof)
 
-val Decimal = label("decimal")(numeric() map { it.toDouble() })
+val Decimal = label("decimal")(numeric())
 
 val Numeric = label("numeric")(token(Decimal) map {
-  Expr.Literal(it, line)
+  val value = it.toIntOrNull() ?: it.toDoubleOrNull() ?: 0
+
+  Expr.Literal(value, line)
 })
 
 val Text = label("text")(token(string(TokenType.String)).map {
