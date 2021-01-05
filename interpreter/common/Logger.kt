@@ -2,6 +2,8 @@ package com.lorenzoog.kofl.interpreter
 
 import com.lorenzoog.kofl.compiler.common.KoflCompileException
 import com.lorenzoog.kofl.frontend.KoflException
+import com.lorenzoog.kofl.frontend.KoflParseException
+import com.lorenzoog.kofl.frontend.escape
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 import com.lorenzoog.kofl.interpreter.module.MainNotFoundException
 import com.lorenzoog.kofl.interpreter.module.MainReturnedNotInt
@@ -18,6 +20,7 @@ interface Logger {
 
   fun trace(message: Any)
 
+  fun reportParseError(error: KoflParseException)
   fun reportCompileError(error: KoflCompileException)
   fun reportRuntimeError(error: KoflRuntimeException)
   fun reportError(error: KoflException)
@@ -27,6 +30,7 @@ interface Logger {
     when (error) {
       is KoflCompileException -> reportCompileError(error)
       is KoflRuntimeException -> reportRuntimeError(error)
+      is KoflParseException -> reportParseError(error)
       is KoflException -> reportError(error)
       else -> reportNativeError(error)
     }
@@ -46,30 +50,36 @@ class ReplLogger(private val debug: Boolean) : Logger {
     kotlin.io.println(RESET_COLOR + message)
   }
 
-  override fun reportCompileError(error: KoflCompileException) {
-    println(ERROR_COLOR + "[compile error] ${error.message}")
+  override fun reportParseError(error: KoflParseException) {
+    println(ERROR_COLOR + "[parse error] ${error.message.escape()}")
 
-    if(debug) reportNativeError(error)
+    if (debug) reportNativeError(error)
+  }
+
+  override fun reportCompileError(error: KoflCompileException) {
+    println(ERROR_COLOR + "[compile error] ${error.message.escape()}")
+
+    if (debug) reportNativeError(error)
   }
 
   override fun reportRuntimeError(error: KoflRuntimeException) {
-    println(WARN_COLOR + "[runtime error] ${error.message}")
+    println(WARN_COLOR + "[runtime error] ${error.message.escape()}")
     error.environment.stackTrace().forEach { location ->
       println("$WARN_COLOR  $location")
     }
   }
 
   override fun reportError(error: KoflException) {
-    println(ERROR_COLOR + "[unexpected error] ${error.message}")
+    println(ERROR_COLOR + "[unexpected error] ${error.message.escape()}")
 
-    if(debug) reportNativeError(error)
+    if (debug) reportNativeError(error)
   }
 
   override fun reportNativeError(error: Throwable) {
-    println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message}")
+    println(ERROR_COLOR + "[kotlin error] ${error.cause}: ${error.message.escape()}")
 
     if (error is MainNotFoundException || error is MainReturnedNotInt) {
-      if(debug) {
+      if (debug) {
         println(ERROR_COLOR + error.stackTraceToString())
       }
 

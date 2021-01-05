@@ -1,6 +1,6 @@
 package com.lorenzoog.kofl.frontend.parser
 
-import com.lorenzoog.kofl.frontend.ParseException
+import com.lorenzoog.kofl.frontend.KoflParseException
 import com.lorenzoog.kofl.frontend.Parser
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.parser.grammar.Declaration
@@ -24,7 +24,7 @@ internal class ParserImpl(code: String, private val repl: Boolean) : Parser {
     return parse(ctx)
       .map { it.first }
       .unwrapOr { (expected, actual) ->
-        throw ParseException(actual.location, expected, actual.input)
+        throw KoflParseException(actual.location, expected, actual.input)
       }
       .unwrap()
       .filter { it !is Stmt.CommentDecl }

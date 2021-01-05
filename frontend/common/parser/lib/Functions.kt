@@ -242,7 +242,7 @@ fun string(type: TokenType): Parser<Token> = { ctx ->
 
   if (match != null)
     ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length)
+      it.substring(match.length + 2)
     })
   else
     ParseResult.Error(type.toString(), ctx).fix()
