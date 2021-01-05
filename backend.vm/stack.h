@@ -5,21 +5,21 @@
 
 #include "value.h"
 
-typedef struct stack {
-    int top;
-    size_t capacity;
-    value_t *values;
-} stack_t;
+typedef struct {
+  int top;
+  size_t capacity;
+  Value *values;
+} Stack;
 
 // stack functions>
-stack_t *stack_create(size_t capacity);
+Stack *StackCreate(size_t capacity);
 
-bool stack_push(stack_t *stack, value_t* value);
+bool StackPush(Stack *stack, Value *value);
 
-value_t *stack_peek(stack_t *stack);
+Value *StackPeek(Stack *stack);
 
-value_t *stack_pop(stack_t *stack);
+Value *StackPop(Stack *stack);
 
-void stack_dispose(stack_t *stack);
+void StackDispose(Stack *stack);
 
 #endif //RUNTIME_STACK_H

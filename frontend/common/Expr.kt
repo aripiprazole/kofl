@@ -31,11 +31,13 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitAssignExpr(this)
   }
 
-  data class Binary(val left: Expr, val op: Token, val right: Expr, override val line: Int) : Expr() {
+  data class Binary(val left: Expr, val op: Token, val right: Expr, override val line: Int) :
+    Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitBinaryExpr(this)
   }
 
-  data class Logical(val left: Expr, val op: Token, val right: Expr, override val line: Int) : Expr() {
+  data class Logical(val left: Expr, val op: Token, val right: Expr, override val line: Int) :
+    Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitLogicalExpr(this)
   }
 
@@ -55,7 +57,8 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarExpr(this)
   }
 
-  data class Call(val calle: Expr, val arguments: Map<Token?, Expr>, override val line: Int) : Expr() {
+  data class Call(val calle: Expr, val arguments: Map<Token?, Expr>, override val line: Int) :
+    Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitCallExpr(this)
   }
 
@@ -63,7 +66,8 @@ sealed class Expr {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitGetExpr(this)
   }
 
-  data class Set(val receiver: Expr, val name: Token, val value: Expr, override val line: Int) : Expr() {
+  data class Set(val receiver: Expr, val name: Token, val value: Expr, override val line: Int) :
+    Expr() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitSetExpr(this)
   }
 

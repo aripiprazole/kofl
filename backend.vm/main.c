@@ -7,87 +7,86 @@
 #include "bytecode.h"
 #include "debug.h"
 
-int print_help() {
-    printf("Usage: koflvm <file> [--verbose] [--memory <memory>]\n");
+int PrintHelp() {
+  printf("Usage: koflvm <file> [--verbose] [--memory <memory>]\n");
 
-    return EXIT_FAILURE;
+  return EXIT_FAILURE;
 }
 
-char *get_arg(char *arg_name, int argc, char **argv) {
-    for (int i = 0; i < argc; ++i) {
-        if (strcmp(arg_name, argv[i]) == 0) {
-            if (i + 1 > argc) return NULL;
+char *GetArg(char *arg_name, int argc, char **argv) {
+  for (int i = 0; i < argc; ++i) {
+    if (strcmp(arg_name, argv[i]) == 0) {
+      if (i + 1 > argc) return NULL;
 
-            return argv[i + 1];
-        }
+      return argv[i + 1];
     }
+  }
 
-    return NULL;
+  return NULL;
 }
 
-char *get_arg_or(char *arg_name, char *def, int argc, char **argv) {
-    char *arg = get_arg(arg_name, argc, argv);
+char *GetArgOr(char *arg_name, char *def, int argc, char **argv) {
+  char *arg = GetArg(arg_name, argc, argv);
 
-    if (arg == NULL) return def;
+  if (arg == NULL) return def;
 
-    return arg;
+  return arg;
 }
 
-char *read_file(char *file_path) {
-    FILE *file = fopen(file_path, "rb");
+char *ReadFile(char *file_path) {
+  FILE *file = fopen(file_path, "rb");
 
-    if(file == NULL) return NULL;
+  if (file == NULL) return NULL;
 
-    fseek(file, 0, SEEK_END);
-    long len = ftell(file);
-    rewind(file);
+  fseek(file, 0, SEEK_END);
+  long len = ftell(file);
+  rewind(file);
 
-    char *buffer = malloc(len * sizeof(char));
+  char *buffer = malloc(len * sizeof(char));
 
-    fread(buffer, len, 1, file);
-    fclose(file);
+  fread(buffer, len, 1, file);
+  fclose(file);
 
-    return buffer;
+  return buffer;
 }
 
 int main(int argc, char **argv) {
-    if (argc < 1) return print_help();
+  if (argc < 1) return PrintHelp();
 
-    char *file_path = argv[1];
+  char *file_path = argv[1];
 
-    if(file_path == NULL) return print_help();
+  if (file_path == NULL) return PrintHelp();
 
-    bool verbose = get_arg("--verbose", argc, argv) != NULL;
-    bool disassemble = get_arg("--disassemble", argc, argv) != NULL;
-    size_t memory = atol(get_arg_or("--memory", "512", argc, argv));
+  bool verbose = GetArg("--verbose", argc, argv) != NULL;
+  bool disassemble = GetArg("--disassemble", argc, argv) != NULL;
+  size_t memory = atol(GetArgOr("--memory", "512", argc, argv));
 
-    flags_t flags = {
-            .memory = memory,
-            .verbose = verbose
-    };
+  Flags flags = {
+      .memory = memory,
+      .verbose = verbose
+  };
 
-    char *bytes = read_file(file_path);
-    if (bytes == NULL) {
-        printf("Failed to read file %s\n", file_path);
+  char *bytes = ReadFile(file_path);
+  if (bytes == NULL) {
+    printf("Failed to read file %s\n", file_path);
+    return EXIT_FAILURE;
+  }
 
-        return EXIT_FAILURE;
-    }
+  Chunk *bytecode = ParseChunk(bytes);
+  if (bytecode == NULL) {
+    printf("Failed to read bytecode\n");
 
-    chunk_t *bytecode = parse_chunk(bytes);
-    if (bytecode == NULL) {
-        printf("Failed to read bytecode\n");
+    return EXIT_FAILURE;
+  }
+  free(bytes);
 
-        return EXIT_FAILURE;
-    }
-    free(bytes);
+  printf("Kofl vm\n\n");
 
-    printf("Kofl vm\n\n");
+  if (disassemble) {
+    ChunkDisassemble(bytecode);
+  }
 
-    if (disassemble) {
-        chunk_disassemble(bytecode);
-    }
-
-    vm_t *vm = vm_create(flags);
-    vm_eval(vm, bytecode);
-    vm_dispose(vm);
+  Vm *vm = VmCreate(flags);
+  VmEval(vm, bytecode);
+  VmDispose(vm);
 }

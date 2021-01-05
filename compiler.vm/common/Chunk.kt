@@ -1,10 +1,9 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
-
 package com.lorenzoog.kofl.compiler.vm
 
 import pw.binom.ByteBuffer
 import pw.binom.writeInt
 
+@ExperimentalUnsignedTypes
 data class Chunk(
   val count: Int,
   val capacity: Int,
@@ -35,7 +34,6 @@ data class Chunk(
   }
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 enum class ChunkOp(val end: ChunkOp? = null) {
   ChunkEnd,
   Chunk(ChunkEnd),

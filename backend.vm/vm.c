@@ -7,32 +7,32 @@
 #include "utils.h"
 
 // vm functions>
-vm_t *vm_create(flags_t flags) {
-    vm_t *vm = malloc(sizeof(vm_t));
+Vm *VmCreate(Flags flags) {
+  Vm *vm = malloc(sizeof(Vm));
 
-    vm->pc = NULL;
-    vm->chunk = NULL;
-    vm->objects = NULL;
-    vm->strings = table_create(10);
-    vm->globals = table_create(10);
-    vm->heap = heap_create(flags.memory);
-    vm->stack = stack_create(10);
+  vm->pc = NULL;
+  vm->chunk = NULL;
+  vm->objects = NULL;
+  vm->strings = table_create(10);
+  vm->globals = table_create(10);
+  vm->heap = HeapCreate(flags.memory);
+  vm->stack = StackCreate(10);
 
-    return vm;
+  return vm;
 }
 
-interpret_result_t vm_eval_impl(vm_t *vm) {
-    while (true) {
+InterpretResult VmEvalImpl(Vm *vm) {
+  while (true) {
 #ifdef VM_DEBUG_TRACE
-        printf("=>> ");
+    printf("=>> ");
 
-        for (int i = 0; i < vm->stack->top; i++) {
-            printf("[ '%s' ]", value_to_str(&vm->stack->values[i]));
-        }
+    for (int i = 0; i < vm->stack->top; i++) {
+      printf("[ '%s' ]", ValueToStr(&vm->stack->values[i]));
+    }
 
-        printf("\n");
+    printf("\n");
 
-        // TODO DISASSEMBLE CODE HERE
+    // TODO DISASSEMBLE CODE HERE
 #endif
 
 #define READ_INST() (*vm->pc++)
@@ -40,16 +40,16 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
 #define READ_BOOL() (stack_pop(vm->stack)->as._bool)
 #define READ_OBJ() (stack_pop(vm->stack)->as._obj)
 
-        opcode_t op = READ_INST();
+    Opcode op = READ_INST();
 
         switch (op) {
             // handle ret op
             case OP_RET:
 #ifdef VM_DEBUG_TRACE
-                printf("RET %s\n", value_to_str(stack_pop(vm->stack)));
+            printf("RET %s\n", ValueToStr(StackPop(vm->stack)));
 #endif
 
-                return I_RESULT_OK;
+            return kResultOK;
 
                 // handle negate op
             case OP_NEGATE: {
@@ -59,7 +59,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("NEGATE %f\n", d0);
 #endif
 
-                stack_push(vm->stack, NUM_VALUE(-d0));
+              StackPush(vm->stack, NUM_VALUE(-d0));
                 break;
             }
 
@@ -73,7 +73,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("SUM %f %f\n", d0, d1);
 #endif
 
-                stack_push(vm->stack, NUM_VALUE(d0 + d1));
+              StackPush(vm->stack, NUM_VALUE(d0 + d1));
                 break;
             }
                 // handle sub op
@@ -85,7 +85,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("SUB %f %f\n", d0, d1);
 #endif
 
-                stack_push(vm->stack, NUM_VALUE(d0 - d1));
+              StackPush(vm->stack, NUM_VALUE(d0 - d1));
                 break;
             }
 
@@ -98,7 +98,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("MULT %f %f\n", d0, d1);
 #endif
 
-                stack_push(vm->stack, NUM_VALUE(d0 * d1));
+              StackPush(vm->stack, NUM_VALUE(d0 * d1));
                 break;
             }
 
@@ -111,7 +111,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("DIV %f %f\n", d0, d1);
 #endif
 
-                stack_push(vm->stack, NUM_VALUE(d0 / d1));
+              StackPush(vm->stack, NUM_VALUE(d0 / d1));
                 break;
             }
 
@@ -121,7 +121,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("TRUE\n");
 #endif
 
-                stack_push(vm->stack, BOOL_VALUE(true));
+              StackPush(vm->stack, BOOL_VALUE(true));
                 break;
             }
                 // handle false op
@@ -130,7 +130,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("FALSE\n");
 #endif
 
-                stack_push(vm->stack, BOOL_VALUE(false));
+              StackPush(vm->stack, BOOL_VALUE(false));
                 break;
             }
                 // handle not op
@@ -141,7 +141,7 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("NOT %d\n", b0);
 #endif
 
-                stack_push(vm->stack, BOOL_VALUE(!b0));
+              StackPush(vm->stack, BOOL_VALUE(!b0));
                 break;
             }
                 // handle concat op
@@ -153,62 +153,62 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
                 printf("CONCAT %s %s\n", s0, s1);
 #endif
 
-                stack_push(vm->stack, STR_VALUE(strcat(s0, s1)));
+              StackPush(vm->stack, STR_VALUE(strcat(s0, s1)));
                 break;
             }
                 // handle pop op
             case OP_POP: {
-                value_t *v = stack_pop(vm->stack);
+              Value *v = StackPop(vm->stack);
 
 #ifdef VM_DEBUG_TRACE
-                printf("POP %s\n", value_to_str(v));
+              printf("POP %s\n", ValueToStr(v));
 #endif
 
                 break;
             }
                 // handle store global op
             case OP_STORE_GLOBAL: {
-                value_t *v = stack_pop(vm->stack);
-                string_t *name = AS_STR(READ_OBJ());
+              Value *v = StackPop(vm->stack);
+              string_t *name = AS_STR(READ_OBJ());
 
-                table_set(vm->globals, name, v);
+              table_set(vm->globals, name, v);
 
 #ifdef VM_DEBUG_TRACE
-                printf("STORE_GLOBAL '%s' '%s'\n", name->values, value_to_str(v));
+              printf("STORE_GLOBAL '%s' '%s'\n", name->values, ValueToStr(v));
 #endif
 
-                break;
+              break;
             }
                 // handle access global op
             case OP_ACCESS_GLOBAL: {
-                string_t *name = AS_STR(READ_OBJ());
+              string_t *name = AS_STR(READ_OBJ());
 
 #ifdef VM_DEBUG_TRACE
-                printf("ACCESS_GLOBAL %s\n", name->values);
+              printf("ACCESS_GLOBAL %s\n", name->values);
 #endif
 
-                value_t *v = table_get(vm->globals, name);
-                if (v == NULL) return I_NULL_POINTER;
+              Value *v = table_get(vm->globals, name);
+              if (v == NULL) return kResultNullPointer;
 
-                stack_push(vm->stack, v);
+              StackPush(vm->stack, v);
 
-                break;
+              break;
             }
                 // handle const op
             case OP_CONST: {
-                value_t *v = &vm->chunk->consts->values[READ_INST()];
+              Value *v = &vm->chunk->consts->values[READ_INST()];
 
 #ifdef VM_DEBUG_TRACE
-                printf("CONST %s\n", value_to_str(v));
+              printf("CONST %s\n", ValueToStr(v));
 #endif
 
-                stack_push(vm->stack, v);
+              StackPush(vm->stack, v);
 
                 break;
             }
 
             default: {
-                return I_RESULT_ERROR;
+              return kResultError;
             }
         }
 #undef READ_INST
@@ -218,33 +218,33 @@ interpret_result_t vm_eval_impl(vm_t *vm) {
     }
 }
 
-interpret_result_t vm_eval(vm_t *vm, chunk_t *chunk) {
-    vm->pc = chunk->code;
-    vm->chunk = chunk;
+InterpretResult VmEval(Vm *vm, Chunk *chunk) {
+  vm->pc = chunk->code;
+  vm->chunk = chunk;
 
-    return vm_eval_impl(vm);
+  return VmEvalImpl(vm);
 }
 
-void vm_dispose_objects(vm_t *vm) {
+void VmDisposeObjects(Vm *vm) {
 }
 
-void vm_dispose(vm_t *vm) {
-    heap_dispose(vm->heap);
-    stack_dispose(vm->stack);
-    table_dispose(vm->globals);
-    table_dispose(vm->strings);
+void VmDispose(Vm *vm) {
+  HeapDispose(vm->heap);
+  StackDispose(vm->stack);
+  table_dispose(vm->globals);
+  table_dispose(vm->strings);
 
-    if (vm->objects != NULL) {
-        vm_dispose_objects(vm);
-    }
+  if (vm->objects != NULL) {
+    VmDisposeObjects(vm);
+  }
 
-    if (vm->chunk != NULL) {
-        free(vm->chunk);
-    }
+  if (vm->chunk != NULL) {
+    free(vm->chunk);
+  }
 
-    if (vm->pc != NULL) {
-        free(vm->pc);
-    }
+  if (vm->pc != NULL) {
+    free(vm->pc);
+  }
 
-    free(vm);
+  free(vm);
 }

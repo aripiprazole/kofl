@@ -1,6 +1,28 @@
 package com.lorenzoog.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.common.backend.*
+import com.lorenzoog.kofl.compiler.common.backend.AccessFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.AccessVarDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.AssignDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.BinaryDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.BlockDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.CallDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.CallableDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ClassDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ConstDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.GetDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.IfDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.LocalFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.LogicalDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ReturnDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.SetDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ThisDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.UnaryDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ValDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.VarDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.WhileDescriptor
 import com.lorenzoog.kofl.compiler.common.typing.KfType
 
 internal fun Descriptor?.dump(): String = when (this) {
@@ -28,86 +50,90 @@ internal fun Descriptor?.dump(): String = when (this) {
   else -> "root"
 }
 
-private inline fun ConstDescriptor.dump(): String = when (value) {
+private fun ConstDescriptor.dump(): String = when (value) {
   is String -> "\"$value\""
   else -> "$value"
 }
 
-private inline fun SetDescriptor.dump(): String {
+private fun SetDescriptor.dump(): String {
   return "set ${receiver.dump()}.$name ${value.dump()}: ${KfType.Unit}"
 }
 
-private inline fun GetDescriptor.dump(): String {
+private fun GetDescriptor.dump(): String {
   return "get ${receiver.dump()}.$name: $type"
 }
 
-private inline fun CallDescriptor.dump(): String = buildString {
+private fun CallDescriptor.dump(): String = buildString {
   append("call ")
   append(callee.dump())
-  append(arguments.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-    "$name: ${type.dump()}"
-  })
+  append(
+    arguments.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+      "$name: ${type.dump()}"
+    }
+  )
   append(": $type")
 }
 
-private inline fun AccessVarDescriptor.dump(): String {
+private fun AccessVarDescriptor.dump(): String {
   return name
 }
 
-private inline fun AccessFunctionDescriptor.dump(): String {
+private fun AccessFunctionDescriptor.dump(): String {
   return name
 }
 
-private inline fun UnaryDescriptor.dump(): String {
+private fun UnaryDescriptor.dump(): String {
   return "($op ${right.dump()})"
 }
 
-private inline fun ValDescriptor.dump(): String {
+private fun ValDescriptor.dump(): String {
   return "val $name ${value.dump()}"
 }
 
-private inline fun VarDescriptor.dump(): String {
+private fun VarDescriptor.dump(): String {
   return "var $name ${value.dump()}"
 }
 
-private inline fun AssignDescriptor.dump(): String {
+private fun AssignDescriptor.dump(): String {
   return "assign $name ${value.dump()}"
 }
 
-private inline fun ReturnDescriptor.dump(): String {
+private fun ReturnDescriptor.dump(): String {
   return "return ${value.dump()}"
 }
 
-private inline fun BlockDescriptor.dump(): String {
+private fun BlockDescriptor.dump(): String {
   return "block $type"
 }
 
-private inline fun WhileDescriptor.dump(): String {
+private fun WhileDescriptor.dump(): String {
   return "while ${condition.dump()}"
 }
 
-private inline fun IfDescriptor.dump(): String {
+private fun IfDescriptor.dump(): String {
   return "if ${condition.dump()}"
 }
 
-private inline fun LogicalDescriptor.dump(): String {
+private fun LogicalDescriptor.dump(): String {
   return "${left.dump()} $op ${right.dump()}"
 }
 
-private inline fun BinaryDescriptor.dump(): String {
+private fun BinaryDescriptor.dump(): String {
   return "${left.dump()} $op ${right.dump()}"
 }
 
-private inline fun CallableDescriptor.dump(): String = buildString {
+private fun CallableDescriptor.dump(): String = buildString {
   append("func ")
-  append(parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-    "$name: $type"
-  })
+  append(
+    parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+      "$name: $type"
+    }
+  )
   append(": ")
   append(returnType)
 }
 
-private inline fun ClassDescriptor.dump(): String = buildString {
+private fun ClassDescriptor.dump(): String = buildString {
   append("type class ")
   append(name)
 }

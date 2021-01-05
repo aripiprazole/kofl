@@ -64,7 +64,7 @@ class ReplLogger(private val debug: Boolean) : Logger {
 
   override fun reportRuntimeError(error: KoflRuntimeException) {
     println(WARN_COLOR + "[runtime error] ${error.message.escape()}")
-    error.environment.stackTrace().forEach { location ->
+    error.environment.callTree().forEach { location ->
       println("$WARN_COLOR  $location")
     }
   }
@@ -90,15 +90,14 @@ class ReplLogger(private val debug: Boolean) : Logger {
   }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
-fun Environment.stackTrace(): List<String> = buildList {
-  var environment = this@stackTrace.also { (callSite) ->
-    add("at ${callSite.dump()}.")
+fun Environment.callTree(): List<String> = mutableListOf<String>().also { stack ->
+  var environment = this@callTree.also { (callSite) ->
+    stack.add("at ${callSite.dump()}.")
   }
 
   while (environment.enclosing != null) {
     environment = (environment.enclosing ?: continue).also { (callSite) ->
-      add("at ${callSite.dump()}.")
+      stack.add("at ${callSite.dump()}.")
     }
   }
 }

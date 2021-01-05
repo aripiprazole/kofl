@@ -48,16 +48,19 @@ sealed class Stmt {
     override fun <T> accept(visitor: Visitor<T>): T = TODO("CommentDecl shouldn't be visited yet!")
   }
 
-  data class ValDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) : Stmt() {
+  data class ValDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) :
+    Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitValDeclStmt(this)
   }
 
-  data class VarDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) : Stmt() {
+  data class VarDecl(val name: Token, val type: Token?, val value: Expr, override val line: Int) :
+    Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T = visitor.visitVarDeclStmt(this)
   }
 
   sealed class Type : Stmt() {
-    data class Record(val name: Token, val parameters: Map<Token, Token>, override val line: Int) : Type() {
+    data class Record(val name: Token, val parameters: Map<Token, Token>, override val line: Int) :
+      Type() {
       override fun <T> accept(visitor: Visitor<T>): T = visitor.visitTypeRecordStmt(this)
     }
   }

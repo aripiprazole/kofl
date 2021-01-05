@@ -6,7 +6,7 @@
 #include "heap.h"
 #include "value.h"
 
-typedef enum opcode {
+typedef enum {
     OP_RET,
     OP_CONST,
     OP_NEGATE,
@@ -21,28 +21,28 @@ typedef enum opcode {
     OP_POP,
     OP_STORE_GLOBAL,
     OP_ACCESS_GLOBAL
-} opcode_t;
+} Opcode;
 
-typedef struct chunk {
-    int count;
-    int capacity;
-    int *lines;
-    unsigned int *code;
-    value_array_t *consts;
-} chunk_t;
+typedef struct {
+  int count;
+  int capacity;
+  int *lines;
+  unsigned int *code;
+  ValueArray *consts;
+} Chunk;
 
 // opcode functions>
-opcode_t uint_to_opcode(unsigned int raw);
+Opcode UintToOpcode(unsigned int raw);
 
 // chunk functions>
-chunk_t *chunk_create(int count, int capacity);
+Chunk *ChunkCreate(int count, int capacity);
 
-void chunk_write(chunk_t *chunk, unsigned int, int line);
+void ChunkWrite(Chunk *chunk, unsigned int, int line);
 
-int chunk_write_const(chunk_t *chunk, value_t const_);
+int ChunkWriteConst(Chunk *chunk, Value const_);
 
-char *chunk_dump(chunk_t *chunk);
+char *ChunkDump(Chunk *chunk);
 
-void chunk_dispose(chunk_t *chunk);
+void ChunkDispose(Chunk *chunk);
 
 #endif //RUNTIME_CHUNK_H

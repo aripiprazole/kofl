@@ -1,16 +1,45 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
-
 package com.lorenzoog.kofl.compiler.vm
 
-import com.lorenzoog.kofl.compiler.common.backend.*
-import com.lorenzoog.kofl.compiler.vm.ir.*
+import com.lorenzoog.kofl.compiler.common.backend.AccessFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.AccessVarDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.AssignDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.BinaryDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.BlockDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.CallDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ClassDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ConstDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.GetDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.IfDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.LocalFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.LogicalDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ModuleDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.NativeDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ReturnDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.SetDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ThisDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.UnaryDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.UseDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.ValDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.VarDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.WhileDescriptor
+import com.lorenzoog.kofl.compiler.vm.ir.IrAccessVar
+import com.lorenzoog.kofl.compiler.vm.ir.IrBinary
+import com.lorenzoog.kofl.compiler.vm.ir.IrComponent
+import com.lorenzoog.kofl.compiler.vm.ir.IrConst
+import com.lorenzoog.kofl.compiler.vm.ir.IrContext
+import com.lorenzoog.kofl.compiler.vm.ir.IrVal
+import com.lorenzoog.kofl.compiler.vm.ir.IrVar
 import pw.binom.ByteBuffer
 import pw.binom.io.use
 import pw.binom.writeInt
 import pw.binom.writeUtf8Char
 
-class Compiler(private val verbose: Boolean, private val code: List<Descriptor>) : Descriptor.Visitor<IrComponent> {
-  @OptIn(ExperimentalUnsignedTypes::class)
+@ExperimentalUnsignedTypes
+class Compiler(private val verbose: Boolean, private val code: List<Descriptor>) :
+  Descriptor.Visitor<IrComponent> {
   fun compile(): ByteBuffer {
     val chunk = IrContext().let { context ->
       visitDescriptors(code).forEach { component ->

@@ -24,7 +24,12 @@ fun Any.printAvlTree(
       }
       else -> {
         value
-          ?.printAvlTree(StringBuilder(), "$childrenPrefix├── $name: ", "$childrenPrefix│   ", value)
+          ?.printAvlTree(
+            StringBuilder(),
+            "$childrenPrefix├── $name: ",
+            "$childrenPrefix│   ",
+            value
+          )
           .toString()
       }
     }
@@ -37,12 +42,20 @@ fun Any.printAvlTree(
 
 @JsName("printAvlTreeListExpr")
 @JvmName("printAvlTreeListExpr")
-fun List<Expr>.printAvlTree(buffer: StringBuilder, prefix: String = "", childrenPrefix: String = ""): String {
+fun List<Expr>.printAvlTree(
+  buffer: StringBuilder,
+  prefix: String = "",
+  childrenPrefix: String = ""
+): String {
   return joinToString { it.printAvlTree(buffer, prefix, childrenPrefix) }
 }
 
 @JsName("printAvlTreeListStmt")
 @JvmName("printAvlTreeListStmt")
-fun List<Stmt>.printAvlTree(buffer: StringBuilder, prefix: String = "", childrenPrefix: String = ""): String {
+fun List<Stmt>.printAvlTree(
+  buffer: StringBuilder,
+  prefix: String = "",
+  childrenPrefix: String = ""
+): String {
   return joinToString { it.printAvlTree(buffer, prefix, childrenPrefix) }
 }

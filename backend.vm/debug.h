@@ -3,6 +3,6 @@
 
 #include "chunk.h"
 
-void chunk_disassemble(chunk_t* chunk);
+void ChunkDisassemble(Chunk *chunk);
 
 #endif //RUNTIME_DEBUG_H
