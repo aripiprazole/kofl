@@ -2,7 +2,10 @@
 
 package com.lorenzoog.kofl.frontend.parser.lib
 
-inline fun <reified T, R> combine(vararg functions: Parser<T>, crossinline map: (List<T>) -> R): Parser<R> =
+inline fun <reified T, R> combine(
+  vararg functions: Parser<T>,
+  crossinline map: (List<T>) -> R
+): Parser<R> =
   functions.toList().combineWith(map)
 
 inline fun <reified T, R> List<Parser<T>>.combineWith(crossinline map: (List<T>) -> R): Parser<R> {
@@ -57,7 +60,10 @@ fun <T1, T2, T3, T4, R> combine(
   val result3 = func3(result2.rest).unwrapOr { return@func it.fix() }
   val result4 = func4(result3.rest).unwrapOr { return@func it.fix() }
 
-  ParseResult.Success(input.map(result1.data, result2.data, result3.data, result4.data), result4.rest)
+  ParseResult.Success(
+    input.map(result1.data, result2.data, result3.data, result4.data),
+    result4.rest
+  )
 }
 
 fun <T1, T2, T3, T4, T5, R> combine(
@@ -74,7 +80,10 @@ fun <T1, T2, T3, T4, T5, R> combine(
   val result4 = func4(result3.rest).unwrapOr { return@func it.fix() }
   val result5 = func5(result4.rest).unwrapOr { return@func it.fix() }
 
-  ParseResult.Success(input.map(result1.data, result2.data, result3.data, result4.data, result5.data), result5.rest)
+  ParseResult.Success(
+    input.map(result1.data, result2.data, result3.data, result4.data, result5.data),
+    result5.rest
+  )
 }
 
 fun <T1, T2, T3, T4, T5, T6, R> combine(
@@ -118,7 +127,15 @@ fun <T1, T2, T3, T4, T5, T6, T7, R> combine(
   val result7 = func7(result6.rest).unwrapOr { return@func it.fix() }
 
   ParseResult.Success(
-    input.map(result1.data, result2.data, result3.data, result4.data, result5.data, result6.data, result7.data),
+    input.map(
+      result1.data,
+      result2.data,
+      result3.data,
+      result4.data,
+      result5.data,
+      result6.data,
+      result7.data
+    ),
     result7.rest
   )
 }

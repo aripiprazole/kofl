@@ -23,16 +23,13 @@ class Kofl : CliktCommand() {
   }
 
   private val file
-    by argument().help("The file that will be interpreted")
-      .optional()
+    by argument().help("The file that will be interpreted").optional()
 
   private val stdlib
-    by option().help("The stdlib target")
-      .default(Platform.stdlibPath)
+    by option().help("The stdlib target").default(Platform.stdlibPath)
 
   private val debug
-    by option().flag()
-      .help("Enables the debug mode")
+    by option().flag().help("Enables the debug mode")
 
   override fun run() {
     if (file != null) {

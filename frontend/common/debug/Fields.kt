@@ -7,9 +7,10 @@ val Any.fields
   get(): Map<String, Any?> = when (this) {
     is Stmt -> fields
     is Expr -> fields
-    is List<*> -> withIndex()
-      .groupBy(keySelector = { it.index.toString() }, valueTransform = { it.value })
-      .mapValues { it.value.first() }
+    is List<*> ->
+      withIndex()
+        .groupBy(keySelector = { it.index.toString() }, valueTransform = { it.value })
+        .mapValues { it.value.first() }
     else -> mapOf()
   }
 

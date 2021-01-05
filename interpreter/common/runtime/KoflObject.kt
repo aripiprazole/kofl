@@ -1,6 +1,12 @@
+@file:Suppress("RedundantUnitExpression")
+
 package com.lorenzoog.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.common.backend.*
+import com.lorenzoog.kofl.compiler.common.backend.CallableDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.LocalFunctionDescriptor
+import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
 import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
@@ -26,15 +32,21 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
 
   sealed class Callable : KoflObject() {
     override val value get() = ::call
-    override val definition: KfType get() = KfType.Function(descriptor.parameters, descriptor.returnType)
+    override val definition: KfType
+      get() = KfType.Function(
+        descriptor.parameters,
+        descriptor.returnType
+      )
 
-    @PublishedApi
-    internal abstract val descriptor: CallableDescriptor
+    abstract val descriptor: CallableDescriptor
 
-    @PublishedApi
-    internal abstract fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment)
+    protected abstract fun call(
+      callSite: Descriptor,
+      arguments: Map<String, KoflObject>,
+      environment: Environment
+    )
 
-    inline operator fun invoke(
+    operator fun invoke(
       callSite: Descriptor,
       arguments: Map<String, KoflObject>,
       environment: Environment
@@ -48,17 +60,27 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
       throw KoflRuntimeException.MissingReturn(descriptor, environment)
     }
 
-    class Function(private val evaluator: Evaluator, override val descriptor: FunctionDescriptor) : Callable() {
-      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-        evaluator.evaluate(descriptor.body, environment.child(callSite) {
-          arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
-        })
+    class Function(private val evaluator: Evaluator, override val descriptor: FunctionDescriptor) :
+      Callable() {
+      override fun call(
+        callSite: Descriptor,
+        arguments: Map<String, KoflObject>,
+        environment: Environment
+      ) {
+        evaluator.evaluate(
+          descriptor.body,
+          environment.child(callSite) {
+            arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
+          }
+        )
       }
 
       override fun toString(): String = buildString {
-        append(descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-          "$name: $type"
-        })
+        append(
+          descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+            "$name: $type"
+          }
+        )
         append(" -> ")
         append(descriptor.returnType)
       }
@@ -68,15 +90,21 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
       private val nativeCall: KoflNativeCallable,
       override val descriptor: NativeFunctionDescriptor,
     ) : Callable() {
-      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
+      override fun call(
+        callSite: Descriptor,
+        arguments: Map<String, KoflObject>,
+        environment: Environment
+      ) {
         throw ReturnException(nativeCall(callSite, arguments, environment))
       }
 
       override fun toString(): String = buildString {
         append("@LocalNativeCall(\"${descriptor.nativeCall}\") ")
-        append(descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-          "$name: $type"
-        })
+        append(
+          descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+            "$name: $type"
+          }
+        )
         append(" -> ")
         append(descriptor.returnType)
       }
@@ -86,15 +114,21 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
       private val nativeEnvironment: NativeEnvironment,
       override val descriptor: NativeFunctionDescriptor
     ) : Callable() {
-      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
+      override fun call(
+        callSite: Descriptor,
+        arguments: Map<String, KoflObject>,
+        environment: Environment
+      ) {
         nativeEnvironment.call(descriptor.nativeCall, callSite, arguments, environment)
       }
 
       override fun toString(): String = buildString {
         append("@NativeCall(\"${descriptor.nativeCall}\") ")
-        append(descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-          "$name: $type"
-        })
+        append(
+          descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+            "$name: $type"
+          }
+        )
         append(" -> ")
         append(descriptor.returnType)
       }
@@ -104,17 +138,26 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
       private val evaluator: Evaluator,
       override val descriptor: LocalFunctionDescriptor
     ) : Callable() {
-      override fun call(callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-        evaluator.evaluate(descriptor.body, environment.child(callSite) {
-          arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
-        })
+      override fun call(
+        callSite: Descriptor,
+        arguments: Map<String, KoflObject>,
+        environment: Environment
+      ) {
+        evaluator.evaluate(
+          descriptor.body,
+          environment.child(callSite) {
+            arguments.forEach { (name, value) -> declare(name, Value.Immutable(value)) }
+          }
+        )
       }
 
       override fun toString(): String = buildString {
         append("@Local ")
-        append(descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
-          "$name: $type"
-        })
+        append(
+          descriptor.parameters.entries.joinToString(prefix = "(", postfix = ")") { (name, type) ->
+            "$name: $type"
+          }
+        )
         append(" -> ")
         append(descriptor.returnType)
       }
@@ -149,7 +192,7 @@ sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
     val Unit = KoflObject(kotlin.Unit, KfType.Unit)
 
     operator fun invoke(value: Any, type: KfType = KfType.Any): KoflObject {
-      if(value is Unit) return Unit
+      if (value is Unit) return Unit
 
       return NativeObject(value, type)
     }

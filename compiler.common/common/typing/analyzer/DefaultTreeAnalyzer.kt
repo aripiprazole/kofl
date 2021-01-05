@@ -2,8 +2,17 @@ package com.lorenzoog.kofl.compiler.common.typing.analyzer
 
 import com.lorenzoog.kofl.compiler.common.KoflCompileException
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.typing.*
-import com.lorenzoog.kofl.frontend.*
+import com.lorenzoog.kofl.compiler.common.typing.KfType
+import com.lorenzoog.kofl.compiler.common.typing.TypeScope
+import com.lorenzoog.kofl.compiler.common.typing.createClassDefinition
+import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
+import com.lorenzoog.kofl.compiler.common.typing.isNumber
+import com.lorenzoog.kofl.compiler.common.typing.match
+import com.lorenzoog.kofl.frontend.Expr
+import com.lorenzoog.kofl.frontend.Stack
+import com.lorenzoog.kofl.frontend.Stmt
+import com.lorenzoog.kofl.frontend.Token
+import com.lorenzoog.kofl.frontend.TokenType
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -11,10 +20,17 @@ import kotlin.contracts.contract
 const val MAX_STACK = 512_000
 
 private val BINARY_TOKENS = listOf(
-  TokenType.Plus, TokenType.Slash, TokenType.Minus, TokenType.Star,
-  TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual
+  TokenType.Plus,
+  TokenType.Slash,
+  TokenType.Minus,
+  TokenType.Star,
+  TokenType.Greater,
+  TokenType.GreaterEqual,
+  TokenType.Less,
+  TokenType.LessEqual
 )
 
+@ExperimentalContracts
 class DefaultTreeAnalyzer(
   private val locals: MutableMap<Descriptor, Int>,
   private val container: Stack<TypeScope>,
@@ -61,7 +77,7 @@ class DefaultTreeAnalyzer(
     if (left.isAssignableBy(KfType.Boolean) && right.isAssignableBy(KfType.Boolean))
       return KfType.Boolean
 
-    throw  KoflCompileException.UnexpectedType(left, KfType.Boolean)
+    throw KoflCompileException.UnexpectedType(left, KfType.Boolean)
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): KfType {
@@ -69,7 +85,7 @@ class DefaultTreeAnalyzer(
     val current = analyze(expr.right)
 
     if (expected != current)
-      throw  KoflCompileException.UnexpectedType(current, expected)
+      throw KoflCompileException.UnexpectedType(current, expected)
 
     return KfType.Boolean
   }
@@ -209,7 +225,11 @@ class DefaultTreeAnalyzer(
     val elseBranch = expr.elseBranch?.also { elseStmts -> scoped { visitStmts(elseStmts) } }
     val elseLast = elseBranch?.lastOrNull()
 
-    if (thenBranch.isNotEmpty() && thenLast != null && elseBranch != null && elseBranch.isNotEmpty()) {
+    if (
+      thenBranch.isNotEmpty() &&
+      thenLast != null &&
+      elseBranch != null && elseBranch.isNotEmpty()
+    ) {
       val then = analyze((thenLast as? Stmt.ExprStmt)?.expr ?: return KfType.Unit)
       val orElse = analyze((elseLast as? Stmt.ExprStmt)?.expr ?: return KfType.Unit)
 
@@ -284,14 +304,16 @@ class DefaultTreeAnalyzer(
 
   override fun findCallable(name: Expr, arguments: Map<Token?, Expr>): KfType.Callable {
     val callee = when (name) {
-      is Expr.Get -> analyze(name.receiver).functions[name.name.lexeme].orEmpty()
-        .match(arguments.values.map { analyze(it) })
-        ?: throw KoflCompileException.UnresolvedVar(name.name.lexeme)
+      is Expr.Get ->
+        analyze(name.receiver).functions[name.name.lexeme].orEmpty()
+          .match(arguments.values.map { analyze(it) })
+          ?: throw KoflCompileException.UnresolvedVar(name.name.lexeme)
 
-      is Expr.Var -> container.peek()
-        .lookupFunctionOverload(name.name.lexeme)
-        .match(arguments.values.map { analyze(it) })
-        ?: container.peek().lookup(name.name.lexeme)
+      is Expr.Var ->
+        container.peek()
+          .lookupFunctionOverload(name.name.lexeme)
+          .match(arguments.values.map { analyze(it) })
+          ?: container.peek().lookup(name.name.lexeme)
 
       else -> analyze(name)
     }
@@ -358,15 +380,14 @@ class DefaultTreeAnalyzer(
     }
   }
 
-  private inline fun findReturnTypeByToken(name: Token?): KfType {
+  private fun findReturnTypeByToken(name: Token?): KfType {
     return findTypeByNameOrElse(name.toString())
   }
 
-  private inline fun findTypeByNameOrElse(name: String): KfType {
+  private fun findTypeByNameOrElse(name: String): KfType {
     return container.peek().lookupType(name) ?: KfType.Unit
   }
 
-  @OptIn(ExperimentalContracts::class)
   private inline fun <R> scoped(body: (TypeScope) -> R): R {
     contract {
       callsInPlace(body, InvocationKind.EXACTLY_ONCE)

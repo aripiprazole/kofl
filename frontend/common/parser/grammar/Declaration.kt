@@ -5,19 +5,40 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.Stmt
 import com.lorenzoog.kofl.frontend.Token
-import com.lorenzoog.kofl.frontend.parser.lib.*
+import com.lorenzoog.kofl.frontend.parser.lib.Grammar
+import com.lorenzoog.kofl.frontend.parser.lib.Parser
+import com.lorenzoog.kofl.frontend.parser.lib.anything
+import com.lorenzoog.kofl.frontend.parser.lib.combine
+import com.lorenzoog.kofl.frontend.parser.lib.label
+import com.lorenzoog.kofl.frontend.parser.lib.many
+import com.lorenzoog.kofl.frontend.parser.lib.map
+import com.lorenzoog.kofl.frontend.parser.lib.nullable
+import com.lorenzoog.kofl.frontend.parser.lib.or
+import com.lorenzoog.kofl.frontend.parser.lib.plus
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
 internal object Declaration : Grammar<Stmt>() {
   fun handleVar(keyword: Parser<Token>): Parser<Triple<Token, Token?, Expr>> {
     val untypedVar =
-      combine(keyword, Identifier, nullable<Pair<Token, Token>>(), Equal, Func) { _, (name), _, _, expr ->
+      combine(
+        keyword,
+        Identifier,
+        nullable<Pair<Token, Token>>(),
+        Equal,
+        Func
+      ) { _, (name), _, _, expr ->
         Triple(name, null, expr)
       }
 
     val typedVar =
-      combine(keyword, Identifier, (Colon + Identifier), Equal, Func) { _, (name), (_, type), _, expr ->
+      combine(
+        keyword,
+        Identifier,
+        (Colon + Identifier),
+        Equal,
+        Func
+      ) { _, (name), (_, type), _, expr ->
         Triple(name, type.name, expr)
       }
 
@@ -27,15 +48,19 @@ internal object Declaration : Grammar<Stmt>() {
   val Type = label("type")(combine(Colon, Identifier) { _, (name) -> name })
 
   val UseDecl = label("use-decl")(
-    semicolon(combine(Keywords.Use, Identifier) { _, (moduleName) ->
-      Stmt.UseDecl(moduleName, line)
-    })
+    semicolon(
+      combine(Keywords.Use, Identifier) { _, (moduleName) ->
+        Stmt.UseDecl(moduleName, line)
+      }
+    )
   )
 
   val ModuleDecl = label("module-decl")(
-    semicolon(combine(Keywords.Module, Identifier) { _, (moduleName) ->
-      Stmt.ModuleDecl(moduleName, line)
-    })
+    semicolon(
+      combine(Keywords.Module, Identifier) { _, (moduleName) ->
+        Stmt.ModuleDecl(moduleName, line)
+      }
+    )
   )
 
   val FuncDecl = label("func-decl")(
@@ -43,9 +68,16 @@ internal object Declaration : Grammar<Stmt>() {
   )
 
   val ClassDecl = label("class-decl")(
-    semicolon(combine(Keywords.Type, Keywords.Class, Identifier, Func.Parameters) { _, _, (name), parameters ->
-      Stmt.Type.Record(name, parameters, line)
-    })
+    semicolon(
+      combine(
+        Keywords.Type,
+        Keywords.Class,
+        Identifier,
+        Func.Parameters
+      ) { _, _, (name), parameters ->
+        Stmt.Type.Record(name, parameters, line)
+      }
+    )
   )
 
   val ValDecl = label("val-decl")(
@@ -63,7 +95,11 @@ internal object Declaration : Grammar<Stmt>() {
   )
 
   val CommentDecl = label("comment-decl")(
-    MultilineCommentDecl or combine(SlashSlash, many(anything(stopIn = Enter)), Enter) { _, chars, _ ->
+    MultilineCommentDecl or combine(
+      SlashSlash,
+      many(anything(stopIn = Enter)),
+      Enter
+    ) { _, chars, _ ->
       Stmt.CommentDecl(chars.toCharArray().concatToString(), line)
     }
   )

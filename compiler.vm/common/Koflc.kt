@@ -8,18 +8,18 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
-import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
+import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
 import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.compiler.common.typing.TypeScope
 import com.lorenzoog.kofl.frontend.Parser
-import com.lorenzoog.kofl.frontend.Scanner
 import com.lorenzoog.kofl.frontend.Stack
 import pw.binom.ByteBuffer
 import pw.binom.io.file.File
 import pw.binom.io.file.write
 import pw.binom.io.use
 import pw.binom.writeByte
+import kotlin.contracts.ExperimentalContracts
 
 class Koflc : CliktCommand() {
   private val file by argument().help("The file that will be compiled")
@@ -32,7 +32,8 @@ class Koflc : CliktCommand() {
     .int()
     .default(512_000)
 
-  @OptIn(ExperimentalUnsignedTypes::class)
+  @ExperimentalUnsignedTypes
+  @ExperimentalContracts
   override fun run() {
     val file = File(file)
     val target = File(target)
@@ -47,11 +48,13 @@ class Koflc : CliktCommand() {
       defineType("Unit", KfType.Unit)
     }
 
-    val lexer = Scanner(file.readContents().decodeToString())
-    val parser = Parser(lexer.scan(), repl = true)
-    val converter = TreeDescriptorMapper(locals, Stack<TypeScope>(maxStack).also { stack ->
-      stack.push(container)
-    })
+    val parser = Parser(file.readContents().decodeToString(), repl = true)
+    val converter = TreeDescriptorMapper(
+      locals,
+      Stack<TypeScope>(maxStack).also { stack ->
+        stack.push(container)
+      }
+    )
     val compiler = Compiler(verbose, converter.compile(parser.parse()).toList())
 
     target.write(append = false).use { channel ->

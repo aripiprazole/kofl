@@ -3,7 +3,11 @@ package com.lorenzoog.kofl.interpreter.runtime
 import com.lorenzoog.kofl.compiler.common.backend.Descriptor
 import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
 
-typealias KoflNativeCallable = (callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) -> KoflObject
+typealias KoflNativeCallable = (
+  callSite: Descriptor,
+  arguments: Map<String, KoflObject>,
+  environment: Environment
+) -> KoflObject
 
 internal val EMPTY_CONSTRUCTOR: KoflNativeCallable = { _, _, _ ->
   KoflObject.Unit
@@ -20,8 +24,16 @@ class NativeEnvironment {
     }
   )
 
-  fun call(nativeCall: String, callSite: Descriptor, arguments: Map<String, KoflObject>, environment: Environment) {
-    val call = functions[nativeCall] ?: throw KoflRuntimeException.UndefinedFunction(nativeCall, environment)
+  fun call(
+    nativeCall: String,
+    callSite: Descriptor,
+    arguments: Map<String, KoflObject>,
+    environment: Environment
+  ) {
+    val call = functions[nativeCall] ?: throw KoflRuntimeException.UndefinedFunction(
+      nativeCall,
+      environment
+    )
 
     throw ReturnException(call(callSite, arguments, environment))
   }

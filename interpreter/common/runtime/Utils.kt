@@ -20,7 +20,7 @@ class ClassBuilder internal constructor(private val definition: KfType.Class) {
     constructors += function
   }
 
-  inline fun constructor(vararg parameters: Pair<String, KfType>, noinline function: KoflNativeCallable) {
+  fun constructor(vararg parameters: Pair<String, KfType>, function: KoflNativeCallable) {
     constructor(mapOf(*parameters), function)
   }
 
@@ -59,11 +59,15 @@ fun Environment.createClass(
   return koflClass
 }
 
-fun Environment.createSingleton(definition: KfType.Class, builder: ClassBuilder.() -> Unit = {}): KoflObject {
+fun Environment.createSingleton(
+  definition: KfType.Class,
+  builder: ClassBuilder.() -> Unit = {}
+): KoflObject {
   val name = definition.name ?: throw KoflCompileException.ClassMissingName(definition)
   val koflClass = createClass(definition, builder)
 
-  val createInstance = koflClass.constructors.first { callable -> callable.descriptor.parameters.isEmpty() }
+  val createInstance =
+    koflClass.constructors.first { callable -> callable.descriptor.parameters.isEmpty() }
 
   return createInstance(createInstance.descriptor, mapOf(), this).also { instance ->
     declare(name, Value.Immutable(instance))

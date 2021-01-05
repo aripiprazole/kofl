@@ -55,12 +55,13 @@ fun <T, R> Parser<T>.fold(
  * @param map functor that will map [this]
  * @return mapped parse func
  */
-infix fun <T> Parser<T>.mapErr(map: Context.(ParseResult.Error) -> ParseResult.Error): Parser<T> = { ctx ->
-  when (val result = this(ctx)) {
-    is ParseResult.Error -> ctx.map(result).fix()
-    is ParseResult.Success -> result
+infix fun <T> Parser<T>.mapErr(map: Context.(ParseResult.Error) -> ParseResult.Error): Parser<T> =
+  { ctx ->
+    when (val result = this(ctx)) {
+      is ParseResult.Error -> ctx.map(result).fix()
+      is ParseResult.Success -> result
+    }
   }
-}
 
 /**
  * Combines a parse function with other, if [this] is an [EnumParseFunc],
@@ -141,9 +142,12 @@ fun regex(type: TokenType, regex: Regex): Parser<Token> = { ctx ->
   val match = regex.findAll(ctx.input).firstOrNull()?.value
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length)
-    })
+    ParseResult.Success(
+      Token(type, match, match, line = ctx.line),
+      ctx.map {
+        it.substring(match.length)
+      }
+    )
   else
     ParseResult.Error(regex.toString(), ctx).fix()
 }
@@ -241,9 +245,12 @@ fun string(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchString()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length + 2)
-    })
+    ParseResult.Success(
+      Token(type, match, match, line = ctx.line),
+      ctx.map {
+        it.substring(match.length + 2)
+      }
+    )
   else
     ParseResult.Error(type.toString(), ctx).fix()
 }
@@ -259,9 +266,12 @@ fun identifier(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchIdentifier()
 
   if (match != null)
-    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length)
-    })
+    ParseResult.Success(
+      Token(type, match, match, line = ctx.line),
+      ctx.map {
+        it.substring(match.length)
+      }
+    )
   else
     ParseResult.Error(type.toString(), ctx).fix()
 }
@@ -277,9 +287,12 @@ fun numeric(type: TokenType): Parser<Token> = { ctx ->
   val match = ctx.input.matchNumeric()
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length)
-    })
+    ParseResult.Success(
+      Token(type, match, match, line = ctx.line),
+      ctx.map {
+        it.substring(match.length)
+      }
+    )
   else
     ParseResult.Error("identifier", ctx).fix()
 }
@@ -296,9 +309,12 @@ fun predicate(type: TokenType, predicate: StringMatcher): Parser<Token> = { ctx 
   val match = ctx.input.match(predicate)
 
   if (match.isNotEmpty())
-    ParseResult.Success(Token(type, ctx.input, ctx.input, line = ctx.line), ctx.map {
-      it.substring(match.length)
-    })
+    ParseResult.Success(
+      Token(type, ctx.input, ctx.input, line = ctx.line),
+      ctx.map {
+        it.substring(match.length)
+      }
+    )
   else
     ParseResult.Error("'$match'", ctx).fix()
 }
@@ -323,9 +339,12 @@ fun text(type: TokenType, match: Any) = text(type, match.toString())
  */
 fun text(type: TokenType, match: String): Parser<Token> = { ctx ->
   if (ctx.input.startsWith(match))
-    ParseResult.Success(Token(type, match, match, line = ctx.line), ctx.map {
-      it.substring(match.length)
-    })
+    ParseResult.Success(
+      Token(type, match, match, line = ctx.line),
+      ctx.map {
+        it.substring(match.length)
+      }
+    )
   else
     ParseResult.Error("'$match'", ctx).fix()
 }
@@ -396,7 +415,10 @@ inline fun <reified T> many(noinline parser: Parser<T>): Parser<List<T>> {
  */
 @JsName("withAnotherPlus")
 @JvmName("withAnotherPlus")
-infix operator fun <A, B> Parser<A>.plus(second: Parser<B>): Parser<Pair<A, B>> = combine(this, second) { a, b ->
+infix operator fun <A, B> Parser<A>.plus(second: Parser<B>): Parser<Pair<A, B>> = combine(
+  this,
+  second
+) { a, b ->
   a to b
 }
 
@@ -436,7 +458,8 @@ infix operator fun <A, B, C> Parser<Pair<A, B>>.plus(third: Parser<C>): Parser<T
 @JsName("withPairToTriple")
 @JvmName("withPairToTriple")
 @Deprecated("Use plus syntax instead", ReplaceWith("this + third"))
-infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> = this + third
+infix fun <A, B, C> Parser<Pair<A, B>>.with(third: Parser<C>): Parser<Triple<A, B, C>> =
+  this + third
 
 /**
  * Combines [this] with [third] into a tuple of both

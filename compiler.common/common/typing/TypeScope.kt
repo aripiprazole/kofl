@@ -9,9 +9,9 @@ data class TypeScope(
   private val functions: MutableMap<String, List<KfType.Function>> = mutableMapOf()
 ) {
   fun containsName(name: String): Boolean {
-    return types.containsKey(name)
-      || variables.containsKey(name)
-      || functions.containsKey(name)
+    return types.containsKey(name) ||
+      variables.containsKey(name) ||
+      functions.containsKey(name)
   }
 
   fun defineType(name: String, type: KfType) {

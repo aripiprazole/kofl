@@ -8,9 +8,10 @@ annotation class DescriptorBuilder
 
 sealed class Descriptor {
   interface Visitor<T> {
-    fun visitDescriptors(descriptors: Collection<Descriptor>): Collection<T> = descriptors.map { descriptor ->
-      visitDescriptor(descriptor)
-    }
+    fun visitDescriptors(descriptors: Collection<Descriptor>): Collection<T> =
+      descriptors.map { descriptor ->
+        visitDescriptor(descriptor)
+      }
 
     fun visitDescriptor(descriptor: Descriptor): T = descriptor.accept(this)
     fun visitNativeDescriptor(descriptor: NativeDescriptor): T
@@ -220,7 +221,8 @@ data class ReturnDescriptor(
 }
 
 @DescriptorBuilder
-data class BlockDescriptor(val body: Collection<Descriptor>, override val line: Int) : Descriptor() {
+data class BlockDescriptor(val body: Collection<Descriptor>, override val line: Int) :
+  Descriptor() {
   override val type: KfType
     get() = KfType.Unit
 

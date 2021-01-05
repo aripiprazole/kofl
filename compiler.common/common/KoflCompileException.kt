@@ -10,6 +10,11 @@ sealed class KoflCompileException(message: String) : KoflException("compile", me
   class MissingReturn : KoflCompileException("missing return function body")
   class AlreadyResolvedVar(name: String) : KoflCompileException("already resolved var $name")
   class InvalidType(value: Any) : KoflCompileException("invalid kofl type in $value")
-  class UnexpectedType(current: Any, expected: Any) : KoflCompileException("excepted $expected but got $current")
-  class ClassMissingName(definition: KfType.Class) : KoflCompileException("$definition missing name")
+  class UnexpectedType(current: Any, expected: Any) : KoflCompileException(
+    "excepted $expected but got $current"
+  )
+
+  class ClassMissingName(definition: KfType.Class) : KoflCompileException(
+    "$definition missing name"
+  )
 }

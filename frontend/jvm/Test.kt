@@ -1,7 +1,5 @@
 import com.lorenzoog.kofl.frontend.debug.printAvlTree
 import com.lorenzoog.kofl.frontend.parser.ParserImpl
-import com.lorenzoog.kofl.frontend.parser.grammar.Text
-import com.lorenzoog.kofl.frontend.parser.lib.parse
 
 /**
  * TODO: remove me
