@@ -82,6 +82,12 @@ data class Environment(
     return environment
   }
 
-  override fun toString(): String =
-    "Environment(callSite=$callSite, enclosing=$enclosing, functions=$functions, variables=$variables)"
+  override fun toString(): String = buildString {
+    append("Environment(")
+    append("callSite=$callSite, ")
+    append("enclosing=$enclosing, ")
+    append("functions=$functions, ")
+    append("variables=$variables")
+    append(")")
+  }
 }

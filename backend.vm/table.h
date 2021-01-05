@@ -15,16 +15,16 @@ typedef struct table {
     int count;
     size_t capacity;
     table_node_t *nodes;
-} table_t;
+} Table;
 
-table_t *table_create(size_t capacity);
+Table *table_create(size_t capacity);
 
-bool table_set(table_t *table, string_t *key, void *value);
+bool table_set(Table *table, string_t *key, void *value);
 
-bool table_remove(table_t *table, string_t *key);
+bool table_remove(Table *table, string_t *key);
 
-void *table_get(table_t *table, string_t *key);
+void *table_get(Table *table, string_t *key);
 
-void table_dispose(table_t* table);
+void table_dispose(Table* table);
 
 #endif //RUNTIME_TABLE_H

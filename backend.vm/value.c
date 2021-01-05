@@ -6,26 +6,24 @@
 #include "utils.h"
 
 // value functions>
-value_t *value_create(value_type_t type, obj_as_t obj) {
-    value_t *value = malloc(sizeof(value_t));
+Value *ValueCreate(ValueType type, ObjectValue obj) {
+  Value *value = malloc(sizeof(Value));
 
-    value->type = type;
-    value->as = obj;
+  value->type = type;
+  value->as = obj;
 
-    return value;
+  return value;
 }
 
-char *value_to_str(value_t *value) {
-    char *str = malloc(80 * sizeof(char));
+char *ValueToStr(Value *value) {
+  char *str = malloc(80 * sizeof(char));
 
-    switch (value->type) {
-        case V_TYPE_BOOL:
-            sprintf(str, "%d", value->as._bool);
-            break;
-        case V_TYPE_DOUBLE:
-            sprintf(str, "%f", value->as._double);
-            break;
-        case V_TYPE_INT:
+  switch (value->type) {
+    case V_TYPE_BOOL:sprintf(str, "%d", value->as._bool);
+      break;
+    case V_TYPE_DOUBLE:sprintf(str, "%f", value->as._double);
+      break;
+    case V_TYPE_INT:
             sprintf(str, "%d", value->as._int);
             break;
         case V_TYPE_OBJ:
@@ -39,48 +37,48 @@ char *value_to_str(value_t *value) {
     return str;
 }
 
-value_t *value_str_create(char *str) {
-    string_t* string = malloc(sizeof(string_t));
+Value *StrValueCreate(char *str) {
+  string_t *string = malloc(sizeof(string_t));
 
-    string->values = str;
-    string->length = strlen(str);
+  string->values = str;
+  string->length = strlen(str);
 
-    return value_create(V_TYPE_STR, (obj_as_t) {
-        ._obj = (object_t *) string
-    });
+  return ValueCreate(V_TYPE_STR, (ObjectValue) {
+      ._obj = (Object *) string
+  });
 }
 
 // value array functions>
-value_array_t *value_array_create(int count, int capacity) {
-    value_array_t *array = malloc(sizeof(value_array_t));
+ValueArray *ValueArrayCreate(int count, int capacity) {
+    ValueArray *array = malloc(sizeof(ValueArray));
 
     array->capacity = capacity;
-    array->count = count;
-    array->values = malloc(capacity * sizeof(value_t));
+  array->count = count;
+  array->values = malloc(capacity * sizeof(Value));
 
     return array;
 }
 
-void value_array_write(value_array_t *array, value_t value) {
+void ValueArrayWrite(ValueArray *array, Value value) {
 #ifdef VALUE_DEBUG
-    printf("value_array_write(array = UNKNOWN, value = %s)\n", value_to_str(&value));
+  printf("value_array_write(array = UNKNOWN, value = %s)\n", value_to_str(&value));
 #endif
 
-    if (array->capacity < array->count + 1) {
-        size_t old_capacity = array->capacity;
-        array->capacity = GROW_CAPACITY(array->capacity);
-        array->values = GROW_ARRAY(value_t, array->values, old_capacity, array->capacity);
-    }
+  if (array->capacity < array->count + 1) {
+    size_t old_capacity = array->capacity;
+    array->capacity = GROW_CAPACITY(array->capacity);
+    array->values = GROW_ARRAY(Value, array->values, old_capacity, array->capacity);
+  }
 
-    array->values[array->count] = value;
+  array->values[array->count] = value;
     array->count++;
 }
 
-char *value_array_dump(value_array_t *array) {
+char *ValueArrayDump(ValueArray *array) {
     char *str = malloc(80 * sizeof(char));
 
     for (size_t i = 0; i < array->capacity; ++i) {
-        sprintf(str, "%s, %s", str, value_to_str(&array->values[i]));
+        sprintf(str, "%s, %s", str, ValueToStr(&array->values[i]));
     }
 
     *str += ']';
@@ -88,7 +86,7 @@ char *value_array_dump(value_array_t *array) {
     return str;
 }
 
-void value_array_dispose(value_array_t *array) {
+void ValueArrayDispose(ValueArray *array) {
     free(array->values);
     free(array);
 }

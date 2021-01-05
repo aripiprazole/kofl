@@ -3,8 +3,17 @@ package com.lorenzoog.kofl.dslgenerator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.UNIT
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
@@ -66,13 +75,13 @@ fun main() {
         val name = ktClass.name ?: error("$ktClass should have a name!")
         val constructor = ktClass.primaryConstructor ?: error("$ktClass should have a constructor!")
 
-        set(name, TypeSpec.classBuilder(name).apply {
-          primaryConstructor(FunSpec.constructorBuilder().apply {
+        val descriptorClass = TypeSpec.classBuilder(name).apply {
+          val primaryConstructor = FunSpec.constructorBuilder().apply {
             constructor.valueParameters.forEach parameterIter@{ parameter ->
               val parameterName = parameter.name ?: error("$parameter should have a name!")
-
-              addParameter(parameterName, parameter.text
-                .split(":").getOrNull(1).let { it ?: error("parameter $parameterName should have a type!") }
+              val parameterType = parameter.text
+                .split(":").getOrNull(1)
+                .let { it ?: error("parameter $parameterName should have a type!") }
                 .let mapping@{ typeName ->
                   fun findTypeRecursive(name: String): TypeName {
                     val realName = if ("<" in name) {
@@ -84,81 +93,99 @@ fun main() {
                     val type = ClassName(findImportPackage(realName), realName)
 
                     if ("<" in name) {
-                      val parameters = name.substringAfter("<").substringBefore(">").split(",").map { it.trim() }
+                      val parameters =
+                        name.substringAfter("<").substringBefore(">").split(",").map { it.trim() }
 
-                      return type.parameterizedBy(parameters.map {
-                        findTypeRecursive(it)
-                      })
+                      return type.parameterizedBy(
+                        parameters.map {
+                          findTypeRecursive(it)
+                        }
+                      )
                     }
 
                     return type
                   }
 
                   findTypeRecursive(typeName.trim())
-                })
-            }
-          }.build())
-        }.build())
+                }
 
+              addParameter(parameterName, parameterType)
+            }
+          }.build()
+
+          primaryConstructor(primaryConstructor)
+        }
+
+        set(name, descriptorClass.build())
       }
   }
 
-  target.writeText(FileSpec.builder(currentPackage, "Builders").apply {
-    addType(
-      TypeSpec.annotationBuilder("DescriptorDsl")
-        .addAnnotation(ClassName("kotlin", "DslMarker"))
-        .build()
-    )
+  target.writeText(
+    FileSpec.builder(currentPackage, "Builders").apply {
+      addType(
+        TypeSpec.annotationBuilder("DescriptorDsl")
+          .addAnnotation(ClassName("kotlin", "DslMarker"))
+          .build()
+      )
 
-    addAnnotation(
-      AnnotationSpec.builder(Suppress::class)
-        .addMember("%S, %S", "unused", "MemberVisibilityCanBePrivate")
-        .build()
-    )
+      addAnnotation(
+        AnnotationSpec.builder(Suppress::class)
+          .addMember("%S, %S", "unused", "MemberVisibilityCanBePrivate")
+          .build()
+      )
 
-    addComment(
-      "Generated code. Please don't edit."
-    )
+      addComment(
+        "Generated code. Please don't edit."
+      )
 
-    descriptors.forEach { (name, type) ->
-      val returnType = ClassName(currentPackage, type.name ?: error("$type should have a name!"))
-      val builderClass = TypeSpec.classBuilder(name + "Builder").apply {
-        val constructor = type.primaryConstructor ?: error("A descriptor should have a primary constructor!")
+      descriptors.forEach { (name, type) ->
+        val returnType = ClassName(currentPackage, type.name ?: error("$type should have a name!"))
+        val builderClass = TypeSpec.classBuilder(name + "Builder").apply {
+          val constructor =
+            type.primaryConstructor ?: error("A descriptor should have a primary constructor!")
 
-        constructor.parameters.forEach { property ->
-          addProperty(
-            PropertySpec.builder(property.name, property.type.copy(nullable = true))
-              .initializer("null")
-              .mutable()
-              .build()
+          constructor.parameters.forEach { property ->
+            addProperty(
+              PropertySpec.builder(property.name, property.type.copy(nullable = true))
+                .initializer("null")
+                .mutable()
+                .build()
+            )
+          }
+
+          addFunction(
+            FunSpec.builder("build").apply {
+              returns(returnType)
+
+              addStatement(
+                buildString {
+                  append("return %T(")
+                  constructor.parameters.forEach { property ->
+                    append("${property.name}!!, ")
+                  }
+                  append(")")
+                },
+                returnType
+              )
+            }.build()
           )
-        }
+        }.build()
 
-        addFunction(FunSpec.builder("build").apply {
-          returns(returnType)
+        val builderType = ClassName(currentPackage, builderClass.name!!)
 
-          addStatement(buildString {
-            append("return %T(")
-            constructor.parameters.forEach { property ->
-              append("${property.name}!!, ")
-            }
-            append(")")
-          }, returnType)
-        }.build())
-      }.build()
+        addType(builderClass)
+        addFunction(
+          FunSpec.builder(name.decapitalize()).apply {
+            addModifiers(KModifier.INLINE)
+            addAnnotation(ClassName(currentPackage, "DescriptorDsl"))
 
-      val builderType = ClassName(currentPackage, builderClass.name!!)
+            returns(returnType)
 
-      addType(builderClass)
-      addFunction(FunSpec.builder(name.decapitalize()).apply {
-        addModifiers(KModifier.INLINE)
-        addAnnotation(ClassName(currentPackage, "DescriptorDsl"))
-
-        returns(returnType)
-
-        addParameter("builder", LambdaTypeName.get(builderType, returnType = UNIT))
-        addStatement("return %T().apply(builder).build()", builderType)
-      }.build())
-    }
-  }.build().toString())
+            addParameter("builder", LambdaTypeName.get(builderType, returnType = UNIT))
+            addStatement("return %T().apply(builder).build()", builderType)
+          }.build()
+        )
+      }
+    }.build().toString()
+  )
 }

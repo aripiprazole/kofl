@@ -1,8 +1,10 @@
+import com.lorenzoog.kofl.build.Dependencies
+
 plugins {
   kotlin("multiplatform")
 }
 
-group = "com.lorenzoog"
+group = "com.lorenzoog.kofl"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -36,8 +38,8 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":compiler.common"))
         implementation(project(":frontend"))
-        implementation("com.github.ajalt.clikt:clikt:3.1.0")
-        api("pw.binom.io:file:0.1.19")
+        implementation(Dependencies.Clikt.Clikt)
+        api(Dependencies.Binom.File)
       }
     }
     val commonTest by getting {

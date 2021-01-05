@@ -14,6 +14,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+@ExperimentalContracts
 class TreeDescriptorMapper(
   locals: MutableMap<Descriptor, Int>,
   private val container: Stack<TypeScope>,
@@ -83,14 +84,16 @@ class TreeDescriptorMapper(
 
     val index = overload.indexOf(type)
 
-    val arguments = mapOf(*expr.arguments.entries.mapIndexed { i, (_, expr) ->
-      val name = type.parameters.entries.toList().getOrNull(i)?.key
-        ?: throw KoflCompileException.UnresolvedParameter(i)
+    val arguments = mapOf(
+      *expr.arguments.entries.mapIndexed { i, (_, expr) ->
+        val name = type.parameters.entries.toList().getOrNull(i)?.key
+          ?: throw KoflCompileException.UnresolvedParameter(i)
 
-      val descriptor = visitExpr(expr)
+        val descriptor = visitExpr(expr)
 
-      name to descriptor
-    }.toTypedArray())
+        name to descriptor
+      }.toTypedArray()
+    )
 
     val callee = when (val callee = expr.calle) {
       is Expr.Var -> {
@@ -151,46 +154,62 @@ class TreeDescriptorMapper(
 
     container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
-    return FunctionDescriptor(indexedName, parameters, returnType, scoped { container ->
-      parameters.forEach { (name, type) ->
-        container.define(name, type)
-      }
+    return FunctionDescriptor(
+      indexedName,
+      parameters,
+      returnType,
+      scoped { container ->
+        parameters.forEach { (name, type) ->
+          container.define(name, type)
+        }
 
-      visitStmts(expr.body)
-    }, expr.line, name)
+        visitStmts(expr.body)
+      },
+      expr.line,
+      name
+    )
   }
 
   override fun visitExtensionFuncExpr(expr: Expr.ExtensionFunc): Descriptor {
     analyzer.analyze(expr)
 
     val name = expr.name.lexeme
-    val parameters = mapOf("this" to findTypeByName(expr.receiver.lexeme)) + findParametersTypes(expr.parameters)
+    val parameters = mapOf("this" to findTypeByName(expr.receiver.lexeme)) + findParametersTypes(
+      expr.parameters
+    )
     val returnType = findReturnTypeByToken(expr.returnType)
     val overload = container.peek().lookupFunctionOverload(expr.name.lexeme)
     val index = overload.indexOf(overload.match(parameters.values.toList()))
 
     container.peek().defineFunction(name, KfType.Function(parameters, returnType))
 
-    return FunctionDescriptor(name.indexed(index), parameters, returnType, scoped { container ->
-      parameters.forEach { (name, type) ->
-        container.define(name, type)
-      }
+    return FunctionDescriptor(
+      name.indexed(index),
+      parameters,
+      returnType,
+      scoped { container ->
+        parameters.forEach { (name, type) ->
+          container.define(name, type)
+        }
 
-      visitStmts(expr.body).let { body ->
-        if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KfType.Unit)
-        // add return if return is missing and return type is unit
-          body + returnDescriptor {
-            value = constDescriptor {
-              value = Unit
+        visitStmts(expr.body).let { body ->
+          if (body.filterIsInstance<ReturnDescriptor>().none() && returnType == KfType.Unit)
+          // add return if return is missing and return type is unit
+            body + returnDescriptor {
+              value = constDescriptor {
+                value = Unit
+                type = KfType.Unit
+                line = expr.line
+              }
               type = KfType.Unit
               line = expr.line
             }
-            type = KfType.Unit
-            line = expr.line
-          }
-        else body
-      }
-    }, expr.line, name)
+          else body
+        }
+      },
+      expr.line,
+      name
+    )
   }
 
   override fun visitAnonymousFuncExpr(expr: Expr.AnonymousFunc): Descriptor {
@@ -199,13 +218,18 @@ class TreeDescriptorMapper(
     val parameters = findParametersTypes(expr.parameters)
     val returnType = findReturnTypeByToken(expr.returnType)
 
-    return LocalFunctionDescriptor(parameters, returnType, scoped { container ->
-      parameters.forEach { (name, type) ->
-        container.define(name, type)
-      }
+    return LocalFunctionDescriptor(
+      parameters,
+      returnType,
+      scoped { container ->
+        parameters.forEach { (name, type) ->
+          container.define(name, type)
+        }
 
-      visitStmts(expr.body)
-    }, expr.line)
+        visitStmts(expr.body)
+      },
+      expr.line
+    )
   }
 
   override fun visitNativeFuncExpr(expr: Expr.NativeFunc): Descriptor {
@@ -228,17 +252,24 @@ class TreeDescriptorMapper(
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block): Descriptor {
-    return BlockDescriptor(scoped {
-      visitStmts(stmt.body)
-    }, stmt.line)
+    return BlockDescriptor(
+      scoped {
+        visitStmts(stmt.body)
+      },
+      stmt.line
+    )
   }
 
   override fun visitWhileStmt(stmt: Stmt.WhileStmt): Descriptor {
     val condition = visitExpr(stmt.condition)
 
-    return WhileDescriptor(condition, scoped {
-      visitStmts(stmt.body)
-    }, stmt.line)
+    return WhileDescriptor(
+      condition,
+      scoped {
+        visitStmts(stmt.body)
+      },
+      stmt.line
+    )
   }
 
   override fun visitReturnStmt(stmt: Stmt.ReturnStmt): Descriptor {
@@ -275,29 +306,28 @@ class TreeDescriptorMapper(
     return ClassDescriptor(name, inherits, parameters, stmt.line)
   }
 
-  private inline fun String.indexed(index: Int): String {
+  private fun String.indexed(index: Int): String {
     val realIndex = if (index < 0) 0 else index
 
     return "$this-$realIndex"
   }
 
-  private inline fun findReturnTypeByToken(name: Token?): KfType {
+  private fun findReturnTypeByToken(name: Token?): KfType {
     return name?.lexeme
       ?.let { typeName -> findTypeByName(typeName) }
       ?: KfType.Unit
   }
 
-  private inline fun findParametersTypes(parameters: Map<Token, Token>): Map<String, KfType> {
+  private fun findParametersTypes(parameters: Map<Token, Token>): Map<String, KfType> {
     return parameters.mapKeys { (name) -> name.lexeme }.mapValues { (_, typeName) ->
       findTypeByName(typeName.lexeme)
     }
   }
 
-  private inline fun findTypeByName(name: String): KfType {
+  private fun findTypeByName(name: String): KfType {
     return container.peek().lookupType(name) ?: throw KoflCompileException.UnresolvedVar(name)
   }
 
-  @OptIn(ExperimentalContracts::class)
   private inline fun <R> scoped(body: (TypeScope) -> R): R {
     contract {
       callsInPlace(body, InvocationKind.EXACTLY_ONCE)

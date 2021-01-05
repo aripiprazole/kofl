@@ -1,15 +1,15 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
-
 package com.lorenzoog.kofl.compiler.vm.ir
 
 import com.lorenzoog.kofl.compiler.common.typing.KfType
 import com.lorenzoog.kofl.compiler.vm.OpCode
 import com.lorenzoog.kofl.frontend.TokenType
 
+@ExperimentalUnsignedTypes
 sealed class IrComponent {
   abstract fun render(context: IrContext)
 }
 
+@ExperimentalUnsignedTypes
 class IrAccessVar(
   private val name: String,
   private val line: Int
@@ -20,6 +20,7 @@ class IrAccessVar(
   }
 }
 
+@ExperimentalUnsignedTypes
 class IrVar(
   private val name: String,
   private val value: IrComponent,
@@ -32,6 +33,7 @@ class IrVar(
   }
 }
 
+@ExperimentalUnsignedTypes
 class IrVal(
   private val name: String,
   private val value: IrComponent,
@@ -44,6 +46,7 @@ class IrVal(
   }
 }
 
+@ExperimentalUnsignedTypes
 class IrBinary(
   private val left: IrComponent,
   private val right: IrComponent,
@@ -66,6 +69,7 @@ class IrBinary(
   }
 }
 
+@ExperimentalUnsignedTypes
 class IrConst(
   private val value: Any,
   private val type: KfType,

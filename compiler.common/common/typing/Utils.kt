@@ -40,18 +40,21 @@ class ClassDefinitionBuilder @PublishedApi internal constructor(name: String? = 
   fun build(): KfType.Class = classDefinition
 }
 
-inline fun createClassDefinition(name: String, builder: ClassDefinitionBuilder.() -> Unit = {}): KfType.Class {
+inline fun createClassDefinition(
+  name: String,
+  builder: ClassDefinitionBuilder.() -> Unit = {}
+): KfType.Class {
   return ClassDefinitionBuilder(name).apply(builder).build()
 }
 
-inline fun Collection<KfType.Callable>.match(
+fun Collection<KfType.Callable>.match(
   vararg parameters: KfType,
   receiver: KfType? = null
 ): KfType.Callable? {
   return match(parameters.toList(), receiver)
 }
 
-inline fun Collection<KfType.Callable>.match(
+fun Collection<KfType.Callable>.match(
   parameters: List<KfType>,
   receiver: KfType? = null
 ): KfType.Callable? {
@@ -60,8 +63,8 @@ inline fun Collection<KfType.Callable>.match(
       parameterType.isAssignableBy(parameters.getOrNull(i))
     }
 
-    matchParameters.size == parameters.size
-      && matchParameters.size == function.parameters.size
-      && (function as? KfType.Function)?.receiver == receiver
+    matchParameters.size == parameters.size &&
+      matchParameters.size == function.parameters.size &&
+      (function as? KfType.Function)?.receiver == receiver
   }
 }

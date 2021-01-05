@@ -4,10 +4,23 @@ package com.lorenzoog.kofl.frontend.parser.grammar
 
 import com.lorenzoog.kofl.frontend.Expr
 import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.frontend.parser.lib.*
+import com.lorenzoog.kofl.frontend.parser.lib.combine
+import com.lorenzoog.kofl.frontend.parser.lib.eof
+import com.lorenzoog.kofl.frontend.parser.lib.identifier
+import com.lorenzoog.kofl.frontend.parser.lib.label
+import com.lorenzoog.kofl.frontend.parser.lib.lazied
+import com.lorenzoog.kofl.frontend.parser.lib.lexeme
+import com.lorenzoog.kofl.frontend.parser.lib.map
+import com.lorenzoog.kofl.frontend.parser.lib.numeric
+import com.lorenzoog.kofl.frontend.parser.lib.or
+import com.lorenzoog.kofl.frontend.parser.lib.regex
+import com.lorenzoog.kofl.frontend.parser.lib.string
+import com.lorenzoog.kofl.frontend.parser.lib.text
 import com.lorenzoog.kofl.frontend.unescape
 
-val Spaces = label("spaces")(regex("\\s+".toRegex()) or regex("\\r+".toRegex()) or regex("\\t+".toRegex()))
+val Spaces = label("spaces")(
+  regex("\\s+".toRegex()) or regex("\\r+".toRegex()) or regex("\\t+".toRegex())
+)
 
 val token = lexeme(label("junk")(regex("\\s*\\r*\\t*".toRegex())))
 
@@ -46,17 +59,24 @@ val EOF = eof(TokenType.Eof)
 
 val Decimal = label("decimal")(numeric())
 
-val Numeric = label("numeric")(token(Decimal) map {
-  val value = it.toIntOrNull() ?: it.toDoubleOrNull() ?: 0
+val Numeric = label("numeric")(
+  token(Decimal) map {
+    val value = it.toIntOrNull() ?: it.toDoubleOrNull() ?: 0
 
-  Expr.Literal(value, line)
-})
+    Expr.Literal(value, line)
+  }
+)
 
-val Text = label("text")(token(string(TokenType.String)).map {
-  Expr.Literal(
-    it.literal?.toString()?.unescape() ?: error("$it should not be converted to Expr.Literal if it is null"), line
-  )
-})
+val Text = label("text")(
+  token(string(TokenType.String)).map {
+    Expr.Literal(
+      it.literal?.toString()?.unescape() ?: error(
+        "$it should not be converted to Expr.Literal if it is null"
+      ),
+      line
+    )
+  }
+)
 
 val Identifier = label("identifier")(token(identifier(TokenType.Identifier))) map {
   Expr.Var(it, line)

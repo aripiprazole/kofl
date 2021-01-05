@@ -102,9 +102,11 @@ class Scanner internal constructor(private val source: String) {
   private fun scanIdentifier() {
     while (isAlphaNumeric(peek()) && !isAtEnd) advance()
 
-    addToken(RESERVED_KEYWORDS.getOrElse(source.substring(start, current)) {
-      TokenType.Identifier
-    })
+    addToken(
+      RESERVED_KEYWORDS.getOrElse(source.substring(start, current)) {
+        TokenType.Identifier
+      }
+    )
   }
 
   private fun scanMultilineComments() {

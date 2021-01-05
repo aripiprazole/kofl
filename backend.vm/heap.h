@@ -15,15 +15,15 @@ typedef struct heap {
     mem_info_t *root;
     size_t capacity;
     char *end;
-} heap_t;
+} Heap;
 
 // heap functions>
-heap_t *heap_create(size_t size);
+Heap *HeapCreate(size_t size);
 
-void *heap_alloc(heap_t *heap, size_t size);
+void *HeapAlloc(Heap *heap, size_t size);
 
-bool *heap_free(heap_t *heap, void *ptr);
+bool *HeapFree(Heap *heap, void *ptr);
 
-void heap_dispose(heap_t *heap);
+void HeapDispose(Heap *heap);
 
 #endif //RUNTIME_HEAP_H

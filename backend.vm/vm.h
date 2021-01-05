@@ -10,32 +10,32 @@
 #include "stack.h"
 #include "object.h"
 
-typedef struct flags {
-    bool verbose;
-    size_t memory;
-} flags_t;
+typedef struct {
+  bool verbose;
+  size_t memory;
+} Flags;
 
-typedef struct vm {
-    stack_t *stack;
-    chunk_t *chunk;
-    opcode_t *pc;
-    heap_t *heap;
-    table_t *globals;
-    table_t *strings;
-    object_t *objects;
-} vm_t;
+typedef struct {
+  Stack *stack;
+  Chunk *chunk;
+  Opcode *pc;
+  Heap *heap;
+  Table *globals;
+  Table *strings;
+  Object *objects;
+} Vm;
 
 typedef enum interpret_result {
-    I_RESULT_OK,
-    I_RESULT_ERROR,
-    I_NULL_POINTER
-} interpret_result_t;
+  kResultOK,
+  kResultError,
+  kResultNullPointer
+} InterpretResult;
 
 // vm functions>
-vm_t *vm_create(flags_t flags);
+Vm *VmCreate(Flags flags);
 
-interpret_result_t vm_eval(vm_t *vm, chunk_t *chunk);
+InterpretResult VmEval(Vm *vm, Chunk *chunk);
 
-void vm_dispose(vm_t *vm);
+void VmDispose(Vm *vm);
 
 #endif //RUNTIME_VM_H

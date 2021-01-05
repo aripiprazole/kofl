@@ -1,9 +1,14 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
-
 package com.lorenzoog.kofl.compiler.vm.ir
 
-import com.lorenzoog.kofl.compiler.vm.*
+import com.lorenzoog.kofl.compiler.vm.Chunk
+import com.lorenzoog.kofl.compiler.vm.DoubleValue
+import com.lorenzoog.kofl.compiler.vm.IntValue
+import com.lorenzoog.kofl.compiler.vm.OpCode
+import com.lorenzoog.kofl.compiler.vm.StringValue
+import com.lorenzoog.kofl.compiler.vm.Value
+import com.lorenzoog.kofl.compiler.vm.ValueArray
 
+@ExperimentalUnsignedTypes
 class IrContext {
   private val code = mutableListOf<UByte>()
   private val lines = mutableListOf<Int>()
@@ -35,22 +40,27 @@ class IrContext {
   }
 }
 
+@ExperimentalUnsignedTypes
 fun IrContext.makeConst(int: Int): UByte {
   return makeConst(IntValue(int))
 }
 
+@ExperimentalUnsignedTypes
 fun IrContext.makeConst(double: Double): UByte {
   return makeConst(DoubleValue(double))
 }
 
+@ExperimentalUnsignedTypes
 fun IrContext.makeConst(string: String): UByte {
   return makeConst(StringValue(string))
 }
 
+@ExperimentalUnsignedTypes
 fun IrContext.write(op: OpCode, line: Int) {
   write(op.ordinal.toUByte(), line)
 }
 
+@ExperimentalUnsignedTypes
 fun IrContext.write(op: OpCode, const: UByte, line: Int) {
   write(op, line)
   write(const, line)
