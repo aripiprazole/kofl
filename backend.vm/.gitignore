@@ -148,7 +148,7 @@ tags
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
+*.code_-workspace
 
 # End of https://www.toptal.com/developers/gitignore/api/cmake,clion,vim,vscode
 p

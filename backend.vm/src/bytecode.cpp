@@ -1,4 +1,7 @@
-#include "bytecode.h"
+#include "koflvm/bytecode.h"
+#include "koflvm/chunk.h"
+
+namespace koflvm {
 
 Value *ParseValue(const char *bytes, int i) {
   return NUM_VALUE(10);
@@ -9,7 +12,7 @@ Chunk *ParseChunk(const char *bytes) {
   char chunk_capacity = bytes[3];
   char lines_size = bytes[4];
   char consts_size = bytes[5];
-  Chunk *chunk = ChunkCreate(chunk_count, chunk_capacity);
+  auto *chunk = new Chunk(chunk_count, chunk_capacity);
 
   int code_offset = 8 + chunk_count + 1;
 
@@ -31,3 +34,5 @@ Chunk *ParseChunk(const char *bytes) {
 
   return chunk;
 }
+}
+

@@ -1,8 +1,6 @@
 #!/bin/bash
 
-[ ! -d "./runtime/build" ] && mkdir "./runtime/build"
-
-cd runtime || exit 1
+[ ! -d "./build" ] && mkdir "./build"
 
 cmake -G "Unix Makefiles" -S . -B build
 
@@ -12,4 +10,4 @@ make
 
 cd ../..
 
-echo "Success compiled kofl runtime."
+echo "Successfully compiled koflvm."
