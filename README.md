@@ -1,7 +1,7 @@
 # KOFL
 
-Kofl is a functional programming language which the runtime is made in [C/C++](https://devdocs.io/cpp), and the
-compiler totally made with [Kotlin](https://kotlinlang.org).
+Kofl is a functional programming language which the runtime is written in [C/C++](https://devdocs.io/cpp), and the
+compiler totally written with [Kotlin](https://kotlinlang.org).
 
 ```golang
 
