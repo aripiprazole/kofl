@@ -21,6 +21,10 @@ You can find the grammar file [here](frontend/grammar)
 
 ### Contributing
 
+### Commit style
+
+The project uses the commitizen style, that could be found [here](https://github.com/commitizen/cz-cli).
+
 #### Code style
 
 The following code styles is the used in the KOFL code base.
