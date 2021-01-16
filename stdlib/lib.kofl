@@ -1,5 +1,0 @@
-// package kofl;
-
-external func println(message: Any);
-
-external func print(message: Any);

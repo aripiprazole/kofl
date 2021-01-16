@@ -21,7 +21,7 @@ You can find the grammar file [here](frontend/grammar)
 
 ### Contributing
 
-### Commit style
+#### Commit style
 
 The project uses the commitizen style, that could be found [here](https://github.com/commitizen/cz-cli).
 
@@ -29,7 +29,6 @@ The project uses the commitizen style, that could be found [here](https://github
 
 The following code styles is the used in the KOFL code base.
 
-- Kotlin: [Android kotlin code style](https://developer.android.com/kotlin/style-guide)
 - C++: [Google c++ code style](https://google.github.io/styleguide/cppguide.html)
 
 ### Building
