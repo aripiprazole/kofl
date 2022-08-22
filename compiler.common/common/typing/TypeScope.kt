@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.compiler.common.typing
+package me.devgabi.kofl.compiler.common.typing
 
-import com.lorenzoog.kofl.compiler.common.KoflCompileException
+import me.devgabi.kofl.compiler.common.KoflCompileException
 
 data class TypeScope(
   private val enclosing: TypeScope? = null,

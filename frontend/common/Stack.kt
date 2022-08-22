@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
 class StackOverflowException : Error()
 class StackUnderflowException : Error()

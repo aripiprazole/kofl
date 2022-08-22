@@ -1,5 +1,5 @@
-import com.lorenzoog.kofl.frontend.debug.printAvlTree
-import com.lorenzoog.kofl.frontend.parser.ParserImpl
+import me.devgabi.kofl.frontend.debug.printAvlTree
+import me.devgabi.kofl.frontend.parser.ParserImpl
 
 /**
  * TODO: remove me

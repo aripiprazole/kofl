@@ -1,8 +1,8 @@
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
-import com.lorenzoog.kofl.frontend.parser.grammar.isAlpha
-import com.lorenzoog.kofl.frontend.parser.grammar.isAlphaNumeric
-import com.lorenzoog.kofl.frontend.parser.grammar.isDigit
+import me.devgabi.kofl.frontend.parser.grammar.isAlpha
+import me.devgabi.kofl.frontend.parser.grammar.isAlphaNumeric
+import me.devgabi.kofl.frontend.parser.grammar.isDigit
 
 typealias StringMatcher = (input: String, index: Int, current: Char) -> Boolean
 

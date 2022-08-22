@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
 import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.alloc

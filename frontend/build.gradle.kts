@@ -2,7 +2,7 @@ plugins {
   kotlin("multiplatform")
 }
 
-group = "com.lorenzoog.kofl"
+group = "me.devgabi.kofl"
 version = "1.0-SNAPSHOT"
 
 repositories {

@@ -1,8 +1,8 @@
-package com.lorenzoog.kofl.compiler.vm.ir
+package me.devgabi.kofl.compiler.vm.ir
 
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.compiler.vm.OpCode
-import com.lorenzoog.kofl.frontend.TokenType
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.vm.OpCode
+import me.devgabi.kofl.frontend.TokenType
 
 @ExperimentalUnsignedTypes
 sealed class IrComponent {

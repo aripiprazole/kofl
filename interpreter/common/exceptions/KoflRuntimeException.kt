@@ -1,9 +1,9 @@
-package com.lorenzoog.kofl.interpreter.exceptions
+package me.devgabi.kofl.interpreter.exceptions
 
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.frontend.KoflException
-import com.lorenzoog.kofl.interpreter.dump
-import com.lorenzoog.kofl.interpreter.runtime.Environment
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.frontend.KoflException
+import me.devgabi.kofl.interpreter.dump
+import me.devgabi.kofl.interpreter.runtime.Environment
 
 sealed class KoflRuntimeException(
   message: String,

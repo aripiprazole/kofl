@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument

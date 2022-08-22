@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.frontend.parser.grammar
+package me.devgabi.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.frontend.parser.lib.text
+import me.devgabi.kofl.frontend.TokenType
+import me.devgabi.kofl.frontend.parser.lib.text
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal

@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
 abstract class Grammar<T> : Parser<T> {
   protected abstract val rule: Parser<T>

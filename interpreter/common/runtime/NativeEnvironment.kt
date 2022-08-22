@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.interpreter.runtime
+package me.devgabi.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.interpreter.exceptions.KoflRuntimeException
 
 typealias KoflNativeCallable = (
   callSite: Descriptor,

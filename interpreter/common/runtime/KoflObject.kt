@@ -1,14 +1,14 @@
 @file:Suppress("RedundantUnitExpression")
 
-package com.lorenzoog.kofl.interpreter.runtime
+package me.devgabi.kofl.interpreter.runtime
 
-import com.lorenzoog.kofl.compiler.common.backend.CallableDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.LocalFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
+import me.devgabi.kofl.compiler.common.backend.CallableDescriptor
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.compiler.common.backend.FunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.LocalFunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.NativeFunctionDescriptor
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.interpreter.exceptions.KoflRuntimeException
 
 sealed class KoflObject(val fields: Map<String, Value> = mapOf()) {
   abstract val definition: KfType

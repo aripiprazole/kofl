@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
 sealed class Stmt {
   interface Visitor<T> {

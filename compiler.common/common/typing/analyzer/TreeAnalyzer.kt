@@ -1,9 +1,9 @@
-package com.lorenzoog.kofl.compiler.common.typing.analyzer
+package me.devgabi.kofl.compiler.common.typing.analyzer
 
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.Token
 
 interface TreeAnalyzer {
   fun analyze(expr: Expr): KfType

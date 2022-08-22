@@ -1,13 +1,13 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.common.KoflCompileException
-import com.lorenzoog.kofl.frontend.KoflException
-import com.lorenzoog.kofl.frontend.KoflParseException
-import com.lorenzoog.kofl.frontend.escape
-import com.lorenzoog.kofl.interpreter.exceptions.KoflRuntimeException
-import com.lorenzoog.kofl.interpreter.module.MainNotFoundException
-import com.lorenzoog.kofl.interpreter.module.MainReturnedNotInt
-import com.lorenzoog.kofl.interpreter.runtime.Environment
+import me.devgabi.kofl.compiler.common.KoflCompileException
+import me.devgabi.kofl.frontend.KoflException
+import me.devgabi.kofl.frontend.KoflParseException
+import me.devgabi.kofl.frontend.escape
+import me.devgabi.kofl.interpreter.exceptions.KoflRuntimeException
+import me.devgabi.kofl.interpreter.module.MainNotFoundException
+import me.devgabi.kofl.interpreter.module.MainReturnedNotInt
+import me.devgabi.kofl.interpreter.runtime.Environment
 
 private const val ERROR_COLOR = "\u001b[31m"
 private const val WARN_COLOR = "\u001b[33m"

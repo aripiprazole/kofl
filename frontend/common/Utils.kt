@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
 fun String?.escape(): String {
   return toString().replace("\\", "\\\\").replace("\n", "\\n").replace("\b", "\\b").replace(

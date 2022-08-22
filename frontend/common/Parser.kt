@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
-import com.lorenzoog.kofl.frontend.parser.ParserImpl
+import me.devgabi.kofl.frontend.parser.ParserImpl
 
 private const val MAX_ARGS = 32 // the limit is really 31 'cause the this is passed as a arg
 private const val MAX_ARGS_ERROR_MESSAGE = "can't have more than $MAX_ARGS arguments in a function"

@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
 expect object Platform {
   val stdlibPath: String

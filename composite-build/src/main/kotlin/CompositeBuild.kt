@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.build
+package me.devgabi.kofl.build
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

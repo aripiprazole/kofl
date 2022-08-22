@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.compiler.common.typing
+package me.devgabi.kofl.compiler.common.typing
 
 infix fun KfType.isAssignableBy(another: KfType?): Boolean {
   return this == KfType.Any || this == another

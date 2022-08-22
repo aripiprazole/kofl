@@ -1,10 +1,10 @@
-import com.lorenzoog.kofl.build.Dependencies
+import me.devgabi.kofl.build.Dependencies
 
 plugins {
   kotlin("multiplatform")
 }
 
-group = "com.lorenzoog.kofl"
+group = "me.devgabi.kofl"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -29,7 +29,7 @@ kotlin {
 
   nativeTarget.apply {
     binaries {
-      executable { entryPoint = "com.lorenzoog.kofl.interpreter.main" }
+      executable { entryPoint = "me.devgabi.kofl.interpreter.main" }
     }
   }
 

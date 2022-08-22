@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
-package com.lorenzoog.kofl.compiler.vm
+package me.devgabi.kofl.compiler.vm
 
 import pw.binom.ByteBuffer
 import pw.binom.writeDouble

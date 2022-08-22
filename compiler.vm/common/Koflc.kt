@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.compiler.vm
+package me.devgabi.kofl.compiler.vm
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -8,12 +8,12 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.compiler.common.typing.TypeScope
-import com.lorenzoog.kofl.frontend.Parser
-import com.lorenzoog.kofl.frontend.Stack
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.compiler.common.backend.TreeDescriptorMapper
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.common.typing.TypeScope
+import me.devgabi.kofl.frontend.Parser
+import me.devgabi.kofl.frontend.Stack
 import pw.binom.ByteBuffer
 import pw.binom.io.file.File
 import pw.binom.io.file.write

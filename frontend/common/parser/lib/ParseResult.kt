@@ -1,8 +1,8 @@
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
-import com.lorenzoog.kofl.frontend.escape
-import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Error
-import com.lorenzoog.kofl.frontend.parser.lib.ParseResult.Success
+import me.devgabi.kofl.frontend.escape
+import me.devgabi.kofl.frontend.parser.lib.ParseResult.Error
+import me.devgabi.kofl.frontend.parser.lib.ParseResult.Success
 
 typealias Parser<T> = (Context) -> ParseResult<T>
 

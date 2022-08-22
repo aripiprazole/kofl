@@ -1,11 +1,11 @@
-package com.lorenzoog.kofl.interpreter.module
+package me.devgabi.kofl.interpreter.module
 
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.backend.NativeDescriptor
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.compiler.common.typing.isAssignableBy
-import com.lorenzoog.kofl.interpreter.runtime.Evaluator
-import com.lorenzoog.kofl.interpreter.runtime.KoflObject
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.compiler.common.backend.NativeDescriptor
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.common.typing.isAssignableBy
+import me.devgabi.kofl.interpreter.runtime.Evaluator
+import me.devgabi.kofl.interpreter.runtime.KoflObject
 
 class MainNotFoundException internal constructor() : Error(
   "Main not found in programing, exiting 1"

@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
 enum class TokenType {
   // single-character tokens

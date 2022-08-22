@@ -1,15 +1,15 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.backend.TreeDescriptorMapper
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.compiler.common.typing.TypeScope
-import com.lorenzoog.kofl.frontend.Parser
-import com.lorenzoog.kofl.frontend.Stack
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.interpreter.module.SourceCode
-import com.lorenzoog.kofl.interpreter.runtime.Evaluator
-import com.lorenzoog.kofl.interpreter.runtime.KoflObject
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.compiler.common.backend.TreeDescriptorMapper
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.common.typing.TypeScope
+import me.devgabi.kofl.frontend.Parser
+import me.devgabi.kofl.frontend.Stack
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.interpreter.module.SourceCode
+import me.devgabi.kofl.interpreter.runtime.Evaluator
+import me.devgabi.kofl.interpreter.runtime.KoflObject
 import kotlin.contracts.ExperimentalContracts
 
 const val MAX_STACK = 16

@@ -1,9 +1,9 @@
 @file:Suppress("unused")
 
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
-import com.lorenzoog.kofl.frontend.Token
-import com.lorenzoog.kofl.frontend.TokenType
+import me.devgabi.kofl.frontend.Token
+import me.devgabi.kofl.frontend.TokenType
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 

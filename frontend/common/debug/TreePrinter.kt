@@ -1,8 +1,8 @@
-package com.lorenzoog.kofl.frontend.debug
+package me.devgabi.kofl.frontend.debug
 
-import com.lorenzoog.kofl.frontend.ENTER_CHAR
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.ENTER_CHAR
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.Stmt
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 

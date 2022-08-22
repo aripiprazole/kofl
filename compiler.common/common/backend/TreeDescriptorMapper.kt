@@ -1,15 +1,15 @@
-package com.lorenzoog.kofl.compiler.common.backend
+package me.devgabi.kofl.compiler.common.backend
 
-import com.lorenzoog.kofl.compiler.common.KoflCompileException
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.compiler.common.typing.TypeScope
-import com.lorenzoog.kofl.compiler.common.typing.analyzer.DefaultTreeAnalyzer
-import com.lorenzoog.kofl.compiler.common.typing.analyzer.TreeAnalyzer
-import com.lorenzoog.kofl.compiler.common.typing.match
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stack
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
+import me.devgabi.kofl.compiler.common.KoflCompileException
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.common.typing.TypeScope
+import me.devgabi.kofl.compiler.common.typing.analyzer.DefaultTreeAnalyzer
+import me.devgabi.kofl.compiler.common.typing.analyzer.TreeAnalyzer
+import me.devgabi.kofl.compiler.common.typing.match
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.Stack
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.Token
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

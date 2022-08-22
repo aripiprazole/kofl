@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.dslgenerator
+package me.devgabi.kofl.dslgenerator
 
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
@@ -29,7 +29,7 @@ import java.io.File
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main() {
-  val currentPackage = "com.lorenzoog.kofl.compiler.common.backend"
+  val currentPackage = "me.devgabi.kofl.compiler.common.backend"
   val file = File("compiler.common/common/backend/Descriptor.kt")
   val target = File("compiler.common/common/backend/Builders.kt")
   val excluded = listOf("MutableDescriptor", "NativeDescriptor", "CallableDescriptor")

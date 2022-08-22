@@ -1,12 +1,12 @@
-package com.lorenzoog.kofl.compiler.vm.ir
+package me.devgabi.kofl.compiler.vm.ir
 
-import com.lorenzoog.kofl.compiler.vm.Chunk
-import com.lorenzoog.kofl.compiler.vm.DoubleValue
-import com.lorenzoog.kofl.compiler.vm.IntValue
-import com.lorenzoog.kofl.compiler.vm.OpCode
-import com.lorenzoog.kofl.compiler.vm.StringValue
-import com.lorenzoog.kofl.compiler.vm.Value
-import com.lorenzoog.kofl.compiler.vm.ValueArray
+import me.devgabi.kofl.compiler.vm.Chunk
+import me.devgabi.kofl.compiler.vm.DoubleValue
+import me.devgabi.kofl.compiler.vm.IntValue
+import me.devgabi.kofl.compiler.vm.OpCode
+import me.devgabi.kofl.compiler.vm.StringValue
+import me.devgabi.kofl.compiler.vm.Value
+import me.devgabi.kofl.compiler.vm.ValueArray
 
 @ExperimentalUnsignedTypes
 class IrContext {

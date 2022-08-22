@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
-import com.lorenzoog.kofl.interpreter.module.SourceCode
+import me.devgabi.kofl.interpreter.module.SourceCode
 
 fun createEval(interpreter: Interpreter) = fun(code: String): SourceCode? {
   if (code.isEmpty()) return null

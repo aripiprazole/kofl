@@ -1,6 +1,6 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.lorenzoog.kofl.build
+package me.devgabi.kofl.build
 
 object Dependencies {
   object Binom {

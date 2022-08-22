@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
 val EmptyContext = Context(input = "", index = 0)
 

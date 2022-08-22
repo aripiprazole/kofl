@@ -1,7 +1,7 @@
-package com.lorenzoog.kofl.compiler.common
+package me.devgabi.kofl.compiler.common
 
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.frontend.KoflException
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.frontend.KoflException
 
 sealed class KoflCompileException(message: String) : KoflException("compile", message) {
   class UnresolvedVar(name: String) : KoflCompileException("variable $name not found")

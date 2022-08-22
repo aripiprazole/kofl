@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
 val interpreter = Interpreter(debug = true, repl = true)
 

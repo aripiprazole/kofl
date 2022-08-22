@@ -4,7 +4,7 @@ plugins {
   kotlin("multiplatform")
 }
 
-group = "com.lorenzoog"
+group = "me.devgabi"
 version = "1.0-SNAPSHOT"
 
 repositories {

@@ -1,6 +1,6 @@
 @file:Suppress("DuplicatedCode", "unused")
 
-package com.lorenzoog.kofl.frontend.parser.lib
+package me.devgabi.kofl.frontend.parser.lib
 
 inline fun <reified T, R> combine(
   vararg functions: Parser<T>,

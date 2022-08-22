@@ -4,7 +4,7 @@ plugins {
   id("composite-build")
 }
 
-group = "com.lorenzoog"
+group = "me.devgabi"
 version = "1.0-SNAPSHOT"
 
 repositories {

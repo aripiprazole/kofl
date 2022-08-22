@@ -1,22 +1,22 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.lorenzoog.kofl.frontend.parser.grammar
+package me.devgabi.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.TokenType
-import com.lorenzoog.kofl.frontend.parser.lib.combine
-import com.lorenzoog.kofl.frontend.parser.lib.eof
-import com.lorenzoog.kofl.frontend.parser.lib.identifier
-import com.lorenzoog.kofl.frontend.parser.lib.label
-import com.lorenzoog.kofl.frontend.parser.lib.lazied
-import com.lorenzoog.kofl.frontend.parser.lib.lexeme
-import com.lorenzoog.kofl.frontend.parser.lib.map
-import com.lorenzoog.kofl.frontend.parser.lib.numeric
-import com.lorenzoog.kofl.frontend.parser.lib.or
-import com.lorenzoog.kofl.frontend.parser.lib.regex
-import com.lorenzoog.kofl.frontend.parser.lib.string
-import com.lorenzoog.kofl.frontend.parser.lib.text
-import com.lorenzoog.kofl.frontend.unescape
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.TokenType
+import me.devgabi.kofl.frontend.parser.lib.combine
+import me.devgabi.kofl.frontend.parser.lib.eof
+import me.devgabi.kofl.frontend.parser.lib.identifier
+import me.devgabi.kofl.frontend.parser.lib.label
+import me.devgabi.kofl.frontend.parser.lib.lazied
+import me.devgabi.kofl.frontend.parser.lib.lexeme
+import me.devgabi.kofl.frontend.parser.lib.map
+import me.devgabi.kofl.frontend.parser.lib.numeric
+import me.devgabi.kofl.frontend.parser.lib.or
+import me.devgabi.kofl.frontend.parser.lib.regex
+import me.devgabi.kofl.frontend.parser.lib.string
+import me.devgabi.kofl.frontend.parser.lib.text
+import me.devgabi.kofl.frontend.unescape
 
 val Spaces = label("spaces")(
   regex("\\s+".toRegex()) or regex("\\r+".toRegex()) or regex("\\t+".toRegex())

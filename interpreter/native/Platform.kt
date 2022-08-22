@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
 import kotlinx.cinterop.toKString
 import platform.posix.getenv

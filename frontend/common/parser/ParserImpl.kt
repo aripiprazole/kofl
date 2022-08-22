@@ -1,14 +1,14 @@
-package com.lorenzoog.kofl.frontend.parser
+package me.devgabi.kofl.frontend.parser
 
-import com.lorenzoog.kofl.frontend.KoflParseException
-import com.lorenzoog.kofl.frontend.Parser
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.parser.grammar.Declaration
-import com.lorenzoog.kofl.frontend.parser.grammar.Statement
-import com.lorenzoog.kofl.frontend.parser.lib.Context
-import com.lorenzoog.kofl.frontend.parser.lib.map
-import com.lorenzoog.kofl.frontend.parser.lib.unwrap
-import com.lorenzoog.kofl.frontend.parser.lib.unwrapOr
+import me.devgabi.kofl.frontend.KoflParseException
+import me.devgabi.kofl.frontend.Parser
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.parser.grammar.Declaration
+import me.devgabi.kofl.frontend.parser.grammar.Statement
+import me.devgabi.kofl.frontend.parser.lib.Context
+import me.devgabi.kofl.frontend.parser.lib.map
+import me.devgabi.kofl.frontend.parser.lib.unwrap
+import me.devgabi.kofl.frontend.parser.lib.unwrapOr
 
 // TODO: support left recursion in the lib
 internal class ParserImpl(code: String, private val repl: Boolean) : Parser {

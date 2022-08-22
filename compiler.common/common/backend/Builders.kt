@@ -1,10 +1,10 @@
 // Generated code. Please don't edit.
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
-package com.lorenzoog.kofl.compiler.common.backend
+package me.devgabi.kofl.compiler.common.backend
 
-import com.lorenzoog.kofl.compiler.common.typing.KfType
-import com.lorenzoog.kofl.frontend.TokenType
+import me.devgabi.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.frontend.TokenType
 
 @DslMarker
 annotation class DescriptorDsl

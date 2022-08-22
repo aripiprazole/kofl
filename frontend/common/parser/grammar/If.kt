@@ -1,16 +1,16 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.lorenzoog.kofl.frontend.parser.grammar
+package me.devgabi.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.parser.lib.Grammar
-import com.lorenzoog.kofl.frontend.parser.lib.Parser
-import com.lorenzoog.kofl.frontend.parser.lib.combine
-import com.lorenzoog.kofl.frontend.parser.lib.label
-import com.lorenzoog.kofl.frontend.parser.lib.map
-import com.lorenzoog.kofl.frontend.parser.lib.optional
-import com.lorenzoog.kofl.frontend.parser.lib.or
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.parser.lib.Grammar
+import me.devgabi.kofl.frontend.parser.lib.Parser
+import me.devgabi.kofl.frontend.parser.lib.combine
+import me.devgabi.kofl.frontend.parser.lib.label
+import me.devgabi.kofl.frontend.parser.lib.map
+import me.devgabi.kofl.frontend.parser.lib.optional
+import me.devgabi.kofl.frontend.parser.lib.or
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal

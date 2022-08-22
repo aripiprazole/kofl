@@ -1,29 +1,29 @@
-package com.lorenzoog.kofl.interpreter
+package me.devgabi.kofl.interpreter
 
-import com.lorenzoog.kofl.compiler.common.backend.AccessFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.AccessVarDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.AssignDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.BinaryDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.BlockDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.CallDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.CallableDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.ClassDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.ConstDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.Descriptor
-import com.lorenzoog.kofl.compiler.common.backend.FunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.GetDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.IfDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.LocalFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.LogicalDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.NativeFunctionDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.ReturnDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.SetDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.ThisDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.UnaryDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.ValDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.VarDescriptor
-import com.lorenzoog.kofl.compiler.common.backend.WhileDescriptor
-import com.lorenzoog.kofl.compiler.common.typing.KfType
+import me.devgabi.kofl.compiler.common.backend.AccessFunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.AccessVarDescriptor
+import me.devgabi.kofl.compiler.common.backend.AssignDescriptor
+import me.devgabi.kofl.compiler.common.backend.BinaryDescriptor
+import me.devgabi.kofl.compiler.common.backend.BlockDescriptor
+import me.devgabi.kofl.compiler.common.backend.CallDescriptor
+import me.devgabi.kofl.compiler.common.backend.CallableDescriptor
+import me.devgabi.kofl.compiler.common.backend.ClassDescriptor
+import me.devgabi.kofl.compiler.common.backend.ConstDescriptor
+import me.devgabi.kofl.compiler.common.backend.Descriptor
+import me.devgabi.kofl.compiler.common.backend.FunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.GetDescriptor
+import me.devgabi.kofl.compiler.common.backend.IfDescriptor
+import me.devgabi.kofl.compiler.common.backend.LocalFunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.LogicalDescriptor
+import me.devgabi.kofl.compiler.common.backend.NativeFunctionDescriptor
+import me.devgabi.kofl.compiler.common.backend.ReturnDescriptor
+import me.devgabi.kofl.compiler.common.backend.SetDescriptor
+import me.devgabi.kofl.compiler.common.backend.ThisDescriptor
+import me.devgabi.kofl.compiler.common.backend.UnaryDescriptor
+import me.devgabi.kofl.compiler.common.backend.ValDescriptor
+import me.devgabi.kofl.compiler.common.backend.VarDescriptor
+import me.devgabi.kofl.compiler.common.backend.WhileDescriptor
+import me.devgabi.kofl.compiler.common.typing.KfType
 
 internal fun Descriptor?.dump(): String = when (this) {
   is ConstDescriptor -> dump()

@@ -2,7 +2,7 @@ plugins {
   `kotlin-dsl`
 }
 
-group = "com.lorenzoog.kofl"
+group = "me.devgabi.kofl"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -12,6 +12,6 @@ repositories {
 gradlePlugin {
   plugins.register("composite-build") {
     id = "composite-build"
-    implementationClass = "com.lorenzoog.kofl.build.CompositeBuild"
+    implementationClass = "me.devgabi.kofl.build.CompositeBuild"
   }
 }

@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
 val RESERVED_KEYWORDS = mapOf(
   "record" to TokenType.Record,

@@ -1,6 +1,6 @@
-package com.lorenzoog.kofl.frontend
+package me.devgabi.kofl.frontend
 
-import com.lorenzoog.kofl.frontend.parser.lib.Location
+import me.devgabi.kofl.frontend.parser.lib.Location
 
 abstract class KoflException(private val type: String, message: String) :
   RuntimeException(message) {

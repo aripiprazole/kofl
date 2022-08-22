@@ -1,20 +1,20 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.lorenzoog.kofl.frontend.parser.grammar
+package me.devgabi.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.Expr
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.Token
-import com.lorenzoog.kofl.frontend.parser.lib.Grammar
-import com.lorenzoog.kofl.frontend.parser.lib.Parser
-import com.lorenzoog.kofl.frontend.parser.lib.anything
-import com.lorenzoog.kofl.frontend.parser.lib.combine
-import com.lorenzoog.kofl.frontend.parser.lib.label
-import com.lorenzoog.kofl.frontend.parser.lib.many
-import com.lorenzoog.kofl.frontend.parser.lib.map
-import com.lorenzoog.kofl.frontend.parser.lib.nullable
-import com.lorenzoog.kofl.frontend.parser.lib.or
-import com.lorenzoog.kofl.frontend.parser.lib.plus
+import me.devgabi.kofl.frontend.Expr
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.Token
+import me.devgabi.kofl.frontend.parser.lib.Grammar
+import me.devgabi.kofl.frontend.parser.lib.Parser
+import me.devgabi.kofl.frontend.parser.lib.anything
+import me.devgabi.kofl.frontend.parser.lib.combine
+import me.devgabi.kofl.frontend.parser.lib.label
+import me.devgabi.kofl.frontend.parser.lib.many
+import me.devgabi.kofl.frontend.parser.lib.map
+import me.devgabi.kofl.frontend.parser.lib.nullable
+import me.devgabi.kofl.frontend.parser.lib.or
+import me.devgabi.kofl.frontend.parser.lib.plus
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal

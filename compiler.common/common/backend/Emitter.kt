@@ -1,4 +1,4 @@
-package com.lorenzoog.kofl.compiler.common.backend
+package me.devgabi.kofl.compiler.common.backend
 
 class Emitter {
   private val compiled = mutableListOf<Descriptor>()

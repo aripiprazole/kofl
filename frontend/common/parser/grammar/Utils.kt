@@ -1,13 +1,13 @@
-package com.lorenzoog.kofl.frontend.parser.grammar
+package me.devgabi.kofl.frontend.parser.grammar
 
-import com.lorenzoog.kofl.frontend.Stmt
-import com.lorenzoog.kofl.frontend.parser.lib.Parser
-import com.lorenzoog.kofl.frontend.parser.lib.combine
-import com.lorenzoog.kofl.frontend.parser.lib.label
-import com.lorenzoog.kofl.frontend.parser.lib.lazied
-import com.lorenzoog.kofl.frontend.parser.lib.many
-import com.lorenzoog.kofl.frontend.parser.lib.or
-import com.lorenzoog.kofl.frontend.parser.lib.plus
+import me.devgabi.kofl.frontend.Stmt
+import me.devgabi.kofl.frontend.parser.lib.Parser
+import me.devgabi.kofl.frontend.parser.lib.combine
+import me.devgabi.kofl.frontend.parser.lib.label
+import me.devgabi.kofl.frontend.parser.lib.lazied
+import me.devgabi.kofl.frontend.parser.lib.many
+import me.devgabi.kofl.frontend.parser.lib.or
+import me.devgabi.kofl.frontend.parser.lib.plus
 
 val Block = label("block")(
   combine(LeftBrace, many(lazied { Statement }), RightBrace) { _, body, _ ->
